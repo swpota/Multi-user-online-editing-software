@@ -40,3 +40,59 @@
 .read-the-docs {
   color: #888;
 }
+
+.button-like {
+  display: inline-block;
+  padding: 8px 16px;
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  text-decoration: none;
+  color: #333;
+  font-weight: bold;
+}
+
+.button-like:hover {
+  background-color: #e0e0e0;
+}
+
+.ql-cursor {
+  position: absolute;
+  border-left: 1px solid;
+  height: 1em;
+  margin-left: -1px;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.ql-cursor.hidden {
+  display: none;
+}
+
+.ql-cursor-flag {
+  position: absolute;
+  top: -1.05em;
+  margin-left: -1px;
+  white-space: nowrap;
+  user-select: none;
+  pointer-events: none;
+  padding: 2px 4px;
+  font-size: 0.75em;
+  color: #fff;
+  border-radius: 3px;
+}
+
+.ql-cursor-flag.hidden {
+  display: none;
+}
+
+.ql-cursor-selections {
+  position: absolute;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.ql-cursor-selection-block {
+  position: absolute;
+  opacity: 0.3;
+}

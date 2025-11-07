@@ -1,8 +1,9 @@
 import React, { useState } from "react";
-import axios from "axios";
+import { Link } from "react-router-dom";
+import api from "../api"; // <-- 1. (核心修复) 导入我们统一的 api 实例，而不是原始的 axios
 
 function Login({ onLoginSuccess }) {
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
 
@@ -11,36 +12,28 @@ function Login({ onLoginSuccess }) {
     setMessage("");
 
     try {
-      // 向后端登录API发送请求
-      const response = await axios.post(
-        "http://localhost:5000/api/auth/login",
-        {
-          email: email,
-          password: password,
-        }
-      );
+      if (!identifier) {
+        setMessage("请输入邮箱或手机号");
+        return;
+      }
 
-      // --- 关键部分：处理成功的响应 ---
+      const response = await api.post("/auth/login", {
+        identifier,
+        password,
+      });
 
-      // 1. 从后端响应中获取令牌
-      const token = response.data.token;
+      const { token, user } = response.data;
 
-      // 2. 将令牌存储到 localStorage
+      // --- 3. (核心修复) 只负责存储 token，不再手动操作任何 headers ---
       localStorage.setItem("authToken", token);
 
-      // 3. 更新axios的默认请求头，之后的所有请求都会自动带上这个token
-      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      // 4. 通知 App 组件登录成功
+      onLoginSuccess(user);
 
-      // 4. 登录成功后，调用这个函数，将用户信息传递给 App 组件
-      onLoginSuccess(response.data.user);
-
-      // 5. 显示成功消息
-      setMessage(`登录成功! 欢迎回来, ${response.data.user.email}`);
+      const displayName = user.full_name || user.email || user.phone || "用户";
+      setMessage(`登录成功! 欢迎回来, ${displayName}`);
     } catch (error) {
-      // 登录失败，清除可能存在的旧token
       localStorage.removeItem("authToken");
-      delete axios.defaults.headers.common["Authorization"];
-
       if (error.response) {
         setMessage(`登录失败: ${error.response.data.message}`);
       } else {
@@ -55,11 +48,12 @@ function Login({ onLoginSuccess }) {
       <h2>用户登录</h2>
       <form onSubmit={handleSubmit}>
         <div>
-          <label>邮箱:</label>
+          <label>账号 (邮箱或手机号):</label>
           <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            type="text"
+            value={identifier}
+            onChange={(e) => setIdentifier(e.target.value)}
+            placeholder="name@example.com 或 13800001234"
             required
           />
         </div>
@@ -75,6 +69,10 @@ function Login({ onLoginSuccess }) {
         <button type="submit">登录</button>
       </form>
       {message && <p>{message}</p>}
+      {/* --- (新增) 添加忘记密码链接 --- */}
+      <div style={{ marginTop: "1rem" }}>
+        <Link to="/forgot-password">忘记密码？</Link>
+      </div>
     </div>
   );
 }

@@ -96,3 +96,18 @@
   position: absolute;
   opacity: 0.3;
 }
+
+/* frontend/src/App.css */
+.header-user-section {
+  display: flex;
+  align-items: center;
+  gap: 1rem; /* 在按钮和头像之间增加一些间距 */
+}
+
+.header-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover; /* 确保图片不变形 */
+  border: 2px solid #fff; /* (可选) 添加一个白色边框 */
+}

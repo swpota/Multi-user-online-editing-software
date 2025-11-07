@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import { Link } from "react-router-dom";
+import api from "../api";
 
 function Dashboard({ user }) {
   const [documents, setDocuments] = useState([]);
@@ -13,7 +13,7 @@ function Dashboard({ user }) {
       try {
         setLoading(true);
         // 调用我们刚刚在后端创建的 GET /api/documents 接口
-        const response = await axios.get("/api/documents");
+        const response = await api.get("/documents");
         setDocuments(response.data);
         setError("");
       } catch (err) {
@@ -31,9 +31,7 @@ function Dashboard({ user }) {
   const handleCreateDocument = async () => {
     try {
       // 调用我们创建的 POST /api/documents 接口
-      const response = await axios.post("/api/documents", {
-        title: "新的文档", // 你可以提供一个默认标题
-      });
+      const response = await api.post("/documents", { title: "新的文档" });
 
       // 创建成功后，将新文档添加到现有列表的顶部，立即更新UI
       setDocuments([response.data, ...documents]);
@@ -51,7 +49,7 @@ function Dashboard({ user }) {
     // 弹窗确认，防止误删
     if (window.confirm("你确定要永久删除这个文档吗？")) {
       try {
-        await axios.delete(`/api/documents/${documentId}`);
+        await api.delete(`/documents/${documentId}`);
 
         // 如果删除成功，从前端的 state 中过滤掉这个文档，实现UI立即更新
         setDocuments(documents.filter((doc) => doc.id !== documentId));
@@ -63,19 +61,51 @@ function Dashboard({ user }) {
   };
 
   return (
-    <div>
-      <h2>仪表盘</h2>
-      <p>欢迎回来, {user.email}!</p>
+    <div style={{ padding: "2rem" }}>
+      {/* --- (新增) 标题栏 --- */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: "1rem",
+        }}
+      >
+        <h2>仪表盘</h2>
+        <div>
+          {/* --- (新增) 只有当用户角色为 'admin' 时，才显示这个链接 --- */}
+          {user && user.role === "admin" && (
+            <Link
+              to="/admin"
+              style={{ marginRight: "1rem", textDecoration: "none" }}
+              className="button-like"
+            >
+              后台管理
+            </Link>
+          )}
+          {/* --- (新增) 指向个人资料页面的链接 --- */}
+          <Link
+            to="/profile"
+            style={{ marginRight: "1rem", textDecoration: "none" }}
+            className="button-like"
+          >
+            个人资料
+          </Link>
+          {/* 你可能还有一个登出按钮在这里，可以一起放进来 */}
+        </div>
+      </div>
+
+      <p>欢迎回来, {user.full_name || user.email || user.phone}!</p>
 
       <button onClick={handleCreateDocument}>+ 创建新文档</button>
 
-      <hr />
+      <hr style={{ margin: "2rem 0" }} />
 
       <h3>我的文档</h3>
       {loading && <p>正在加载文档...</p>}
       {error && <p style={{ color: "red" }}>{error}</p>}
 
-      {/* 文档列表 */}
+      {/* 文档列表 (保持不变) */}
       {!loading && !error && (
         <ul style={{ listStyle: "none", padding: 0 }}>
           {documents.length > 0 ? (

@@ -5,7 +5,7 @@ const { Pool } = require("pg");
 const bcrypt = require("bcryptjs");
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
-
+const pool = require("./db");
 // --- (新增) 引入 http 和 socket.io ---
 const http = require("http");
 const { Server } = require("socket.io");
@@ -13,6 +13,9 @@ const { Server } = require("socket.io");
 
 const { protect } = require("./middleware/authMiddleware");
 const documentRoutes = require("./routes/documentRoutes");
+const userRoutes = require("./routes/userRoutes");
+const adminRoutes = require("./routes/adminRoutes");
+const crypto = require("crypto");
 
 // 初始化 Express 应用
 const app = express();
@@ -39,36 +42,90 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-// 数据库连接池配置
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-});
-
 // --- API 路由定义 ---
 
 // 1. 用户注册路由
 app.post("/api/auth/register", async (req, res) => {
-  const { email, password } = req.body;
+  const {
+    email,
+    phone,
+    password,
+    fullName,
+    contactEmail,
+    contactPhone,
+  } = req.body;
 
-  if (!email || !password) {
-    return res.status(400).json({ message: "邮箱和密码不能为空" });
+  const normalizedEmail = email ? email.trim().toLowerCase() : null;
+  const normalizedPhone = phone ? phone.trim() : null;
+
+  if ((!normalizedEmail && !normalizedPhone) || !password) {
+    return res
+      .status(400)
+      .json({ message: "注册失败：至少提供邮箱或手机号，并设置密码" });
+  }
+
+  if (password.length < 6) {
+    return res.status(400).json({ message: "密码长度不能少于 6 位" });
   }
 
   try {
-    const userExists = await pool.query(
-      "SELECT * FROM users WHERE email = $1",
-      [email]
-    );
-    if (userExists.rows.length > 0) {
-      return res.status(409).json({ message: "该邮箱已被注册" });
+    if (normalizedEmail) {
+      const emailExists = await pool.query(
+        "SELECT 1 FROM users WHERE email = $1",
+        [normalizedEmail]
+      );
+      if (emailExists.rows.length > 0) {
+        return res.status(409).json({ message: "该邮箱已被注册" });
+      }
+    }
+
+    if (normalizedPhone) {
+      const phoneExists = await pool.query(
+        "SELECT 1 FROM users WHERE phone = $1",
+        [normalizedPhone]
+      );
+      if (phoneExists.rows.length > 0) {
+        return res.status(409).json({ message: "该手机号已被注册" });
+      }
     }
 
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(password, salt);
 
+    const preferredContactEmail = contactEmail
+      ? contactEmail.trim().toLowerCase()
+      : normalizedEmail;
+    const preferredContactPhone = contactPhone
+      ? contactPhone.trim()
+      : normalizedPhone;
+
     const newUser = await pool.query(
-      "INSERT INTO users (email, password_hash) VALUES ($1, $2) RETURNING id, email, created_at",
-      [email, passwordHash]
+      `INSERT INTO users (email,
+                          phone,
+                          password_hash,
+                          role,
+                          full_name,
+                          contact_email,
+                          contact_phone)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
+     RETURNING id,
+               email,
+               phone,
+               role,
+               avatar_url,
+               full_name,
+               contact_email,
+               contact_phone,
+               created_at`,
+      [
+        normalizedEmail,
+        normalizedPhone,
+        passwordHash,
+        "editor",
+        fullName ? fullName.trim() : null,
+        preferredContactEmail,
+        preferredContactPhone,
+      ]
     );
 
     res.status(201).json({
@@ -83,45 +140,66 @@ app.post("/api/auth/register", async (req, res) => {
 
 // 2. 用户登录路由
 app.post("/api/auth/login", async (req, res) => {
-  const { email, password } = req.body;
+  const { identifier, password } = req.body;
 
-  if (!email || !password) {
-    return res.status(400).json({ message: "邮箱和密码不能为空" });
+  const normalizedIdentifier = identifier ? identifier.trim() : "";
+
+  if (!normalizedIdentifier || !password) {
+    return res
+      .status(400)
+      .json({ message: "登录失败：请输入邮箱/手机号和密码" });
   }
 
   try {
-    const result = await pool.query("SELECT * FROM users WHERE email = $1", [
-      email,
-    ]);
+    const isEmail = normalizedIdentifier.includes("@");
+
+    const result = await pool.query(
+      `SELECT id,
+              email,
+              phone,
+              role,
+              avatar_url,
+              password_hash,
+              full_name,
+              contact_email,
+              contact_phone,
+              created_at
+         FROM users
+        WHERE ${isEmail ? "LOWER(email) = $1" : "phone = $1"}`,
+      [isEmail ? normalizedIdentifier.toLowerCase() : normalizedIdentifier]
+    );
+
     const user = result.rows[0];
 
     if (!user) {
-      return res.status(401).json({ message: "认证失败：无效的邮箱或密码" });
+      return res
+        .status(401)
+        .json({ message: "认证失败：账号或密码不正确" });
     }
 
     const isMatch = await bcrypt.compare(password, user.password_hash);
 
     if (!isMatch) {
-      return res.status(401).json({ message: "认证失败：无效的邮箱或密码" });
+      return res
+        .status(401)
+        .json({ message: "认证失败：账号或密码不正确" });
     }
 
-    const payload = {
-      userId: user.id,
-      email: user.email,
-    };
+    const token = jwt.sign(
+      {
+        id: user.id,
+        role: user.role,
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
 
-    const token = jwt.sign(payload, process.env.JWT_SECRET, {
-      expiresIn: "1h",
-    });
+    const { password_hash, ...safeUser } = user;
 
     res.status(200).json({
       message: "登录成功",
-      token: token,
-      user: {
-        id: user.id,
-        email: user.email,
-        created_at: user.created_at,
-      },
+      token,
+      user: safeUser,
     });
   } catch (error) {
     console.error("登录过程中发生错误:", error);
@@ -129,14 +207,137 @@ app.post("/api/auth/login", async (req, res) => {
   }
 });
 
-// 3. 受保护的用户信息路由
-app.get("/api/users/profile", protect, (req, res) => {
-  res.status(200).json({
-    message: "成功获取用户个人信息",
-    user: req.user,
-  });
+// --- (新增) 3. 请求密码重置路由 ---
+app.post("/api/auth/request-password-reset", async (req, res) => {
+  const { identifier } = req.body;
+
+  const normalizedIdentifier = identifier ? identifier.trim() : "";
+
+  if (!normalizedIdentifier) {
+    return res.status(400).json({ message: "请输入邮箱或手机号" });
+  }
+
+  try {
+    const isEmail = normalizedIdentifier.includes("@");
+    const userResult = await pool.query(
+      `SELECT id,
+              email,
+              phone,
+              contact_email
+         FROM users
+        WHERE ${isEmail ? "LOWER(email) = $1" : "phone = $1"}`,
+      [isEmail ? normalizedIdentifier.toLowerCase() : normalizedIdentifier]
+    );
+    const user = userResult.rows[0];
+
+    // 安全性：即使找不到用户，也返回一个成功的消息
+    if (!user) {
+      return res.status(200).json({
+        message: "如果该账号存在，一封密码重置通知已发送",
+      });
+    }
+
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    const expires = new Date(Date.now() + 3600000);
+
+    await pool.query(
+      "UPDATE users SET reset_password_token = $1, reset_password_expires = $2 WHERE id = $3",
+      [resetToken, expires, user.id]
+    );
+
+    const resetUrl = `http://localhost:5173/reset-password/${resetToken}`;
+    const recipientEmail = user.email || user.contact_email || "<未设置邮箱>";
+
+    console.log("--- 模拟发送密码重置邮件 ---");
+    console.log(`收件人: ${recipientEmail}`);
+    console.log(`重置链接: ${resetUrl}`);
+    console.log("--------------------------");
+
+    res.status(200).json({
+      message: "如果该账号存在，一封密码重置通知已发送",
+    });
+  } catch (error) {
+    console.error("请求密码重置时出错:", error);
+    res.status(500).json({ message: "服务器内部错误" });
+  }
 });
 
+// --- (新增) 4. 重置密码路由 ---
+app.post("/api/auth/reset-password", async (req, res) => {
+  const { token, newPassword } = req.body;
+
+  if (!token || !newPassword) {
+    return res.status(400).json({ message: "令牌和新密码不能为空" });
+  }
+
+  try {
+    // 1. 查找用户，同时验证 token 是否匹配且未过期
+    // a. token 必须与数据库中的完全一致
+    // b. reset_password_expires 必须是未来的时间 (大于 NOW())
+    const userResult = await pool.query(
+      "SELECT * FROM users WHERE reset_password_token = $1 AND reset_password_expires > NOW()",
+      [token]
+    );
+
+    const user = userResult.rows[0];
+
+    if (!user) {
+      // 如果找不到，说明 token 无效或已过期
+      return res.status(400).json({ message: "密码重置令牌无效或已过期" });
+    }
+
+    // 2. 将新密码哈希化
+    const salt = await bcrypt.genSalt(10);
+    const passwordHash = await bcrypt.hash(newPassword, salt);
+
+    // 3. 更新用户密码
+    await pool.query("UPDATE users SET password_hash = $1 WHERE id = $2", [
+      passwordHash,
+      user.id,
+    ]);
+
+    // 4. (重要安全步骤) 清除已使用的重置令牌，防止重复使用
+    await pool.query(
+      "UPDATE users SET reset_password_token = NULL, reset_password_expires = NULL WHERE id = $1",
+      [user.id]
+    );
+
+    res.status(200).json({ message: "密码已成功重置" });
+  } catch (error) {
+    console.error("重置密码时出错:", error);
+    res.status(500).json({ message: "服务器内部错误" });
+  }
+});
+
+// --- (新增) 用户搜索 API ---
+app.get("/api/users/search", protect, async (req, res) => {
+  try {
+    const { q } = req.query;
+    if (!q) {
+      return res.json([]);
+    }
+
+    // 使用 ILIKE 进行不区分大小写的模糊搜索，并排除请求者自己
+    const users = await pool.query(
+      "SELECT id, email FROM users WHERE email ILIKE $1 AND id != $2 LIMIT 5",
+      [`%${q}%`, req.user.id]
+    );
+
+    res.json(users.rows);
+  } catch (error) {
+    console.error("搜索用户失败:", error);
+    res.status(500).json({ message: "服务器内部错误" });
+  }
+});
+
+// --- (新增) 配置静态文件服务 ---
+// 这使得可以通过 http://localhost:5000/avatars/filename.png 这样的URL访问图片
+app.use(express.static("public"));
+
+app.use("/api/admin", adminRoutes);
+
+// 3. --- 挂载用户路由 ---
+app.use("/api/users", userRoutes);
 // 4. --- 挂载文档路由 ---
 app.use("/api/documents", documentRoutes);
 
@@ -177,21 +378,6 @@ io.on("connection", (socket) => {
   socket.on("documentChange", (data) => {
     const { documentId, delta } = data;
     socket.to(documentId).emit("receiveChange", delta);
-  });
-
-  // 3. 当一个文档被保存时 (无变化)
-  socket.on("saveDocument", async (data) => {
-    try {
-      const { documentId, content } = data;
-      await pool.query(
-        "UPDATE documents SET content = $1, updated_at = NOW() WHERE id = $2",
-        [content, documentId]
-      );
-      socket.emit("documentSaved", "已保存");
-    } catch (error) {
-      console.error("保存文档时出错:", error);
-      socket.emit("saveError", "保存失败");
-    }
   });
 
   // 新增：4. 当用户光标位置或选择范围变化时

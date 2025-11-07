@@ -1,39 +1,54 @@
-import React, { useState } from 'react';
-import axios from 'axios';
+import React, { useState } from "react";
+import api from "../api";
 
 function Register() {
-  // 使用 useState 来管理表单输入的值
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  // 用于向用户显示消息
-  const [message, setMessage] = useState('');
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [contactEmail, setContactEmail] = useState("");
+  const [contactPhone, setContactPhone] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [message, setMessage] = useState("");
 
-  // 处理表单提交的函数
   const handleSubmit = async (e) => {
-    e.preventDefault(); // 阻止表单默认的刷新页面的行为
-    setMessage(''); // 清空上一条消息
+    e.preventDefault();
+    setMessage("");
+
+    if (!email && !phone) {
+      setMessage("请至少填写邮箱或手机号");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setMessage("两次输入的密码不一致");
+      return;
+    }
 
     try {
-      // 向后端API发送POST请求
-      const response = await axios.post('http://localhost:5000/api/auth/register', {
-        email: email,
-        password: password,
+      const response = await api.post("/auth/register", {
+        email: email || null,
+        phone: phone || null,
+        password,
+        fullName: fullName || null,
+        contactEmail: contactEmail || null,
+        contactPhone: contactPhone || null,
       });
-
-      // 根据后端的响应设置成功消息
       setMessage(`注册成功! 用户ID: ${response.data.user.id}`);
-      // 可以在这里做一些跳转页面的操作
-
+      setEmail("");
+      setPhone("");
+      setFullName("");
+      setContactEmail("");
+      setContactPhone("");
+      setPassword("");
+      setConfirmPassword("");
     } catch (error) {
-      // 如果请求失败，显示错误信息
       if (error.response) {
-        // 后端返回了具体的错误信息 (例如: '该邮箱已被注册')
         setMessage(`注册失败: ${error.response.data.message}`);
       } else {
-        // 网络错误等其他问题
-        setMessage('注册失败，请检查网络连接或联系管理员');
+        setMessage("注册失败，请检查网络连接或联系管理员");
       }
-      console.error('注册出错:', error);
+      console.error("注册出错:", error);
     }
   };
 
@@ -42,12 +57,48 @@ function Register() {
       <h2>用户注册</h2>
       <form onSubmit={handleSubmit}>
         <div>
-          <label>邮箱:</label>
+          <label>邮箱 (可选):</label>
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            required
+            placeholder="name@example.com"
+          />
+        </div>
+        <div>
+          <label>手机号 (可选):</label>
+          <input
+            type="tel"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            placeholder="例如: 13800001234"
+          />
+        </div>
+        <div>
+          <label>姓名 (可选):</label>
+          <input
+            type="text"
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+            placeholder="团队成员姓名"
+          />
+        </div>
+        <div>
+          <label>联系邮箱 (可选):</label>
+          <input
+            type="email"
+            value={contactEmail}
+            onChange={(e) => setContactEmail(e.target.value)}
+            placeholder="接收通知的邮箱"
+          />
+        </div>
+        <div>
+          <label>联系电话 (可选):</label>
+          <input
+            type="tel"
+            value={contactPhone}
+            onChange={(e) => setContactPhone(e.target.value)}
+            placeholder="接收通知的电话"
           />
         </div>
         <div>
@@ -57,11 +108,21 @@ function Register() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
+            minLength={6}
+          />
+        </div>
+        <div>
+          <label>确认密码:</label>
+          <input
+            type="password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            required
+            minLength={6}
           />
         </div>
         <button type="submit">注册</button>
       </form>
-      {/* 显示来自后端的消息 */}
       {message && <p>{message}</p>}
     </div>
   );

@@ -10,13 +10,19 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "archiver": "^7.0.1",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",
+    "diff-match-patch": "^1.0.5",
+    "docx": "^9.5.1",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
+    "marked": "^17.0.0",
     "multer": "^2.0.2",
+    "pdfkit": "^0.17.2",
     "pg": "^8.16.3",
-    "socket.io": "^4.8.1"
+    "socket.io": "^4.8.1",
+    "turndown": "^7.2.2"
   }
 }

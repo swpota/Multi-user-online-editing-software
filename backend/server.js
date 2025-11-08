@@ -338,8 +338,8 @@ app.use("/api/admin", adminRoutes);
 
 // 3. --- 挂载用户路由 ---
 app.use("/api/users", userRoutes);
-// 4. --- 挂载文档路由 ---
-app.use("/api/documents", documentRoutes);
+// 4. --- 挂载文档路由（传入 io 实例） ---
+app.use("/api/documents", documentRoutes(io));
 
 // --- (修改) WebSocket 实时协作逻辑 ---
 io.on("connection", (socket) => {
@@ -378,6 +378,14 @@ io.on("connection", (socket) => {
   socket.on("documentChange", (data) => {
     const { documentId, delta } = data;
     socket.to(documentId).emit("receiveChange", delta);
+  });
+
+  socket.on("documentMetadataChange", (data) => {
+    const { documentId, updates } = data;
+    if (!documentId || !updates || typeof updates !== "object") {
+      return;
+    }
+    socket.to(documentId).emit("receiveMetadata", updates);
   });
 
   // 新增：4. 当用户光标位置或选择范围变化时

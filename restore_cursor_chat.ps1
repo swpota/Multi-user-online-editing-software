@@ -88,3 +88,4 @@ Write-Host "提示: 在 Cursor 中按 Alt+Ctrl+' 可以打开聊天历史面板"
 
 
 
+

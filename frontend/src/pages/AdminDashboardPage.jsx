@@ -33,7 +33,6 @@ const AdminDashboardPage = ({ user: loggedInUser }) => {
       const response = await api.put(`/admin/users/${userId}/role`, {
         role: newRole,
       });
-      // 更新前端 state 中的用户列表，以立即反映变化
       setUsers(
         users.map((user) => (user.id === userId ? response.data : user))
       );
@@ -43,99 +42,416 @@ const AdminDashboardPage = ({ user: loggedInUser }) => {
   };
 
   return (
-    <div style={{ padding: "2rem" }}>
+    <div
+      style={{
+        minHeight: "calc(100vh - 64px)",
+        backgroundColor: "#f5f5f5",
+        padding: "24px",
+      }}
+    >
       <div
         style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
+          maxWidth: "1400px",
+          margin: "0 auto",
+          backgroundColor: "#fff",
+          borderRadius: "8px",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+          overflow: "hidden",
         }}
       >
-        <h2>后台管理面板</h2>
-        <Link to="/" className="button-like">
-          返回仪表盘
-        </Link>
-      </div>
+        {/* 头部 */}
+        <div
+          style={{
+            padding: "24px",
+            borderBottom: "1px solid #e8e8e8",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <div>
+            <h2
+              style={{
+                margin: 0,
+                fontSize: "24px",
+                fontWeight: 600,
+                color: "#333",
+                marginBottom: "8px",
+              }}
+            >
+              🔐 后台管理面板
+            </h2>
+            <p
+              style={{
+                margin: 0,
+                color: "#666",
+                fontSize: "14px",
+              }}
+            >
+              管理系统用户和权限
+            </p>
+          </div>
+          <Link
+            to="/"
+            style={{
+              padding: "8px 16px",
+              backgroundColor: "#fff",
+              border: "1px solid #d9d9d9",
+              borderRadius: "6px",
+              textDecoration: "none",
+              color: "#333",
+              fontSize: "14px",
+              transition: "all 0.2s",
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.borderColor = "#1890ff";
+              e.target.style.color = "#1890ff";
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.borderColor = "#d9d9d9";
+              e.target.style.color = "#333";
+            }}
+          >
+            ← 返回仪表盘
+          </Link>
+        </div>
 
-      <hr style={{ margin: "2rem 0" }} />
+        {/* 内容区域 */}
+        <div style={{ padding: "24px" }}>
+          <h3
+            style={{
+              margin: "0 0 20px 0",
+              fontSize: "18px",
+              fontWeight: 600,
+              color: "#333",
+            }}
+          >
+            用户管理
+          </h3>
 
-      <h3>用户管理</h3>
-      {loading && <p>正在加载用户...</p>}
-      {error && <p style={{ color: "red" }}>{error}</p>}
+          {loading && (
+            <div
+              style={{
+                textAlign: "center",
+                padding: "40px",
+                color: "#666",
+                fontSize: "14px",
+              }}
+            >
+              <div
+                style={{
+                  width: "40px",
+                  height: "40px",
+                  border: "4px solid #f3f3f3",
+                  borderTop: "4px solid #1890ff",
+                  borderRadius: "50%",
+                  animation: "spin 1s linear infinite",
+                  margin: "0 auto 16px",
+                }}
+              />
+              正在加载用户...
+            </div>
+          )}
 
-      {!loading && !error && (
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead>
-            <tr style={{ borderBottom: "2px solid black" }}>
-              <th style={styles.th}>ID</th>
-              <th style={styles.th}>头像</th>
-              <th style={styles.th}>邮箱</th>
-              <th style={styles.th}>当前角色</th>
-              <th style={styles.th}>操作</th>
-              <th style={styles.th}>注册时间</th>
-            </tr>
-          </thead>
-          <tbody>
-            {/* 2. (核心修复) 在 map 循环中，增加对自己身份的判断 */}
-            {users.map(
-              (
-                userInList // 使用 userInList 以区别于 loggedInUser
-              ) => (
-                <tr
-                  key={userInList.id}
-                  style={{ borderBottom: "1px solid #ccc" }}
-                >
-                  <td style={styles.td}>{userInList.id}</td>
-                  <td style={styles.td}>
-                    <img
-                      src={userInList.avatar_url || "/default-avatar.png"}
-                      alt="avatar"
+          {error && (
+            <div
+              style={{
+                padding: "12px 16px",
+                marginBottom: "20px",
+                backgroundColor: "#fff2e8",
+                color: "#fa8c16",
+                borderRadius: "6px",
+                fontSize: "14px",
+                border: "1px solid #ffd591",
+              }}
+            >
+              {error}
+            </div>
+          )}
+
+          {!loading && !error && (
+            <div
+              style={{
+                overflowX: "auto",
+                border: "1px solid #e8e8e8",
+                borderRadius: "6px",
+              }}
+            >
+              <table
+                style={{
+                  width: "100%",
+                  borderCollapse: "collapse",
+                  minWidth: "800px",
+                }}
+              >
+                <thead>
+                  <tr
+                    style={{
+                      backgroundColor: "#fafafa",
+                      borderBottom: "2px solid #e8e8e8",
+                    }}
+                  >
+                    <th
                       style={{
-                        width: "40px",
-                        height: "40px",
-                        borderRadius: "50%",
+                        textAlign: "left",
+                        padding: "12px 16px",
+                        fontSize: "14px",
+                        fontWeight: 600,
+                        color: "#333",
                       }}
-                    />
-                  </td>
-                  <td style={styles.td}>{userInList.email}</td>
-                  <td style={styles.td}>{userInList.role}</td>
-                  <td style={styles.td}>
-                    {/* --- 3. (核心修复) 只有当列表中的用户不是当前登录的管理员时，才显示按钮 --- */}
-                    {loggedInUser.id === userInList.id ? (
-                      <span style={{ color: "#888" }}>（你自己）</span>
-                    ) : // 如果是其他用户，则正常显示按钮
-                    userInList.role === "admin" ? (
-                      <button
-                        onClick={() =>
-                          handleRoleChange(userInList.id, "editor")
-                        }
+                    >
+                      ID
+                    </th>
+                    <th
+                      style={{
+                        textAlign: "left",
+                        padding: "12px 16px",
+                        fontSize: "14px",
+                        fontWeight: 600,
+                        color: "#333",
+                      }}
+                    >
+                      头像
+                    </th>
+                    <th
+                      style={{
+                        textAlign: "left",
+                        padding: "12px 16px",
+                        fontSize: "14px",
+                        fontWeight: 600,
+                        color: "#333",
+                      }}
+                    >
+                      邮箱
+                    </th>
+                    <th
+                      style={{
+                        textAlign: "left",
+                        padding: "12px 16px",
+                        fontSize: "14px",
+                        fontWeight: 600,
+                        color: "#333",
+                      }}
+                    >
+                      姓名
+                    </th>
+                    <th
+                      style={{
+                        textAlign: "left",
+                        padding: "12px 16px",
+                        fontSize: "14px",
+                        fontWeight: 600,
+                        color: "#333",
+                      }}
+                    >
+                      当前角色
+                    </th>
+                    <th
+                      style={{
+                        textAlign: "left",
+                        padding: "12px 16px",
+                        fontSize: "14px",
+                        fontWeight: 600,
+                        color: "#333",
+                      }}
+                    >
+                      操作
+                    </th>
+                    <th
+                      style={{
+                        textAlign: "left",
+                        padding: "12px 16px",
+                        fontSize: "14px",
+                        fontWeight: 600,
+                        color: "#333",
+                      }}
+                    >
+                      注册时间
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {users.map((userInList) => (
+                    <tr
+                      key={userInList.id}
+                      style={{
+                        borderBottom: "1px solid #e8e8e8",
+                        transition: "background-color 0.2s",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = "#fafafa";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = "#fff";
+                      }}
+                    >
+                      <td
+                        style={{
+                          padding: "12px 16px",
+                          fontSize: "14px",
+                          color: "#666",
+                        }}
                       >
-                        降为 Editor
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => handleRoleChange(userInList.id, "admin")}
+                        {userInList.id}
+                      </td>
+                      <td style={{ padding: "12px 16px" }}>
+                        <img
+                          src={userInList.avatar_url || "/default-avatar.png"}
+                          alt="avatar"
+                          style={{
+                            width: "40px",
+                            height: "40px",
+                            borderRadius: "50%",
+                            objectFit: "cover",
+                            border: "2px solid #e8e8e8",
+                          }}
+                        />
+                      </td>
+                      <td
+                        style={{
+                          padding: "12px 16px",
+                          fontSize: "14px",
+                          color: "#333",
+                        }}
                       >
-                        提升为 Admin
-                      </button>
-                    )}
-                  </td>
-                  <td style={styles.td}>
-                    {new Date(userInList.created_at).toLocaleString()}
-                  </td>
-                </tr>
-              )
-            )}
-          </tbody>
-        </table>
-      )}
+                        {userInList.email}
+                      </td>
+                      <td
+                        style={{
+                          padding: "12px 16px",
+                          fontSize: "14px",
+                          color: "#333",
+                        }}
+                      >
+                        {userInList.full_name || "-"}
+                      </td>
+                      <td style={{ padding: "12px 16px" }}>
+                        <span
+                          style={{
+                            padding: "4px 12px",
+                            borderRadius: "4px",
+                            fontSize: "12px",
+                            fontWeight: 500,
+                            backgroundColor:
+                              userInList.role === "admin"
+                                ? "#fff7e6"
+                                : "#e6f7ff",
+                            color:
+                              userInList.role === "admin"
+                                ? "#d46b08"
+                                : "#1890ff",
+                            border: `1px solid ${
+                              userInList.role === "admin"
+                                ? "#ffd591"
+                                : "#91d5ff"
+                            }`,
+                          }}
+                        >
+                          {userInList.role === "admin" ? "管理员" : "编辑者"}
+                        </span>
+                      </td>
+                      <td style={{ padding: "12px 16px" }}>
+                        {loggedInUser.id === userInList.id ? (
+                          <span
+                            style={{
+                              color: "#999",
+                              fontSize: "14px",
+                              fontStyle: "italic",
+                            }}
+                          >
+                            （你自己）
+                          </span>
+                        ) : userInList.role === "admin" ? (
+                          <button
+                            onClick={() =>
+                              handleRoleChange(userInList.id, "editor")
+                            }
+                            style={{
+                              padding: "6px 16px",
+                              backgroundColor: "#fff",
+                              border: "1px solid #d9d9d9",
+                              borderRadius: "6px",
+                              color: "#333",
+                              cursor: "pointer",
+                              fontSize: "14px",
+                              fontWeight: 500,
+                              transition: "all 0.2s",
+                            }}
+                            onMouseEnter={(e) => {
+                              e.target.style.borderColor = "#ff4d4f";
+                              e.target.style.color = "#ff4d4f";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.target.style.borderColor = "#d9d9d9";
+                              e.target.style.color = "#333";
+                            }}
+                          >
+                            降为编辑者
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() =>
+                              handleRoleChange(userInList.id, "admin")
+                            }
+                            style={{
+                              padding: "6px 16px",
+                              backgroundColor: "#1890ff",
+                              border: "none",
+                              borderRadius: "6px",
+                              color: "#fff",
+                              cursor: "pointer",
+                              fontSize: "14px",
+                              fontWeight: 500,
+                              transition: "all 0.2s",
+                            }}
+                            onMouseEnter={(e) => {
+                              e.target.style.backgroundColor = "#40a9ff";
+                              e.target.style.transform = "translateY(-1px)";
+                              e.target.style.boxShadow =
+                                "0 4px 12px rgba(24, 144, 255, 0.3)";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.target.style.backgroundColor = "#1890ff";
+                              e.target.style.transform = "translateY(0)";
+                              e.target.style.boxShadow = "none";
+                            }}
+                          >
+                            提升为管理员
+                          </button>
+                        )}
+                      </td>
+                      <td
+                        style={{
+                          padding: "12px 16px",
+                          fontSize: "14px",
+                          color: "#666",
+                        }}
+                      >
+                        {new Date(userInList.created_at).toLocaleString("zh-CN")}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {!loading && !error && users.length === 0 && (
+            <div
+              style={{
+                textAlign: "center",
+                padding: "40px",
+                color: "#999",
+                fontSize: "14px",
+              }}
+            >
+              暂无用户数据
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
-};
-
-const styles = {
-  th: { textAlign: "left", padding: "12px" },
-  td: { padding: "12px" },
 };
 
 export default AdminDashboardPage;

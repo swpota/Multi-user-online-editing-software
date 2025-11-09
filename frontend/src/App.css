@@ -41,6 +41,29 @@
   color: #888;
 }
 
+/* 远程光标显示动画 */
+@keyframes blink {
+  0%, 50% { 
+    opacity: 1; 
+  }
+  51%, 100% { 
+    opacity: 0.3; 
+  }
+}
+
+/* 确保 Quill 容器可以显示绝对定位的光标标记 */
+.ql-container {
+  position: relative !important;
+}
+
+.remote-cursor-marker {
+  transition: all 0.1s ease;
+}
+
+.remote-cursor-label {
+  transition: all 0.1s ease;
+}
+
 .button-like {
   display: inline-block;
   padding: 8px 16px;

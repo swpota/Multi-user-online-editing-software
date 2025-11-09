@@ -664,10 +664,13 @@ const blocksToMarkdown = (blocks = [], fallbackMarkdown) => {
 };
 
 const pdfFontCandidates = [
+  // 优先使用 .ttf 格式，更稳定
   { regular: "C:/Windows/Fonts/msyh.ttf", bold: "C:/Windows/Fonts/msyhbd.ttf" },
-  { regular: "C:/Windows/Fonts/msyh.ttc", bold: "C:/Windows/Fonts/msyhbd.ttc" },
   { regular: "C:/Windows/Fonts/simhei.ttf", bold: "C:/Windows/Fonts/simhei.ttf" },
   { regular: "C:/Windows/Fonts/simsun.ttc", bold: "C:/Windows/Fonts/simsun.ttc" },
+  // .ttc 格式可能有问题，放在后面
+  { regular: "C:/Windows/Fonts/msyh.ttc", bold: "C:/Windows/Fonts/msyhbd.ttc" },
+  // 项目资源字体
   {
     regular: path.join(__dirname, "../assets/fonts/NotoSansSC-Regular.otf"),
     bold: path.join(__dirname, "../assets/fonts/NotoSansSC-Bold.otf"),
@@ -675,154 +678,432 @@ const pdfFontCandidates = [
 ];
 
 const resolvePdfFonts = () => {
+  // 优先查找 .ttf 和 .otf 格式的字体（更稳定，pdfkit完全支持）
+  const preferredFormats = ['.ttf', '.otf'];
+  const fallbackFormats = ['.ttc']; // .ttc 格式可能有问题，但可以作为备用
+  
+  // 首先尝试找到 .ttf 或 .otf 格式的字体
   for (const candidate of pdfFontCandidates) {
     if (candidate.regular && fs.existsSync(candidate.regular)) {
-      const fontSet = {
-        regular: candidate.regular,
-        bold:
-          candidate.bold && fs.existsSync(candidate.bold)
-            ? candidate.bold
-            : candidate.regular,
-      };
-      return fontSet;
+      const ext = path.extname(candidate.regular).toLowerCase();
+      if (preferredFormats.includes(ext)) {
+        const fontSet = {
+          regular: candidate.regular,
+          bold:
+            candidate.bold && fs.existsSync(candidate.bold)
+              ? candidate.bold
+              : candidate.regular,
+        };
+        console.log(`[PDF Font] 找到首选格式字体: ${candidate.regular} (${ext})`);
+        return fontSet;
+      }
     }
   }
+  
+  // 如果没有找到 .ttf 或 .otf，尝试 .ttc（可能有问题，但总比没有好）
+  // 注意：.ttc 格式在某些pdfkit版本中可能导致 createSubset 错误
+  for (const candidate of pdfFontCandidates) {
+    if (candidate.regular && fs.existsSync(candidate.regular)) {
+      const ext = path.extname(candidate.regular).toLowerCase();
+      if (fallbackFormats.includes(ext)) {
+        const fontSet = {
+          regular: candidate.regular,
+          bold:
+            candidate.bold && fs.existsSync(candidate.bold)
+              ? candidate.bold
+              : candidate.regular,
+        };
+        console.warn(`[PDF Font] 找到备用格式字体（可能不稳定）: ${candidate.regular} (${ext})`);
+        return fontSet;
+      }
+    }
+  }
+  
+  console.log("[PDF Font] 未找到可用的中文字体，将使用默认字体 Helvetica");
   return { regular: null, bold: null };
 };
 
 const generatePdfBufferFromBlocks = (blocks = []) =>
   new Promise((resolve, reject) => {
     try {
-      const fonts = resolvePdfFonts();
-      const doc = new PDFDocument({ margin: 56 });
-      const chunks = [];
+      // 验证blocks
+      if (!Array.isArray(blocks)) {
+        return reject(new Error("blocks必须是数组"));
+      }
 
-      doc.on("data", (chunk) => chunks.push(chunk));
-      doc.on("end", () => resolve(Buffer.concat(chunks)));
-      doc.on("error", reject);
+      const fonts = resolvePdfFonts();
+      const doc = new PDFDocument({ 
+        margin: 56,
+        autoFirstPage: true,
+        size: 'A4'
+      });
+      const chunks = [];
+      let hasError = false;
+
+      // 设置超时，避免无限等待
+      const timeout = setTimeout(() => {
+        if (!hasError) {
+          hasError = true;
+          doc.destroy();
+          reject(new Error("PDF生成超时"));
+        }
+      }, 30000); // 30秒超时
+
+      doc.on("data", (chunk) => {
+        if (!hasError) {
+          chunks.push(chunk);
+        }
+      });
+      
+      doc.on("end", () => {
+        clearTimeout(timeout);
+        if (hasError) return;
+        try {
+          const buffer = Buffer.concat(chunks);
+          if (buffer.length === 0) {
+            reject(new Error("PDF生成失败：生成的缓冲区为空"));
+          } else {
+            resolve(buffer);
+          }
+        } catch (err) {
+          reject(new Error(`PDF缓冲生成失败: ${err.message}`));
+        }
+      });
+      
+      doc.on("error", (err) => {
+        if (hasError) return;
+        hasError = true;
+        clearTimeout(timeout);
+        console.error("PDF生成错误:", err);
+        console.error("错误堆栈:", err.stack);
+        reject(new Error(`PDF生成失败: ${err.message || "未知错误"}`));
+      });
 
       // 处理字体：优先使用中文字体，如果没有则使用系统默认字体
       let defaultFont = "Helvetica";
       let boldFont = "Helvetica-Bold";
       
-      // 如果找到了中文字体文件，注册并使用
-      if (fonts.regular && fs.existsSync(fonts.regular)) {
+      // 验证字体文件格式的函数
+      const isValidFontFile = (fontPath) => {
+        if (!fontPath || !fs.existsSync(fontPath)) {
+          return false;
+        }
+        const ext = path.extname(fontPath).toLowerCase();
+        // pdfkit 主要支持 .ttf 和 .otf 格式
+        if (ext !== '.ttf' && ext !== '.otf' && ext !== '.ttc') {
+          console.warn(`字体文件格式可能不支持: ${fontPath}, 扩展名: ${ext}`);
+          // .ttc 是字体集合，可能有问题，但先尝试
+        }
         try {
-          doc.registerFont("ChineseFont", fonts.regular);
+          const stats = fs.statSync(fontPath);
+          // 检查文件大小，如果太小可能不是有效的字体文件
+          if (stats.size < 1000) {
+            console.warn(`字体文件太小，可能无效: ${fontPath}, 大小: ${stats.size}`);
+            return false;
+          }
+          return true;
+        } catch (error) {
+          console.warn(`无法读取字体文件: ${fontPath}`, error.message);
+          return false;
+        }
+      };
+      
+      // 尝试注册字体的函数
+      // 注意：某些字体格式（如.ttc）可能导致pdfkit内部错误，即使捕获了错误，pdfkit的状态可能已经损坏
+      // 因此，我们需要特别小心地处理字体注册
+      const tryRegisterFont = (fontName, fontPath) => {
+        if (!fontPath || !isValidFontFile(fontPath)) {
+          return false;
+        }
+        
+        const ext = path.extname(fontPath).toLowerCase();
+        // .ttc 格式（TrueType Collection）在某些pdfkit版本中可能导致问题
+        // 如果遇到 createSubset 错误，通常是字体格式不被支持
+        if (ext === '.ttc') {
+          console.warn(`警告: .ttc 格式字体可能不被pdfkit完全支持: ${fontPath}`);
+          // 仍然尝试，但会捕获错误
+        }
+        
+        try {
+          // 使用同步方式注册字体，这样可以立即捕获错误
+          doc.registerFont(fontName, fontPath);
+          console.log(`成功注册字体: ${fontName} from ${fontPath}`);
+          return true;
+        } catch (error) {
+          console.warn(`注册字体失败: ${fontName} from ${fontPath}`, error.message);
+          // 检查是否是 createSubset 错误
+          if (error.message && (error.message.includes('createSubset') || error.message.includes('is not a function'))) {
+            console.warn(`字体文件格式可能不被pdfkit支持，将跳过该字体: ${fontPath}`);
+            console.warn(`建议：使用 .ttf 或 .otf 格式的字体文件`);
+          }
+          return false;
+        }
+      };
+      
+      // 如果找到了中文字体文件，尝试注册并使用
+      if (fonts.regular) {
+        if (tryRegisterFont("ChineseFont", fonts.regular)) {
           defaultFont = "ChineseFont";
-          if (fonts.bold && fs.existsSync(fonts.bold)) {
-            doc.registerFont("ChineseFontBold", fonts.bold);
-            boldFont = "ChineseFontBold";
+          // 尝试注册粗体字体
+          if (fonts.bold && fonts.bold !== fonts.regular) {
+            if (tryRegisterFont("ChineseFontBold", fonts.bold)) {
+              boldFont = "ChineseFontBold";
+            } else {
+              // 如果粗体字体注册失败，使用普通字体作为粗体
+              boldFont = "ChineseFont";
+            }
           } else {
             // 如果没有粗体字体，使用普通字体作为粗体
             boldFont = "ChineseFont";
           }
-        } catch (error) {
-          console.warn("注册中文字体失败，使用默认字体:", error.message);
+        } else {
+          console.warn("中文字体注册失败，将使用默认字体 Helvetica");
           defaultFont = "Helvetica";
           boldFont = "Helvetica-Bold";
         }
       }
       
-      doc.font(defaultFont).fontSize(12);
+      // 设置默认字体和字号
+      try {
+        doc.font(defaultFont).fontSize(12);
+        console.log(`PDF使用字体: ${defaultFont}, 粗体: ${boldFont}`);
+      } catch (error) {
+        // 如果设置字体失败，尝试使用Helvetica
+        console.error(`设置字体 ${defaultFont} 失败:`, error.message);
+        try {
+          doc.font("Helvetica").fontSize(12);
+          defaultFont = "Helvetica";
+          boldFont = "Helvetica-Bold";
+          console.log("回退到默认字体 Helvetica");
+        } catch (fallbackError) {
+          clearTimeout(timeout);
+          reject(new Error(`设置PDF字体失败: ${error.message}, 回退也失败: ${fallbackError.message}`));
+          return;
+        }
+      }
 
       const listCounters = {};
 
       const writeRuns = (runs = [], options = {}) => {
-        const { align = "left" } = options;
-        if (!runs || runs.length === 0) {
-          doc.text(" ", { align });
-          return;
-        }
+        try {
+          const { align = "left" } = options;
+          if (!runs || runs.length === 0) {
+            doc.text(" ", { align });
+            return;
+          }
 
-        runs.forEach((run, idx) => {
-          const isLast = idx === runs.length - 1;
-          const fontPath = run.bold ? boldFont : defaultFont;
-          doc.font(fontPath);
-          doc.fillColor(run.color || "#000000");
+          runs.forEach((run, idx) => {
+            try {
+              const isLast = idx === runs.length - 1;
+              const targetFont = run.bold ? boldFont : defaultFont;
+              try {
+                // 尝试使用目标字体
+                doc.font(targetFont);
+              } catch (fontError) {
+                // 如果字体设置失败（可能是字体不存在或格式不支持），回退到默认字体
+                console.warn(`设置字体 ${targetFont} 失败，使用默认字体: ${fontError.message}`);
+                try {
+                  doc.font(defaultFont);
+                } catch (defaultFontError) {
+                  // 如果默认字体也失败，尝试Helvetica
+                  console.warn(`默认字体 ${defaultFont} 也失败，使用Helvetica: ${defaultFontError.message}`);
+                  try {
+                    doc.font("Helvetica");
+                  } catch (helveticaError) {
+                    // 如果Helvetica也失败，这可能是一个严重问题，但继续尝试
+                    console.error("所有字体都失败，PDF可能无法正常生成:", helveticaError.message);
+                  }
+                }
+              }
+              
+              // 处理颜色
+              try {
+                const color = run.color || "#000000";
+                if (typeof color === "string" && (color.startsWith("#") || color.startsWith("rgb"))) {
+                  doc.fillColor(color);
+                } else {
+                  doc.fillColor("#000000");
+                }
+              } catch (colorError) {
+                console.warn(`设置颜色失败，使用默认颜色: ${colorError.message}`);
+                doc.fillColor("#000000");
+              }
 
-          const segments = String(run.text || "").replace(/\r/g, "").split("\n");
-          segments.forEach((segment, segIdx) => {
-            const finalSegment = isLast && segIdx === segments.length - 1;
-            doc.text(segment.length > 0 ? segment : " ", {
-              continued: !finalSegment,
-              align: idx === 0 && segIdx === 0 ? align : undefined,
-            });
+              const segments = String(run.text || "").replace(/\r/g, "").split("\n");
+              segments.forEach((segment, segIdx) => {
+                try {
+                  const finalSegment = isLast && segIdx === segments.length - 1;
+                  doc.text(segment.length > 0 ? segment : " ", {
+                    continued: !finalSegment,
+                    align: idx === 0 && segIdx === 0 ? align : undefined,
+                  });
+                } catch (textError) {
+                  console.warn(`写入文本片段失败: ${textError.message}`);
+                }
+              });
+            } catch (runError) {
+              console.warn(`处理run失败: ${runError.message}`);
+            }
           });
-        });
 
-        doc.fillColor("#000000");
+          doc.fillColor("#000000");
+        } catch (error) {
+          console.error("writeRuns错误:", error);
+          // 尝试添加一个占位符
+          try {
+            doc.text(" ", { align: options.align || "left" });
+          } catch (e) {
+            // 如果连占位符都添加不了，可能是PDF已损坏
+          }
+        }
       };
 
-      blocks.forEach((block) => {
-        switch (block.type) {
-          case "header": {
-            const sizeMap = { 1: 20, 2: 18, 3: 16, 4: 14, 5: 13, 6: 12 };
-            const size = sizeMap[block.level] || 14;
-            doc.moveDown(0.3);
-            doc.font(boldFont).fontSize(size);
-            writeRuns(block.runs, { align: block.align || "left" });
-            doc.font(defaultFont).fontSize(12);
-            doc.moveDown(0.3);
-            break;
-          }
-          case "listItem": {
-            const indent = block.indent || 0;
-            if (block.ordered) {
-              listCounters[indent] = (listCounters[indent] || 0) + 1;
-            } else {
-              listCounters[indent] = 0;
+      // 如果没有blocks，添加一个空段落
+      if (!blocks || blocks.length === 0) {
+        doc.text(" ", { align: "left" });
+      } else {
+        blocks.forEach((block) => {
+          try {
+            if (!block || !block.type) {
+              console.warn("遇到无效的block:", block);
+              return;
             }
-            const bullet = block.ordered
-              ? `${listCounters[indent]}. `
-              : "• ";
-            doc.text(`${"  ".repeat(indent)}${bullet}`, { continued: true });
-            writeRuns(block.runs, { align: "left" });
-            doc.text(" ");
-            break;
-          }
-          case "blockquote": {
-            doc.moveDown(0.2);
-            doc.fillColor("#555555");
-            doc.text("❝ ", { continued: true });
-            writeRuns(block.runs, { align: "left" });
-            doc.text(" ");
-            doc.fillColor("#000000");
-            break;
-          }
-          case "code": {
-            doc.moveDown(0.2);
-            doc.font(defaultFont).fillColor("#333333");
-            const lines = (block.text || "").split("\n");
-            lines.forEach((line) => {
-              doc.text(line || " ", { align: "left" });
-            });
-            doc.fillColor("#000000");
-            doc.moveDown(0.2);
-            break;
-          }
-          case "image": {
-            doc.moveDown(0.2);
-            doc.text(`[图片] ${block.src}`);
-            doc.moveDown(0.2);
-            break;
-          }
-          case "horizontalRule": {
-            const width =
-              doc.page.width - doc.page.margins.left - doc.page.margins.right;
-            doc.moveTo(doc.x, doc.y).lineTo(doc.x + width, doc.y).stroke();
-            doc.moveDown(0.2);
-            break;
-          }
-          default:
-            writeRuns(block.runs, { align: block.align || "left" });
-            doc.text(" ");
-        }
-      });
 
+            switch (block.type) {
+              case "header": {
+                try {
+                  const sizeMap = { 1: 20, 2: 18, 3: 16, 4: 14, 5: 13, 6: 12 };
+                  const size = sizeMap[block.level] || 14;
+                  doc.moveDown(0.3);
+                  doc.font(boldFont).fontSize(size);
+                  writeRuns(block.runs || [], { align: block.align || "left" });
+                  doc.font(defaultFont).fontSize(12);
+                  doc.moveDown(0.3);
+                } catch (error) {
+                  console.warn("处理header失败:", error.message);
+                  doc.text(`[标题]`, { align: "left" });
+                }
+                break;
+              }
+              case "listItem": {
+                try {
+                  const indent = block.indent || 0;
+                  if (block.ordered) {
+                    listCounters[indent] = (listCounters[indent] || 0) + 1;
+                  } else {
+                    listCounters[indent] = 0;
+                  }
+                  const bullet = block.ordered
+                    ? `${listCounters[indent]}. `
+                    : "• ";
+                  doc.text(`${"  ".repeat(indent)}${bullet}`, { continued: true });
+                  writeRuns(block.runs || [], { align: "left" });
+                  doc.text(" ");
+                } catch (error) {
+                  console.warn("处理listItem失败:", error.message);
+                  doc.text("• [列表项]", { align: "left" });
+                }
+                break;
+              }
+              case "blockquote": {
+                try {
+                  doc.moveDown(0.2);
+                  doc.fillColor("#555555");
+                  doc.text("❝ ", { continued: true });
+                  writeRuns(block.runs || [], { align: "left" });
+                  doc.text(" ");
+                  doc.fillColor("#000000");
+                } catch (error) {
+                  console.warn("处理blockquote失败:", error.message);
+                  doc.text("[引用]", { align: "left" });
+                  doc.fillColor("#000000");
+                }
+                break;
+              }
+              case "code": {
+                try {
+                  doc.moveDown(0.2);
+                  doc.font(defaultFont).fillColor("#333333");
+                  const lines = String(block.text || "").split("\n");
+                  lines.forEach((line) => {
+                    doc.text(line || " ", { align: "left" });
+                  });
+                  doc.fillColor("#000000");
+                  doc.moveDown(0.2);
+                } catch (error) {
+                  console.warn("处理code失败:", error.message);
+                  doc.text("[代码块]", { align: "left" });
+                  doc.fillColor("#000000");
+                }
+                break;
+              }
+              case "image": {
+                try {
+                  doc.moveDown(0.2);
+                  doc.text(`[图片] ${block.src || "未知图片"}`, { align: "left" });
+                  doc.moveDown(0.2);
+                } catch (error) {
+                  console.warn("处理image失败:", error.message);
+                  doc.text("[图片]", { align: "left" });
+                }
+                break;
+              }
+              case "horizontalRule": {
+                try {
+                  const width =
+                    doc.page.width - doc.page.margins.left - doc.page.margins.right;
+                  doc.moveTo(doc.x, doc.y).lineTo(doc.x + width, doc.y).stroke();
+                  doc.moveDown(0.2);
+                } catch (error) {
+                  console.warn("处理horizontalRule失败:", error.message);
+                  doc.moveDown(0.5);
+                }
+                break;
+              }
+              default: {
+                // 处理普通段落
+                try {
+                  if (block.runs && Array.isArray(block.runs) && block.runs.length > 0) {
+                    writeRuns(block.runs, { align: block.align || "left" });
+                  } else if (block.text) {
+                    // 如果没有runs但有text，直接使用text
+                    doc.text(String(block.text || " "), { align: block.align || "left" });
+                  } else {
+                    // 如果既没有runs也没有text，添加空行
+                    doc.text(" ", { align: "left" });
+                  }
+                  doc.text(" ");
+                } catch (error) {
+                  console.warn("处理默认block失败:", error.message);
+                  doc.text(" ", { align: "left" });
+                }
+                break;
+              }
+            }
+          } catch (blockError) {
+            console.error(`处理block时出错 (type: ${block?.type}):`, blockError);
+            console.error("Block内容:", JSON.stringify(block, null, 2));
+            // 尝试添加一个占位符，然后继续处理下一个block
+            try {
+              doc.text(`[内容块]`, { align: "left" });
+            } catch (e) {
+              // 如果连占位符都添加不了，可能PDF已经损坏，但继续尝试
+            }
+          }
+        });
+      }
+
+      // 如果没有blocks，确保至少有一些内容
+      if (!blocks || blocks.length === 0) {
+        doc.text(" ", { align: "left" });
+      }
+
+      // 结束PDF生成
       doc.end();
     } catch (error) {
-      reject(error);
+      console.error("generatePdfBufferFromBlocks外层错误:", error);
+      console.error("错误堆栈:", error.stack);
+      reject(new Error(`PDF生成失败: ${error.message || "未知错误"}`));
     }
   });
 
@@ -1120,11 +1401,29 @@ const generateExportPayload = async (document, format, fileBase) => {
           "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
       };
     case "pdf":
-      return {
-        buffer: await generatePdfBufferFromBlocks(blocks),
-        fileName: `${baseName}.pdf`,
-        contentType: "application/pdf",
-      };
+      try {
+        console.log("开始生成PDF, blocks数量:", blocks?.length || 0);
+        if (!blocks || blocks.length === 0) {
+          console.warn("警告: blocks为空，将生成空PDF");
+        }
+        const pdfBuffer = await generatePdfBufferFromBlocks(blocks || []);
+        if (!pdfBuffer || !Buffer.isBuffer(pdfBuffer)) {
+          throw new Error("PDF生成失败：返回的buffer无效");
+        }
+        if (pdfBuffer.length === 0) {
+          throw new Error("PDF生成失败：生成的buffer为空");
+        }
+        console.log("PDF生成成功, buffer大小:", pdfBuffer.length);
+        return {
+          buffer: pdfBuffer,
+          fileName: `${baseName}.pdf`,
+          contentType: "application/pdf",
+        };
+      } catch (error) {
+        console.error("生成PDF buffer失败:", error);
+        console.error("错误堆栈:", error.stack);
+        throw new Error(`PDF生成失败: ${error.message || "未知错误"}`);
+      }
     case "json":
     default:
       // JSON 导出只包含文本内容，不包含数据库元数据
@@ -2247,22 +2546,82 @@ router.get("/:id/export", protect, async (req, res) => {
     }
 
     const { document } = access;
-    const payload = await generateExportPayload(
-      document,
-      exportFormat,
-      document.title
-    );
+    
+    console.log(`[Export] 开始导出文档 ${documentId}, 格式: ${exportFormat}`);
+    console.log("[Export] 文档内容格式:", document.content_format);
+    console.log("[Export] 文档标题:", document.title);
+    
+    try {
+      const payload = await generateExportPayload(
+        document,
+        exportFormat,
+        document.title
+      );
 
-    res.setHeader("Content-Type", payload.contentType);
-    res.setHeader(
-      "Content-Disposition",
-      `attachment; ${encodeFileName(payload.fileName, documentId)}`
-    );
+      // 验证payload
+      if (!payload) {
+        console.error("[Export] 导出失败：payload为空");
+        return res.status(500).json({ 
+          message: `导出${exportFormat.toUpperCase()}失败：生成的内容无效`,
+          error: process.env.NODE_ENV === "development" ? "Payload为空" : undefined
+        });
+      }
 
-    return res.send(payload.buffer);
+      // 验证buffer
+      if (!payload.buffer) {
+        console.error("[Export] 导出失败：buffer为空", { 
+          hasPayload: !!payload,
+          format: exportFormat 
+        });
+        return res.status(500).json({ 
+          message: `导出${exportFormat.toUpperCase()}失败：生成的内容无效`,
+          error: process.env.NODE_ENV === "development" ? "Buffer为空" : undefined
+        });
+      }
+
+      if (!Buffer.isBuffer(payload.buffer)) {
+        console.error("[Export] 导出失败：buffer不是Buffer类型", { 
+          type: typeof payload.buffer,
+          format: exportFormat 
+        });
+        return res.status(500).json({ 
+          message: `导出${exportFormat.toUpperCase()}失败：生成的内容类型错误`,
+          error: process.env.NODE_ENV === "development" ? "Buffer类型错误" : undefined
+        });
+      }
+
+      if (payload.buffer.length === 0) {
+        console.error("[Export] 导出失败：生成的buffer为空", { format: exportFormat });
+        return res.status(500).json({ 
+          message: `导出${exportFormat.toUpperCase()}失败：生成的内容为空`,
+          error: process.env.NODE_ENV === "development" ? "Buffer为空" : undefined
+        });
+      }
+
+      console.log(`[Export] 导出成功, buffer大小: ${payload.buffer.length} bytes, 格式: ${exportFormat}`);
+
+      res.setHeader("Content-Type", payload.contentType || "application/octet-stream");
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; ${encodeFileName(payload.fileName, documentId)}`
+      );
+
+      return res.send(payload.buffer);
+    } catch (exportError) {
+      console.error("[Export] generateExportPayload失败:", exportError);
+      console.error("[Export] 错误堆栈:", exportError.stack);
+      throw exportError; // 重新抛出，让外层catch处理
+    }
   } catch (error) {
-    console.error("导出文档失败:", error);
-    res.status(500).json({ message: "服务器内部错误" });
+    console.error("[Export] 导出文档失败:", error);
+    console.error("[Export] 错误堆栈:", error.stack);
+    console.error("[Export] 导出格式:", req.query.format);
+    console.error("[Export] 文档ID:", req.params.id);
+    res.status(500).json({ 
+      message: `导出${(req.query.format || "json").toUpperCase()}失败: ${error.message || "服务器内部错误"}`,
+      error: process.env.NODE_ENV === "development" ? error.message : undefined,
+      stack: process.env.NODE_ENV === "development" ? error.stack : undefined
+    });
   }
 });
 

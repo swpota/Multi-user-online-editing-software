@@ -1,0 +1,424 @@
+import React, { useState, useEffect, useRef } from "react";
+import api from "../api";
+
+const FilePanel = ({ documentId, user, socket, onClose }) => {
+  const [files, setFiles] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [showUploadForm, setShowUploadForm] = useState(false);
+  const [fileDescription, setFileDescription] = useState("");
+  const fileInputRef = useRef(null);
+
+  // 获取文件列表
+  const fetchFiles = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get(`/documents/${documentId}/files`);
+      setFiles(response.data || []);
+    } catch (error) {
+      console.error("获取文件列表失败", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 上传文件
+  const handleFileUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    try {
+      setUploading(true);
+      const formData = new FormData();
+      formData.append("file", file);
+      if (fileDescription.trim()) {
+        formData.append("description", fileDescription.trim());
+      }
+
+      await api.post(`/documents/${documentId}/files`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      setFileDescription("");
+      setShowUploadForm(false);
+      // 文件会通过 Socket.IO 实时更新
+    } catch (error) {
+      console.error("上传文件失败", error);
+      alert(error.response?.data?.message || "上传文件失败");
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  };
+
+  // 下载文件
+  const downloadFile = (fileId, fileName) => {
+    window.open(`/api/files/${fileId}/download`, "_blank");
+  };
+
+  // 删除文件
+  const deleteFile = async (fileId) => {
+    if (!window.confirm("确定要删除这个文件吗？")) return;
+
+    try {
+      await api.delete(`/files/${fileId}`);
+      // 文件删除会通过 Socket.IO 实时更新
+    } catch (error) {
+      console.error("删除文件失败", error);
+      alert(error.response?.data?.message || "删除文件失败");
+    }
+  };
+
+  // 格式化文件大小
+  const formatFileSize = (bytes) => {
+    if (bytes === 0) return "0 B";
+    const k = 1024;
+    const sizes = ["B", "KB", "MB", "GB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + " " + sizes[i];
+  };
+
+  // 格式化时间
+  const formatTime = (dateString) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    return date.toLocaleString("zh-CN", {
+      year: "numeric",
+      month: "numeric",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  // 获取文件图标
+  const getFileIcon = (fileType, mimeType) => {
+    if (mimeType) {
+      if (mimeType.startsWith("image/")) return "🖼️";
+      if (mimeType.startsWith("video/")) return "🎥";
+      if (mimeType.startsWith("audio/")) return "🎵";
+      if (mimeType.includes("pdf")) return "📄";
+      if (mimeType.includes("word")) return "📝";
+      if (mimeType.includes("excel") || mimeType.includes("spreadsheet")) return "📊";
+      if (mimeType.includes("powerpoint") || mimeType.includes("presentation")) return "📽️";
+      if (mimeType.includes("zip") || mimeType.includes("rar")) return "📦";
+    }
+    if (fileType) {
+      if (fileType === ".pdf") return "📄";
+      if (fileType === ".doc" || fileType === ".docx") return "📝";
+      if (fileType === ".xls" || fileType === ".xlsx") return "📊";
+      if (fileType === ".ppt" || fileType === ".pptx") return "📽️";
+      if (fileType === ".jpg" || fileType === ".jpeg" || fileType === ".png" || fileType === ".gif") return "🖼️";
+      if (fileType === ".mp4" || fileType === ".avi" || fileType === ".mov") return "🎥";
+      if (fileType === ".mp3" || fileType === ".wav") return "🎵";
+      if (fileType === ".zip" || fileType === ".rar") return "📦";
+    }
+    return "📎";
+  };
+
+  // 获取用户显示名称
+  const getUserDisplayName = (userObj) => {
+    return userObj?.full_name || userObj?.email || `用户${userObj?.id}`;
+  };
+
+  // 检查是否可以删除文件
+  const canDeleteFile = (file) => {
+    return (
+      file.uploaded_by === user.id ||
+      user.role === "admin"
+    );
+  };
+
+  useEffect(() => {
+    fetchFiles();
+
+    // 监听 Socket.IO 事件
+    if (socket) {
+      const handleNewFile = (file) => {
+        setFiles((prev) => {
+          // 检查文件是否已存在
+          if (prev.some((f) => f.id === file.id)) {
+            return prev;
+          }
+          return [file, ...prev];
+        });
+      };
+
+      const handleFileDeleted = (data) => {
+        setFiles((prev) => prev.filter((f) => f.id !== data.fileId));
+      };
+
+      socket.on("newFileUploaded", handleNewFile);
+      socket.on("fileDeleted", handleFileDeleted);
+
+      return () => {
+        socket.off("newFileUploaded", handleNewFile);
+        socket.off("fileDeleted", handleFileDeleted);
+      };
+    }
+  }, [socket, documentId]);
+
+  return (
+    <div
+      style={{
+        position: "fixed",
+        bottom: "20px",
+        right: "440px",
+        width: "400px",
+        maxHeight: "600px",
+        backgroundColor: "white",
+        border: "1px solid #ddd",
+        borderRadius: "8px",
+        boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+        zIndex: 1000,
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      {/* 头部 */}
+      <div
+        style={{
+          padding: "12px 16px",
+          borderBottom: "1px solid #eee",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          backgroundColor: "#fafafa",
+        }}
+      >
+        <h3
+          style={{
+            margin: 0,
+            fontSize: "18px",
+            fontWeight: 600,
+            color: "#333",
+          }}
+        >
+          📁 文件共享
+        </h3>
+        <div style={{ display: "flex", gap: "8px" }}>
+          <button
+            onClick={() => setShowUploadForm(!showUploadForm)}
+            style={{
+              padding: "6px 16px",
+              border: "1px solid #d9d9d9",
+              borderRadius: "6px",
+              backgroundColor: showUploadForm ? "#fff" : "#1890ff",
+              color: showUploadForm ? "#333" : "#fff",
+              cursor: "pointer",
+              fontSize: "14px",
+              fontWeight: 500,
+              transition: "all 0.2s",
+            }}
+            onMouseEnter={(e) => {
+              if (!showUploadForm) {
+                e.target.style.backgroundColor = "#40a9ff";
+                e.target.style.transform = "translateY(-1px)";
+              } else {
+                e.target.style.borderColor = "#1890ff";
+                e.target.style.color = "#1890ff";
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!showUploadForm) {
+                e.target.style.backgroundColor = "#1890ff";
+                e.target.style.transform = "translateY(0)";
+              } else {
+                e.target.style.borderColor = "#d9d9d9";
+                e.target.style.color = "#333";
+              }
+            }}
+          >
+            {showUploadForm ? "取消" : "上传"}
+          </button>
+          <button
+            onClick={onClose}
+            style={{
+              padding: "6px 12px",
+              border: "none",
+              backgroundColor: "transparent",
+              cursor: "pointer",
+              fontSize: "20px",
+              color: "#666",
+              borderRadius: "4px",
+              transition: "all 0.2s",
+              lineHeight: "1",
+              fontWeight: "bold",
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.backgroundColor = "#f5f5f5";
+              e.target.style.color = "#ff4d4f";
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.backgroundColor = "transparent";
+              e.target.style.color = "#666";
+            }}
+          >
+            ×
+          </button>
+        </div>
+      </div>
+
+      {/* 上传表单 */}
+      {showUploadForm && (
+        <div
+          style={{
+            padding: "12px",
+            borderBottom: "1px solid #eee",
+            backgroundColor: "#f9f9f9",
+          }}
+        >
+          <div style={{ marginBottom: "8px" }}>
+            <input
+              ref={fileInputRef}
+              type="file"
+              onChange={handleFileUpload}
+              disabled={uploading}
+              style={{
+                width: "100%",
+                padding: "4px",
+                border: "1px solid #ddd",
+                borderRadius: "4px",
+                fontSize: "13px",
+              }}
+            />
+          </div>
+          <div style={{ marginBottom: "8px" }}>
+            <textarea
+              value={fileDescription}
+              onChange={(e) => setFileDescription(e.target.value)}
+              placeholder="文件描述（可选）"
+              disabled={uploading}
+              style={{
+                width: "100%",
+                padding: "6px",
+                border: "1px solid #ddd",
+                borderRadius: "4px",
+                resize: "none",
+                minHeight: "60px",
+                fontSize: "13px",
+              }}
+            />
+          </div>
+          {uploading && (
+            <div style={{ fontSize: "12px", color: "#999", textAlign: "center" }}>
+              上传中...
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* 文件列表 */}
+      <div
+        style={{
+          flex: 1,
+          overflowY: "auto",
+          padding: "12px",
+        }}
+      >
+        {loading ? (
+          <div style={{ textAlign: "center", color: "#999", padding: "20px" }}>
+            加载中...
+          </div>
+        ) : files.length === 0 ? (
+          <div style={{ textAlign: "center", color: "#999", padding: "20px" }}>
+            暂无文件
+          </div>
+        ) : (
+          files.map((file) => (
+            <div
+              key={file.id}
+              style={{
+                padding: "12px",
+                marginBottom: "8px",
+                border: "1px solid #eee",
+                borderRadius: "6px",
+                backgroundColor: "white",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "start", gap: "12px" }}>
+                {/* 文件图标 */}
+                <div style={{ fontSize: "32px", flexShrink: 0 }}>
+                  {getFileIcon(file.file_type, file.mime_type)}
+                </div>
+
+                {/* 文件信息 */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div
+                    style={{
+                      fontWeight: "500",
+                      fontSize: "14px",
+                      marginBottom: "4px",
+                      wordBreak: "break-word",
+                    }}
+                    title={file.original_name}
+                  >
+                    {file.original_name}
+                  </div>
+                  {file.description && (
+                    <div
+                      style={{
+                        fontSize: "12px",
+                        color: "#666",
+                        marginBottom: "4px",
+                      }}
+                    >
+                      {file.description}
+                    </div>
+                  )}
+                  <div
+                    style={{
+                      fontSize: "12px",
+                      color: "#999",
+                      marginBottom: "8px",
+                    }}
+                  >
+                    {formatFileSize(file.file_size)} · 上传于 {formatTime(file.created_at)} ·{" "}
+                    {getUserDisplayName(file.uploaded_by_user)}
+                  </div>
+                  <div style={{ display: "flex", gap: "8px" }}>
+                    <button
+                      onClick={() => downloadFile(file.id, file.original_name)}
+                      style={{
+                        padding: "4px 12px",
+                        border: "1px solid #ddd",
+                        borderRadius: "4px",
+                        backgroundColor: "white",
+                        cursor: "pointer",
+                        fontSize: "13px",
+                      }}
+                    >
+                      下载
+                    </button>
+                    {canDeleteFile(file) && (
+                      <button
+                        onClick={() => deleteFile(file.id)}
+                        style={{
+                          padding: "4px 12px",
+                          border: "1px solid #ff4d4f",
+                          borderRadius: "4px",
+                          backgroundColor: "white",
+                          color: "#ff4d4f",
+                          cursor: "pointer",
+                          fontSize: "13px",
+                        }}
+                      >
+                        删除
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default FilePanel;
+

@@ -15,6 +15,11 @@ const { protect } = require("./middleware/authMiddleware");
 const documentRoutes = require("./routes/documentRoutes");
 const userRoutes = require("./routes/userRoutes");
 const adminRoutes = require("./routes/adminRoutes");
+const commentRoutes = require("./routes/commentRoutes");
+const taskRoutes = require("./routes/taskRoutes");
+const { createNotificationRoutes } = require("./routes/notificationRoutes");
+const chatRoutes = require("./routes/chatRoutes");
+const fileRoutes = require("./routes/fileRoutes");
 const crypto = require("crypto");
 
 // 初始化 Express 应用
@@ -341,6 +346,21 @@ app.use("/api/users", userRoutes);
 // 4. --- 挂载文档路由（传入 io 实例） ---
 app.use("/api/documents", documentRoutes(io));
 
+// 5. --- 挂载评论路由（传入 io 实例） ---
+app.use("/api", commentRoutes(io));
+
+// 6. --- 挂载任务路由（传入 io 实例） ---
+app.use("/api", taskRoutes(io));
+
+// 7. --- 挂载通知路由（传入 io 实例） ---
+app.use("/api", createNotificationRoutes(io));
+
+// 8. --- 挂载聊天路由（传入 io 实例） ---
+app.use("/api", chatRoutes(io));
+
+// 9. --- 挂载文件路由（传入 io 实例） ---
+app.use("/api", fileRoutes(io));
+
 // --- (修改) WebSocket 实时协作逻辑 ---
 io.on("connection", (socket) => {
   console.log("一个客户端已连接:", socket.id);
@@ -351,6 +371,8 @@ io.on("connection", (socket) => {
 
     // --- 新增逻辑 ---
     socket.join(documentId);
+    // 同时加入用户专属房间，用于接收个人通知（评论提及、任务分配等）
+    socket.join(`user_${user.id}`);
     // 将用户信息存储在 socket 实例上，以便在断开连接时使用
     socket.documentId = documentId;
     socket.user = user;

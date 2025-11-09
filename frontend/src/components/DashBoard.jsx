@@ -297,15 +297,29 @@ function Dashboard({ user }) {
               <li
                 key={doc.id}
                 style={{
-                  border: "1px solid #ccc",
-                  padding: "15px",
+                  border: isSelected ? "2px solid #1890ff" : "1px solid #e8e8e8",
+                  padding: "16px",
                   marginBottom: "12px",
-                  borderRadius: "6px",
+                  borderRadius: "8px",
                   display: "flex",
                   justifyContent: "space-between",
                   alignItems: "center",
                   gap: "1rem",
-                  backgroundColor: isSelected ? "#e6f7ff" : "white",
+                  backgroundColor: isSelected ? "#e6f7ff" : "#fff",
+                  transition: "all 0.2s",
+                  boxShadow: isSelected ? "0 2px 8px rgba(24, 144, 255, 0.2)" : "0 1px 4px rgba(0,0,0,0.04)",
+                }}
+                onMouseEnter={(e) => {
+                  if (!isSelected) {
+                    e.currentTarget.style.borderColor = "#1890ff";
+                    e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.08)";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isSelected) {
+                    e.currentTarget.style.borderColor = "#e8e8e8";
+                    e.currentTarget.style.boxShadow = "0 1px 4px rgba(0,0,0,0.04)";
+                  }
                 }}
               >
                 <div style={{ flex: 1, display: "flex", alignItems: "center", gap: "0.75rem" }}>
@@ -350,7 +364,19 @@ function Dashboard({ user }) {
                         flexWrap: "wrap",
                       }}
                     >
-                      <strong style={{ fontSize: "1.1em", cursor: "pointer" }}>{doc.title}</strong>
+                      <strong
+                      style={{
+                        fontSize: "16px",
+                        fontWeight: 600,
+                        cursor: "pointer",
+                        color: "#333",
+                        transition: "color 0.2s",
+                      }}
+                      onMouseEnter={(e) => (e.target.style.color = "#1890ff")}
+                      onMouseLeave={(e) => (e.target.style.color = "#333")}
+                    >
+                      {doc.title}
+                    </strong>
                       {doc.content_format === "markdown" && (
                         <span
                           style={{
@@ -1141,48 +1167,114 @@ function Dashboard({ user }) {
   };
 
   return (
-    <div style={{ padding: "2rem" }}>
+    <div style={{ padding: "24px", maxWidth: "1400px", margin: "0 auto" }}>
+      {/* 头部区域 */}
       <div
         style={{
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          marginBottom: "1rem",
+          marginBottom: "24px",
+          paddingBottom: "16px",
+          borderBottom: "1px solid #e8e8e8",
         }}
       >
-        <h2>仪表盘</h2>
         <div>
+          <h2
+            style={{
+              margin: 0,
+              fontSize: "24px",
+              fontWeight: 600,
+              color: "#333",
+              marginBottom: "8px",
+            }}
+          >
+            我的文档
+          </h2>
+          <p
+            style={{
+              margin: 0,
+              color: "#666",
+              fontSize: "14px",
+            }}
+          >
+            欢迎回来, {user.full_name || user.email || user.phone}!
+          </p>
+        </div>
+        <div style={{ display: "flex", gap: "12px" }}>
           {user && user.role === "admin" && (
             <Link
               to="/admin"
-              style={{ marginRight: "1rem", textDecoration: "none" }}
-              className="button-like"
+              style={{
+                padding: "8px 16px",
+                backgroundColor: "#fff",
+                border: "1px solid #d9d9d9",
+                borderRadius: "6px",
+                textDecoration: "none",
+                color: "#333",
+                fontSize: "14px",
+                transition: "all 0.2s",
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.borderColor = "#1890ff";
+                e.target.style.color = "#1890ff";
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.borderColor = "#d9d9d9";
+                e.target.style.color = "#333";
+              }}
             >
               后台管理
             </Link>
           )}
           <Link
             to="/profile"
-            style={{ marginRight: "1rem", textDecoration: "none" }}
-            className="button-like"
+            style={{
+              padding: "8px 16px",
+              backgroundColor: "#fff",
+              border: "1px solid #d9d9d9",
+              borderRadius: "6px",
+              textDecoration: "none",
+              color: "#333",
+              fontSize: "14px",
+              transition: "all 0.2s",
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.borderColor = "#1890ff";
+              e.target.style.color = "#1890ff";
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.borderColor = "#d9d9d9";
+              e.target.style.color = "#333";
+            }}
           >
             个人资料
           </Link>
         </div>
       </div>
 
-      <p>欢迎回来, {user.full_name || user.email || user.phone}!</p>
-
       {/* 搜索与筛选 */}
       <section
         style={{
-          border: "1px solid #e0e0e0",
+          backgroundColor: "#fff",
+          border: "1px solid #e8e8e8",
           borderRadius: "8px",
-          padding: "1.5rem",
-          marginBottom: "1.5rem",
+          padding: "20px",
+          marginBottom: "24px",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
         }}
       >
-        <h3 style={{ marginTop: 0 }}>快速查找</h3>
+        <h3
+          style={{
+            marginTop: 0,
+            marginBottom: "16px",
+            fontSize: "16px",
+            fontWeight: 600,
+            color: "#333",
+          }}
+        >
+          快速查找
+        </h3>
         <form
           onSubmit={handleSearchSubmit}
           style={{
@@ -1201,7 +1293,23 @@ function Dashboard({ user }) {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="标题 / 作者 / 分类 / 标签"
-              style={{ width: "100%", padding: "8px" }}
+              style={{
+                width: "100%",
+                padding: "10px 12px",
+                fontSize: "14px",
+                border: "1px solid #d9d9d9",
+                borderRadius: "6px",
+                transition: "all 0.2s",
+                outline: "none",
+              }}
+              onFocus={(e) => {
+                e.target.style.borderColor = "#1890ff";
+                e.target.style.boxShadow = "0 0 0 2px rgba(24, 144, 255, 0.2)";
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = "#d9d9d9";
+                e.target.style.boxShadow = "none";
+              }}
             />
           </div>
           <div style={{ flex: "1 1 200px" }}>
@@ -1426,9 +1534,31 @@ function Dashboard({ user }) {
         <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", alignItems: "center" }}>
           <button
             type="button"
-            className="button-like"
             onClick={() => setShowCreateModal(true)}
-            style={{ padding: "0.5rem 1rem" }}
+            style={{
+              padding: "10px 20px",
+              backgroundColor: "#1890ff",
+              color: "#fff",
+              border: "none",
+              borderRadius: "6px",
+              fontSize: "14px",
+              fontWeight: 500,
+              cursor: "pointer",
+              transition: "all 0.2s",
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.backgroundColor = "#40a9ff";
+              e.target.style.transform = "translateY(-1px)";
+              e.target.style.boxShadow = "0 4px 12px rgba(24, 144, 255, 0.3)";
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.backgroundColor = "#1890ff";
+              e.target.style.transform = "translateY(0)";
+              e.target.style.boxShadow = "none";
+            }}
           >
             ➕ 新建文档
           </button>
@@ -1436,11 +1566,26 @@ function Dashboard({ user }) {
             type="button"
             onClick={() => setShowImportModal(true)}
             style={{
-              padding: "0.5rem 1rem",
-              borderRadius: "4px",
+              padding: "10px 20px",
+              backgroundColor: "#fff",
               border: "1px solid #d9d9d9",
-              background: "white",
+              borderRadius: "6px",
+              color: "#333",
+              fontSize: "14px",
+              fontWeight: 500,
               cursor: "pointer",
+              transition: "all 0.2s",
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.borderColor = "#1890ff";
+              e.target.style.color = "#1890ff";
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.borderColor = "#d9d9d9";
+              e.target.style.color = "#333";
             }}
           >
             📥 导入文档
@@ -1450,15 +1595,32 @@ function Dashboard({ user }) {
           </span>
         </div>
         <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", alignItems: "center" }}>
-          <span style={{ color: "#666" }}>视图：</span>
+          <span style={{ color: "#666", fontSize: "14px" }}>视图：</span>
           <button
             type="button"
             onClick={() => setViewMode("list")}
-            className={viewMode === "list" ? "button-like" : undefined}
-            style={{ 
-              padding: "0.35rem 0.75rem",
+            style={{
+              padding: "8px 16px",
+              cursor: "pointer",
+              backgroundColor: viewMode === "list" ? "#1890ff" : "#fff",
+              color: viewMode === "list" ? "white" : "#333",
               border: viewMode === "list" ? "none" : "1px solid #d9d9d9",
-              background: viewMode === "list" ? undefined : "white",
+              borderRadius: "6px",
+              fontSize: "14px",
+              fontWeight: 500,
+              transition: "all 0.2s",
+            }}
+            onMouseEnter={(e) => {
+              if (viewMode !== "list") {
+                e.target.style.borderColor = "#1890ff";
+                e.target.style.color = "#1890ff";
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (viewMode !== "list") {
+                e.target.style.borderColor = "#d9d9d9";
+                e.target.style.color = "#333";
+              }
             }}
           >
             列表
@@ -1466,11 +1628,28 @@ function Dashboard({ user }) {
           <button
             type="button"
             onClick={() => setViewMode("kanban")}
-            className={viewMode === "kanban" ? "button-like" : undefined}
-            style={{ 
-              padding: "0.35rem 0.75rem",
+            style={{
+              padding: "8px 16px",
+              cursor: "pointer",
+              backgroundColor: viewMode === "kanban" ? "#1890ff" : "#fff",
+              color: viewMode === "kanban" ? "white" : "#333",
               border: viewMode === "kanban" ? "none" : "1px solid #d9d9d9",
-              background: viewMode === "kanban" ? undefined : "white",
+              borderRadius: "6px",
+              fontSize: "14px",
+              fontWeight: 500,
+              transition: "all 0.2s",
+            }}
+            onMouseEnter={(e) => {
+              if (viewMode !== "kanban") {
+                e.target.style.borderColor = "#1890ff";
+                e.target.style.color = "#1890ff";
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (viewMode !== "kanban") {
+                e.target.style.borderColor = "#d9d9d9";
+                e.target.style.color = "#333";
+              }
             }}
           >
             看板

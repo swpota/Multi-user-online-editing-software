@@ -1,6 +1,88 @@
-# 忽略所有 .env 文件
+# 环境变量文件
 **/.env
+**/.env.local
+**/.env.development.local
+**/.env.test.local
+**/.env.production.local
 
-# 忽略 Node.js 模块文件夹
-node_modules
-**/node_modules
+# 依赖文件夹
+node_modules/
+**/node_modules/
+
+# 构建产物
+dist/
+build/
+*.tsbuildinfo
+
+# 日志文件
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+pnpm-debug.log*
+
+# 上传的文件和用户生成的内容
+backend/uploads/
+backend/public/avatars/
+backend/public/uploads/
+**/uploads/
+**/public/avatars/
+
+# 操作系统文件
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# IDE 和编辑器
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+*.sublime-project
+*.sublime-workspace
+
+# 临时文件
+*.tmp
+*.temp
+.cache/
+.parcel-cache/
+
+# 测试覆盖率
+coverage/
+.nyc_output/
+*.lcov
+
+# 数据库文件（如果有本地数据库）
+*.db
+*.sqlite
+*.sqlite3
+
+# 包管理器锁文件（可选，通常保留 package-lock.json）
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
+
+# 其他
+*.pid
+*.seed
+*.pid.lock
+.npm
+.eslintcache
+.stylelintcache
+
+# PowerShell 脚本（如果包含敏感信息）
+# *.ps1
+
+# 文档文件（可选，如果不想上传文档可以取消注释）
+*.md
+!README.md

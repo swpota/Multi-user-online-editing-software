@@ -1,0 +1,695 @@
+/* EditorPage 样式文件 */
+
+/* 基础容器 */
+.editor-page {
+  min-height: 100vh;
+  background-color: #f5f5f5;
+}
+
+/* 头部导航栏 */
+.editor-header {
+  background-color: #fff;
+  border-bottom: 1px solid #e8e8e8;
+  padding: 16px 24px;
+  position: sticky;
+  top: 64px;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.editor-header-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* 返回链接 */
+.editor-back-link {
+  padding: 8px 16px;
+  background-color: #fff;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  text-decoration: none;
+  color: #333;
+  font-size: 14px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.editor-back-link:hover {
+  border-color: #1890ff;
+  color: #1890ff;
+}
+
+/* 标题输入框 */
+.editor-title-input {
+  flex: 1;
+  max-width: 600px;
+  margin: 0 24px;
+  font-size: 20px;
+  font-weight: 600;
+  border: 1px solid #d9d9d9;
+  outline: none;
+  text-align: center;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background-color: #fff;
+  transition: all 0.2s;
+}
+
+.editor-title-input:focus {
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+.editor-title-input.readonly {
+  border: none;
+  padding: 8px;
+  border-radius: 0;
+  background-color: transparent;
+}
+
+/* 分类和标签输入框 */
+.editor-meta-input {
+  padding: 8px 12px;
+  font-size: 14px;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  background-color: #fff;
+  color: #333;
+  transition: all 0.2s;
+  outline: none;
+  min-width: 150px;
+}
+
+.editor-meta-input:focus {
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+.editor-meta-input.readonly {
+  border: 1px solid #e8e8e8;
+  background-color: #f5f5f5;
+  color: #999;
+}
+
+.editor-meta-input-group {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* 工具栏 */
+.editor-toolbar {
+  background-color: #fff;
+  border-bottom: 1px solid #e8e8e8;
+  padding: 12px 24px;
+  position: sticky;
+  top: 140px;
+  z-index: 99;
+}
+
+.editor-toolbar-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: 1400px;
+  margin: 0 auto;
+  flex-wrap: wrap;
+}
+
+/* 按钮样式 */
+.editor-btn {
+  padding: 8px 16px;
+  cursor: pointer;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.editor-btn-primary {
+  background-color: #1890ff;
+  color: white;
+}
+
+.editor-btn-primary:hover {
+  background-color: #40a9ff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3);
+}
+
+.editor-btn-secondary {
+  background-color: #fff;
+  border: 1px solid #d9d9d9;
+  color: #333;
+}
+
+.editor-btn-secondary:hover {
+  border-color: #1890ff;
+  color: #1890ff;
+}
+
+.editor-btn-active {
+  background-color: #1890ff;
+  color: white;
+  border: none;
+}
+
+.editor-btn-active:hover {
+  background-color: #40a9ff;
+}
+
+.editor-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.editor-btn:disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.editor-btn-lock {
+  background-color: #fa8c16 !important;
+}
+
+.editor-btn-lock:hover {
+  background-color: #ffa940 !important;
+}
+
+/* 锁定状态标签 */
+.editor-lock-badge {
+  padding: 6px 12px;
+  background-color: #fff7e6;
+  color: #d46b08;
+  border-radius: 6px;
+  font-size: 14px;
+  border: 1px solid #ffd591;
+}
+
+/* 保存状态 */
+.editor-save-status {
+  font-size: 12px;
+  color: #666;
+  padding: 4px 8px;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+}
+
+/* 在线用户显示 */
+.editor-online-users {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+}
+
+.editor-online-users-label {
+  font-size: 12px;
+  color: #666;
+}
+
+.editor-online-users-list {
+  display: flex;
+  gap: -4px;
+}
+
+.editor-online-user-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  font-weight: bold;
+  font-size: 12px;
+  border: 2px solid #fff;
+  margin-left: -8px;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.editor-online-user-avatar:first-child {
+  margin-left: 0;
+}
+
+.editor-online-user-avatar:hover {
+  transform: scale(1.2);
+  z-index: 10;
+}
+
+/* 编辑器内容区域 */
+.editor-content-area {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.editor-container {
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  min-height: 600px;
+  max-height: calc(100vh - 250px);
+  background-color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+/* 模式提示 */
+.editor-mode-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  padding: 6px 12px;
+  color: white;
+  font-size: 12px;
+  border-radius: 4px;
+  z-index: 1000;
+  font-weight: bold;
+}
+
+.editor-mode-badge.markdown {
+  background-color: #52c41a;
+}
+
+.editor-mode-badge.rich {
+  background-color: #1890ff;
+}
+
+/* Markdown 编辑器样式 */
+.editor-markdown-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 500px;
+  background-color: #fff;
+}
+
+.editor-markdown-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e8e8e8;
+  background-color: #fafafa;
+}
+
+.editor-markdown-toolbar-label {
+  color: #666;
+  font-size: 14px;
+}
+
+.editor-markdown-preview-btn {
+  padding: 6px 16px;
+  border: 1px solid #1890ff;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.editor-markdown-preview-btn.active {
+  background-color: #1890ff;
+  color: #fff;
+}
+
+.editor-markdown-preview-btn:not(.active) {
+  background-color: #fff;
+  color: #1890ff;
+}
+
+.editor-markdown-preview-btn:not(.active):hover {
+  background-color: #e6f7ff;
+}
+
+.editor-markdown-editor-area {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.editor-markdown-editor {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid #e8e8e8;
+}
+
+.editor-markdown-editor.no-preview {
+  border-right: none;
+}
+
+.editor-markdown-textarea {
+  flex: 1;
+  width: 100%;
+  padding: 16px;
+  border: none;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 14px;
+  line-height: 1.6;
+  background-color: #fff;
+  color: #333;
+  resize: none;
+  outline: none;
+  min-height: 400px;
+}
+
+.editor-markdown-textarea.readonly {
+  background-color: #fafafa;
+}
+
+.editor-markdown-preview {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: #fff;
+  overflow: hidden;
+}
+
+.editor-markdown-preview-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid #e8e8e8;
+  background-color: #fafafa;
+  font-size: 13px;
+  color: #666;
+}
+
+.editor-markdown-preview-content {
+  flex: 1;
+  padding: 16px;
+  overflow-y: auto;
+  background-color: #fff;
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+/* 富文本编辑器样式 */
+.editor-rich-wrapper {
+  padding: 1.5rem;
+  padding-top: 3rem;
+  background-color: #fafafa;
+  min-height: 500px;
+}
+
+.editor-rich-container {
+  width: 100%;
+  background-color: #fff;
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  overflow: visible;
+  min-height: 450px;
+}
+
+.editor-rich-status {
+  margin-top: 15px;
+  padding: 10px;
+  background-color: #e6f7ff;
+  font-size: 13px;
+  color: #0050b3;
+  border-radius: 4px;
+  border: 1px solid #91d5ff;
+}
+
+.editor-rich-status strong {
+  font-weight: 600;
+}
+
+.editor-rich-status span {
+  margin-left: 10px;
+}
+
+/* ReactQuill 编辑器样式 */
+.editor-quill {
+  background-color: #fff;
+  height: auto;
+}
+
+/* 状态信息区域 */
+.editor-status-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+/* 版本模态框样式 */
+.editor-version-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.45);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1200;
+}
+
+.editor-version-modal {
+  background-color: white;
+  width: 90%;
+  max-width: 1000px;
+  max-height: 85vh;
+  border-radius: 10px;
+  padding: 24px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+}
+
+.editor-version-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.editor-version-modal-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+}
+
+.editor-version-modal-close {
+  font-size: 1.2rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #666;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.editor-version-modal-close:hover {
+  background-color: #f5f5f5;
+  color: #ff4d4f;
+}
+
+.editor-version-modal-content {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 1.5rem;
+  flex: 1;
+  min-height: 0;
+}
+
+.editor-version-list {
+  border-right: 1px solid #eee;
+  padding-right: 1rem;
+  overflow-y: auto;
+}
+
+.editor-version-item {
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  padding: 12px;
+  background-color: white;
+  transition: all 0.2s;
+}
+
+.editor-version-item.active {
+  background-color: #f5f9ff;
+}
+
+.editor-version-item-date {
+  font-weight: bold;
+  margin-bottom: 4px;
+  color: #333;
+}
+
+.editor-version-item-author {
+  color: #555;
+  font-size: 0.9em;
+}
+
+.editor-version-item-summary {
+  margin-top: 6px;
+  color: #666;
+  font-size: 0.9em;
+}
+
+.editor-version-item-actions {
+  margin-top: 8px;
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  font-size: 0.85em;
+}
+
+.editor-version-item-buttons {
+  margin-top: 8px;
+  display: flex;
+  gap: 8px;
+}
+
+.editor-version-item-buttons button {
+  flex: 1;
+}
+
+.editor-version-preview {
+  overflow-y: auto;
+  padding: 0 0.5rem;
+}
+
+.editor-version-preview-header {
+  margin-bottom: 0.75rem;
+}
+
+.editor-version-preview-title {
+  margin: 0 0 0.5rem 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+
+.editor-version-preview-meta {
+  color: #666;
+  font-size: 0.9em;
+  margin-bottom: 4px;
+}
+
+.editor-version-preview-content {
+  min-height: 300px;
+  border: 1px solid #eee;
+  border-radius: 6px;
+  padding: 1rem;
+  background-color: white;
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.editor-version-preview-empty {
+  color: #666;
+  padding: 2rem;
+  text-align: center;
+}
+
+.editor-version-preview-placeholder {
+  color: #666;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed #ccc;
+  border-radius: 8px;
+}
+
+.editor-version-compare {
+  border-top: 1px solid #eee;
+  margin-top: 1rem;
+  padding-top: 1rem;
+}
+
+.editor-version-compare-title {
+  margin: 0 0 0.5rem 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.editor-version-compare-desc {
+  color: #666;
+  font-size: 0.85em;
+  margin-bottom: 0.75rem;
+}
+
+.editor-version-compare-selection {
+  margin-bottom: 0.75rem;
+  color: #666;
+  font-size: 0.9em;
+}
+
+.editor-version-compare-buttons {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.editor-version-compare-diff {
+  border: 1px solid #eee;
+  border-radius: 6px;
+  padding: 1rem;
+  max-height: 400px;
+  overflow-y: auto;
+  background-color: #fafafa;
+}
+
+/* 错误消息 */
+.editor-error-message {
+  color: #ff4d4f;
+  font-size: 14px;
+  margin: 8px 0;
+}
+
+/* 版本列表 */
+.editor-version-list ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .editor-header-container {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .editor-title-input {
+    margin: 12px 0;
+    max-width: 100%;
+  }
+
+  .editor-meta-input-group {
+    width: 100%;
+  }
+
+  .editor-toolbar-container {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .editor-btn {
+    width: 100%;
+  }
+}
+

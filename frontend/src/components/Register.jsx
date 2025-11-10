@@ -1,8 +1,10 @@
 import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import api from "../api";
 import "../styles/components/Register.css";
 
 function Register() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [fullName, setFullName] = useState("");
@@ -47,7 +49,7 @@ function Register() {
         contactEmail: contactEmail || null,
         contactPhone: contactPhone || null,
       });
-      setMessage(`注册成功! 用户ID: ${response.data.user.id}，请登录`);
+      setMessage(`注册成功! 用户ID: ${response.data.user.id}，正在跳转到登录页面...`);
       // 清空表单
       setEmail("");
       setPhone("");
@@ -56,6 +58,10 @@ function Register() {
       setContactPhone("");
       setPassword("");
       setConfirmPassword("");
+      // 延迟跳转到登录页面
+      setTimeout(() => {
+        navigate("/");
+      }, 1500);
     } catch (error) {
       if (error.response) {
         setMessage(`注册失败: ${error.response.data.message}`);
@@ -191,6 +197,15 @@ function Register() {
         <div>• 邮箱和手机号至少填写一个</div>
         <div>• 密码长度至少为6位</div>
         <div>• 其他信息为可选，可稍后完善</div>
+      </div>
+
+      <div className="register-back-to-login">
+        <Link
+          to="/"
+          className="register-back-to-login-link"
+        >
+          返回登录
+        </Link>
       </div>
     </div>
   );

@@ -146,3 +146,19 @@
   font-weight: 500;
 }
 
+.register-back-to-login {
+  text-align: center;
+  margin-top: 24px;
+}
+
+.register-back-to-login-link {
+  color: #1890ff;
+  text-decoration: none;
+  font-size: 14px;
+  transition: color 0.2s;
+}
+
+.register-back-to-login-link:hover {
+  color: #40a9ff;
+}
+

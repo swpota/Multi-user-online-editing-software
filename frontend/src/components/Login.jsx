@@ -123,6 +123,13 @@ function Login({ onLoginSuccess }) {
         >
           忘记密码？
         </Link>
+        <span className="login-link-separator">|</span>
+        <Link
+          to="/register"
+          className="login-forgot-password-link"
+        >
+          注册账户
+        </Link>
       </div>
     </div>
   );

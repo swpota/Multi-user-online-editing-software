@@ -126,6 +126,10 @@
 .login-forgot-password {
   text-align: center;
   margin-top: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
 .login-forgot-password-link {
@@ -137,5 +141,10 @@
 
 .login-forgot-password-link:hover {
   color: #40a9ff;
+}
+
+.login-link-separator {
+  color: #d9d9d9;
+  font-size: 14px;
 }
 

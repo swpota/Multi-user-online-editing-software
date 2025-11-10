@@ -254,6 +254,7 @@
   max-width: 1400px;
   margin: 0 auto;
   padding: 24px;
+  position: relative;
 }
 
 .editor-container {
@@ -272,8 +273,8 @@
 /* 模式提示 */
 .editor-mode-badge {
   position: absolute;
-  top: 10px;
-  right: 10px;
+  top: 24px;
+  right: 24px;
   padding: 6px 12px;
   color: white;
   font-size: 12px;

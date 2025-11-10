@@ -107,13 +107,28 @@ function App() {
                 ) : (
                   <div className="app-auth-container">
                     <div className="app-auth-wrapper">
-                      <div className="app-auth-section app-auth-section-left">
-                        <Register />
-                      </div>
                       <div className="app-auth-section">
                         <Login
                           onLoginSuccess={(loggedInUser) => setUser(loggedInUser)}
                         />
+                      </div>
+                    </div>
+                  </div>
+                )
+              }
+            />
+
+            {/* --- (新增) 添加注册页面的路由 --- */}
+            <Route
+              path="/register"
+              element={
+                user ? (
+                  <Navigate to="/" />
+                ) : (
+                  <div className="app-auth-container">
+                    <div className="app-auth-wrapper">
+                      <div className="app-auth-section">
+                        <Register />
                       </div>
                     </div>
                   </div>

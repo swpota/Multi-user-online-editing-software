@@ -278,6 +278,23 @@ function EditorPage({ user }) {
     }
   }, [documentId, user]);
 
+  // --- Effect 0: 当 documentId 变化时，强制滚动到页面顶部 ---
+  useEffect(() => {
+    // 强制滚动到页面顶部
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+    
+    // 延迟再次确保滚动到顶部（处理异步加载的情况）
+    const timer = setTimeout(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  }, [documentId]);
+
   // --- Effect 1: Socket 连接、加载数据、设置监听器 ---
   useEffect(() => {
     if (!user) return;
@@ -1392,11 +1409,11 @@ function EditorPage({ user }) {
 
       {/* 编辑器内容区域 */}
       <div className="editor-content-area">
+        {/* 模式提示 */}
+        <div className={`editor-mode-badge ${isMarkdownMode ? "markdown" : "rich"}`}>
+          {isMarkdownMode ? "📝 Markdown 模式" : "✏️ 富文本编辑器"}
+        </div>
         <div className="editor-container">
-          {/* 模式提示 */}
-          <div className={`editor-mode-badge ${isMarkdownMode ? "markdown" : "rich"}`}>
-            {isMarkdownMode ? "📝 Markdown 模式" : "✏️ 富文本编辑器"}
-          </div>
           {isMarkdownMode ? (
           <div className="editor-markdown-wrapper">
             {/* 工具栏 */}

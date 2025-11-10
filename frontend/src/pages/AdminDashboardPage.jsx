@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import api from "../api";
+import "../styles/pages/AdminDashboardPage.css";
 
 const AdminDashboardPage = ({ user: loggedInUser }) => {
   const [users, setUsers] = useState([]);
@@ -42,296 +43,80 @@ const AdminDashboardPage = ({ user: loggedInUser }) => {
   };
 
   return (
-    <div
-      style={{
-        minHeight: "calc(100vh - 64px)",
-        backgroundColor: "#f5f5f5",
-        padding: "24px",
-      }}
-    >
-      <div
-        style={{
-          maxWidth: "1400px",
-          margin: "0 auto",
-          backgroundColor: "#fff",
-          borderRadius: "8px",
-          boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
-          overflow: "hidden",
-        }}
-      >
+    <div className="admin-dashboard-page">
+      <div className="admin-dashboard-container">
         {/* 头部 */}
-        <div
-          style={{
-            padding: "24px",
-            borderBottom: "1px solid #e8e8e8",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <div>
-            <h2
-              style={{
-                margin: 0,
-                fontSize: "24px",
-                fontWeight: 600,
-                color: "#333",
-                marginBottom: "8px",
-              }}
-            >
+        <div className="admin-dashboard-header">
+          <div className="admin-dashboard-header-left">
+            <h2 className="admin-dashboard-title">
               🔐 后台管理面板
             </h2>
-            <p
-              style={{
-                margin: 0,
-                color: "#666",
-                fontSize: "14px",
-              }}
-            >
+            <p className="admin-dashboard-subtitle">
               管理系统用户和权限
             </p>
           </div>
           <Link
             to="/"
-            style={{
-              padding: "8px 16px",
-              backgroundColor: "#fff",
-              border: "1px solid #d9d9d9",
-              borderRadius: "6px",
-              textDecoration: "none",
-              color: "#333",
-              fontSize: "14px",
-              transition: "all 0.2s",
-            }}
-            onMouseEnter={(e) => {
-              e.target.style.borderColor = "#1890ff";
-              e.target.style.color = "#1890ff";
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.borderColor = "#d9d9d9";
-              e.target.style.color = "#333";
-            }}
+            className="admin-dashboard-back-link"
           >
             ← 返回仪表盘
           </Link>
         </div>
 
         {/* 内容区域 */}
-        <div style={{ padding: "24px" }}>
-          <h3
-            style={{
-              margin: "0 0 20px 0",
-              fontSize: "18px",
-              fontWeight: 600,
-              color: "#333",
-            }}
-          >
+        <div className="admin-dashboard-content">
+          <h3 className="admin-dashboard-section-title">
             用户管理
           </h3>
 
           {loading && (
-            <div
-              style={{
-                textAlign: "center",
-                padding: "40px",
-                color: "#666",
-                fontSize: "14px",
-              }}
-            >
-              <div
-                style={{
-                  width: "40px",
-                  height: "40px",
-                  border: "4px solid #f3f3f3",
-                  borderTop: "4px solid #1890ff",
-                  borderRadius: "50%",
-                  animation: "spin 1s linear infinite",
-                  margin: "0 auto 16px",
-                }}
-              />
+            <div className="admin-dashboard-loading">
+              <div className="admin-dashboard-loading-spinner" />
               正在加载用户...
             </div>
           )}
 
           {error && (
-            <div
-              style={{
-                padding: "12px 16px",
-                marginBottom: "20px",
-                backgroundColor: "#fff2e8",
-                color: "#fa8c16",
-                borderRadius: "6px",
-                fontSize: "14px",
-                border: "1px solid #ffd591",
-              }}
-            >
+            <div className="admin-dashboard-error">
               {error}
             </div>
           )}
 
           {!loading && !error && (
-            <div
-              style={{
-                overflowX: "auto",
-                border: "1px solid #e8e8e8",
-                borderRadius: "6px",
-              }}
-            >
-              <table
-                style={{
-                  width: "100%",
-                  borderCollapse: "collapse",
-                  minWidth: "800px",
-                }}
-              >
+            <div className="admin-dashboard-table-wrapper">
+              <table className="admin-dashboard-table">
                 <thead>
-                  <tr
-                    style={{
-                      backgroundColor: "#fafafa",
-                      borderBottom: "2px solid #e8e8e8",
-                    }}
-                  >
-                    <th
-                      style={{
-                        textAlign: "left",
-                        padding: "12px 16px",
-                        fontSize: "14px",
-                        fontWeight: 600,
-                        color: "#333",
-                      }}
-                    >
-                      ID
-                    </th>
-                    <th
-                      style={{
-                        textAlign: "left",
-                        padding: "12px 16px",
-                        fontSize: "14px",
-                        fontWeight: 600,
-                        color: "#333",
-                      }}
-                    >
-                      头像
-                    </th>
-                    <th
-                      style={{
-                        textAlign: "left",
-                        padding: "12px 16px",
-                        fontSize: "14px",
-                        fontWeight: 600,
-                        color: "#333",
-                      }}
-                    >
-                      邮箱
-                    </th>
-                    <th
-                      style={{
-                        textAlign: "left",
-                        padding: "12px 16px",
-                        fontSize: "14px",
-                        fontWeight: 600,
-                        color: "#333",
-                      }}
-                    >
-                      姓名
-                    </th>
-                    <th
-                      style={{
-                        textAlign: "left",
-                        padding: "12px 16px",
-                        fontSize: "14px",
-                        fontWeight: 600,
-                        color: "#333",
-                      }}
-                    >
-                      当前角色
-                    </th>
-                    <th
-                      style={{
-                        textAlign: "left",
-                        padding: "12px 16px",
-                        fontSize: "14px",
-                        fontWeight: 600,
-                        color: "#333",
-                      }}
-                    >
-                      操作
-                    </th>
-                    <th
-                      style={{
-                        textAlign: "left",
-                        padding: "12px 16px",
-                        fontSize: "14px",
-                        fontWeight: 600,
-                        color: "#333",
-                      }}
-                    >
-                      注册时间
-                    </th>
+                  <tr>
+                    <th>ID</th>
+                    <th>头像</th>
+                    <th>邮箱</th>
+                    <th>姓名</th>
+                    <th>当前角色</th>
+                    <th>操作</th>
+                    <th>注册时间</th>
                   </tr>
                 </thead>
                 <tbody>
                   {users.map((userInList) => (
-                    <tr
-                      key={userInList.id}
-                      style={{
-                        borderBottom: "1px solid #e8e8e8",
-                        transition: "background-color 0.2s",
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = "#fafafa";
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = "#fff";
-                      }}
-                    >
-                      <td
-                        style={{
-                          padding: "12px 16px",
-                          fontSize: "14px",
-                          color: "#666",
-                        }}
-                      >
-                        {userInList.id}
-                      </td>
-                      <td style={{ padding: "12px 16px" }}>
+                    <tr key={userInList.id}>
+                      <td>{userInList.id}</td>
+                      <td>
                         <img
                           src={userInList.avatar_url || "/default-avatar.png"}
                           alt="avatar"
-                          style={{
-                            width: "40px",
-                            height: "40px",
-                            borderRadius: "50%",
-                            objectFit: "cover",
-                            border: "2px solid #e8e8e8",
-                          }}
+                          className="admin-dashboard-avatar"
                         />
                       </td>
-                      <td
-                        style={{
-                          padding: "12px 16px",
-                          fontSize: "14px",
-                          color: "#333",
-                        }}
-                      >
-                        {userInList.email}
-                      </td>
-                      <td
-                        style={{
-                          padding: "12px 16px",
-                          fontSize: "14px",
-                          color: "#333",
-                        }}
-                      >
-                        {userInList.full_name || "-"}
-                      </td>
-                      <td style={{ padding: "12px 16px" }}>
+                      <td>{userInList.email}</td>
+                      <td>{userInList.full_name || "-"}</td>
+                      <td>
                         <span
+                          className={`admin-dashboard-role-badge ${
+                            userInList.role === "admin"
+                              ? "admin-dashboard-role-badge-admin"
+                              : "admin-dashboard-role-badge-user"
+                          }`}
                           style={{
-                            padding: "4px 12px",
-                            borderRadius: "4px",
-                            fontSize: "12px",
-                            fontWeight: 500,
                             backgroundColor:
                               userInList.role === "admin"
                                 ? "#fff7e6"
@@ -350,15 +135,9 @@ const AdminDashboardPage = ({ user: loggedInUser }) => {
                           {userInList.role === "admin" ? "管理员" : "编辑者"}
                         </span>
                       </td>
-                      <td style={{ padding: "12px 16px" }}>
+                      <td>
                         {loggedInUser.id === userInList.id ? (
-                          <span
-                            style={{
-                              color: "#999",
-                              fontSize: "14px",
-                              fontStyle: "italic",
-                            }}
-                          >
+                          <span className="admin-dashboard-self-label">
                             （你自己）
                           </span>
                         ) : userInList.role === "admin" ? (
@@ -366,25 +145,7 @@ const AdminDashboardPage = ({ user: loggedInUser }) => {
                             onClick={() =>
                               handleRoleChange(userInList.id, "editor")
                             }
-                            style={{
-                              padding: "6px 16px",
-                              backgroundColor: "#fff",
-                              border: "1px solid #d9d9d9",
-                              borderRadius: "6px",
-                              color: "#333",
-                              cursor: "pointer",
-                              fontSize: "14px",
-                              fontWeight: 500,
-                              transition: "all 0.2s",
-                            }}
-                            onMouseEnter={(e) => {
-                              e.target.style.borderColor = "#ff4d4f";
-                              e.target.style.color = "#ff4d4f";
-                            }}
-                            onMouseLeave={(e) => {
-                              e.target.style.borderColor = "#d9d9d9";
-                              e.target.style.color = "#333";
-                            }}
+                            className="admin-dashboard-button admin-dashboard-button-danger"
                           >
                             降为编辑者
                           </button>
@@ -393,40 +154,13 @@ const AdminDashboardPage = ({ user: loggedInUser }) => {
                             onClick={() =>
                               handleRoleChange(userInList.id, "admin")
                             }
-                            style={{
-                              padding: "6px 16px",
-                              backgroundColor: "#1890ff",
-                              border: "none",
-                              borderRadius: "6px",
-                              color: "#fff",
-                              cursor: "pointer",
-                              fontSize: "14px",
-                              fontWeight: 500,
-                              transition: "all 0.2s",
-                            }}
-                            onMouseEnter={(e) => {
-                              e.target.style.backgroundColor = "#40a9ff";
-                              e.target.style.transform = "translateY(-1px)";
-                              e.target.style.boxShadow =
-                                "0 4px 12px rgba(24, 144, 255, 0.3)";
-                            }}
-                            onMouseLeave={(e) => {
-                              e.target.style.backgroundColor = "#1890ff";
-                              e.target.style.transform = "translateY(0)";
-                              e.target.style.boxShadow = "none";
-                            }}
+                            className="admin-dashboard-button admin-dashboard-button-primary"
                           >
                             提升为管理员
                           </button>
                         )}
                       </td>
-                      <td
-                        style={{
-                          padding: "12px 16px",
-                          fontSize: "14px",
-                          color: "#666",
-                        }}
-                      >
+                      <td>
                         {new Date(userInList.created_at).toLocaleString("zh-CN")}
                       </td>
                     </tr>
@@ -437,14 +171,7 @@ const AdminDashboardPage = ({ user: loggedInUser }) => {
           )}
 
           {!loading && !error && users.length === 0 && (
-            <div
-              style={{
-                textAlign: "center",
-                padding: "40px",
-                color: "#999",
-                fontSize: "14px",
-              }}
-            >
+            <div className="admin-dashboard-empty">
               暂无用户数据
             </div>
           )}

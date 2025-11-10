@@ -17,7 +17,7 @@ import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import AdminDashboardPage from "./pages/AdminDashboardPage";
 
-import "./App.css";
+import "./styles/App.css";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -49,28 +49,10 @@ function App() {
 
   if (loading) {
     return (
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "100vh",
-          backgroundColor: "#f5f5f5",
-        }}
-      >
-        <div style={{ textAlign: "center" }}>
-          <div
-            style={{
-              width: "50px",
-              height: "50px",
-              border: "4px solid #f3f3f3",
-              borderTop: "4px solid #1890ff",
-              borderRadius: "50%",
-              animation: "spin 1s linear infinite",
-              margin: "0 auto 16px",
-            }}
-          />
-          <p style={{ color: "#666", fontSize: "14px" }}>正在加载应用...</p>
+      <div className="app-loading">
+        <div className="app-loading-content">
+          <div className="app-loading-spinner" />
+          <p className="app-loading-text">正在加载应用...</p>
         </div>
       </div>
     );
@@ -78,81 +60,28 @@ function App() {
 
   return (
     <Router>
-      <div className="App" style={{ minHeight: "100vh", backgroundColor: "#f5f5f5" }}>
-        <header
-          className="App-header"
-          style={{
-            backgroundColor: "#fff",
-            boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-            padding: "0 24px",
-            height: "64px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            position: "sticky",
-            top: 0,
-            zIndex: 1000,
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+      <div className="App">
+        <header className="App-header">
+          <div className="app-header-left">
             <h1
-              style={{
-                margin: 0,
-                fontSize: "20px",
-                fontWeight: 600,
-                color: "#1890ff",
-                cursor: "pointer",
-              }}
+              className="app-header-title"
               onClick={() => window.location.href = "/"}
             >
               📝 协作文档
             </h1>
           </div>
           {user && (
-            <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+            <div className="app-header-right">
               {user.role === "admin" && (
-                <a
-                  href="/admin"
-                  style={{
-                    padding: "6px 12px",
-                    color: "#1890ff",
-                    textDecoration: "none",
-                    fontSize: "14px",
-                    borderRadius: "4px",
-                    transition: "background-color 0.2s",
-                  }}
-                  onMouseEnter={(e) => (e.target.style.backgroundColor = "#e6f7ff")}
-                  onMouseLeave={(e) => (e.target.style.backgroundColor = "transparent")}
-                >
+                <a href="/admin" className="app-header-link">
                   管理后台
                 </a>
               )}
-              <a
-                href="/profile"
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "8px",
-                  textDecoration: "none",
-                  color: "#333",
-                  fontSize: "14px",
-                  padding: "4px 8px",
-                  borderRadius: "4px",
-                  transition: "background-color 0.2s",
-                }}
-                onMouseEnter={(e) => (e.target.style.backgroundColor = "#f5f5f5")}
-                onMouseLeave={(e) => (e.target.style.backgroundColor = "transparent")}
-              >
+              <a href="/profile" className="app-header-profile-link">
                 <img
                   src={user.avatar_url || "/default-avatar.png"}
                   alt={user.full_name || user.email}
-                  style={{
-                    width: "32px",
-                    height: "32px",
-                    borderRadius: "50%",
-                    objectFit: "cover",
-                    border: "2px solid #e8e8e8",
-                  }}
+                  className="app-header-avatar"
                 />
                 <span>{user.full_name || user.email}</span>
               </a>
@@ -161,31 +90,14 @@ function App() {
                   handleLogout();
                   window.location.href = "/";
                 }}
-                style={{
-                  padding: "6px 16px",
-                  backgroundColor: "transparent",
-                  border: "1px solid #d9d9d9",
-                  borderRadius: "4px",
-                  color: "#666",
-                  cursor: "pointer",
-                  fontSize: "14px",
-                  transition: "all 0.2s",
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.borderColor = "#ff4d4f";
-                  e.target.style.color = "#ff4d4f";
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.borderColor = "#d9d9d9";
-                  e.target.style.color = "#666";
-                }}
+                className="app-header-logout-btn"
               >
                 退出登录
               </button>
             </div>
           )}
         </header>
-        <main style={{ minHeight: "calc(100vh - 64px)" }}>
+        <main className="app-main">
           <Routes>
             <Route
               path="/"
@@ -193,43 +105,12 @@ function App() {
                 user ? (
                   <Dashboard user={user} />
                 ) : (
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "center",
-                      alignItems: "center",
-                      minHeight: "calc(100vh - 64px)",
-                      padding: "40px 20px",
-                      backgroundColor: "#f5f5f5",
-                    }}
-                  >
-                    <div
-                      style={{
-                        display: "flex",
-                        maxWidth: "1000px",
-                        width: "100%",
-                        gap: "40px",
-                        backgroundColor: "#fff",
-                        borderRadius: "8px",
-                        boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                        overflow: "hidden",
-                      }}
-                    >
-                      <div
-                        style={{
-                          flex: 1,
-                          padding: "40px",
-                          borderRight: "1px solid #e8e8e8",
-                        }}
-                      >
+                  <div className="app-auth-container">
+                    <div className="app-auth-wrapper">
+                      <div className="app-auth-section app-auth-section-left">
                         <Register />
                       </div>
-                      <div
-                        style={{
-                          flex: 1,
-                          padding: "40px",
-                        }}
-                      >
+                      <div className="app-auth-section">
                         <Login
                           onLoginSuccess={(loggedInUser) => setUser(loggedInUser)}
                         />

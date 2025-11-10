@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import api from "../api";
+import "../styles/components/TasksPanel.css";
 
 const TasksPanel = ({
   documentId,
@@ -191,64 +192,16 @@ const TasksPanel = ({
   };
 
   return (
-    <div
-      style={{
-        position: "fixed",
-        right: 0,
-        top: 0,
-        width: "400px",
-        height: "100vh",
-        backgroundColor: "#fff",
-        borderLeft: "1px solid #e8e8e8",
-        display: "flex",
-        flexDirection: "column",
-        zIndex: 1000,
-        boxShadow: "-2px 0 8px rgba(0,0,0,0.1)",
-      }}
-    >
+    <div className="tasks-panel">
       {/* 头部 */}
-      <div
-        style={{
-          padding: "16px",
-          borderBottom: "1px solid #e8e8e8",
-          backgroundColor: "#fafafa",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <h3
-          style={{
-            margin: 0,
-            fontSize: "18px",
-            fontWeight: 600,
-            color: "#333",
-          }}
-        >
+      <div className="tasks-panel-header">
+        <h3 className="tasks-panel-title">
           ✅ 任务 ({tasks.length})
         </h3>
-        <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+        <div className="tasks-panel-header-actions">
           <button
             onClick={() => setShowCreateForm(!showCreateForm)}
-            style={{
-              padding: "6px 16px",
-              backgroundColor: "#1890ff",
-              color: "white",
-              border: "none",
-              borderRadius: "6px",
-              cursor: "pointer",
-              fontSize: "14px",
-              fontWeight: 500,
-              transition: "all 0.2s",
-            }}
-            onMouseEnter={(e) => {
-              e.target.style.backgroundColor = "#40a9ff";
-              e.target.style.transform = "translateY(-1px)";
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.backgroundColor = "#1890ff";
-              e.target.style.transform = "translateY(0)";
-            }}
+            className="tasks-panel-create-btn"
           >
             {showCreateForm ? "取消" : "+ 新建任务"}
           </button>
@@ -261,27 +214,8 @@ const TasksPanel = ({
                 onClose();
               }
             }}
-            style={{
-              padding: "6px 12px",
-              fontSize: "20px",
-              backgroundColor: "transparent",
-              border: "none",
-              cursor: "pointer",
-              color: "#666",
-              borderRadius: "4px",
-              transition: "all 0.2s",
-              lineHeight: "1",
-              fontWeight: "bold",
-            }}
+            className="tasks-panel-close-btn"
             title="关闭任务面板"
-            onMouseEnter={(e) => {
-              e.target.style.backgroundColor = "#f5f5f5";
-              e.target.style.color = "#ff4d4f";
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.backgroundColor = "transparent";
-              e.target.style.color = "#666";
-            }}
           >
             ×
           </button>
@@ -290,15 +224,9 @@ const TasksPanel = ({
 
       {/* 创建任务表单 */}
       {showCreateForm && (
-        <div
-          style={{
-            padding: "16px",
-            borderBottom: "1px solid #e8e8e8",
-            backgroundColor: "#f0f7ff",
-          }}
-        >
+        <div className="tasks-panel-create-form">
           {(selectedText || selectedTextState) && (
-            <div style={{ fontSize: "12px", color: "#666", marginBottom: "8px" }}>
+            <div className="tasks-panel-selected-text">
               关联文本: "{(selectedText || selectedTextState).text.substring(0, 50)}
               {(selectedText || selectedTextState).text.length > 50 ? "..." : ""}"
             </div>
@@ -309,21 +237,10 @@ const TasksPanel = ({
             onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
             placeholder="任务标题 *（必填）"
             required
-            style={{
-              width: "100%",
-              padding: "8px",
-              border: (!newTask.title || !newTask.title.trim()) ? "1px solid #ff4d4f" : "1px solid #d9d9d9",
-              borderRadius: "4px",
-              fontSize: "14px",
-              marginBottom: "4px",
-            }}
+            className={`tasks-panel-input ${(!newTask.title || !newTask.title.trim()) ? "tasks-panel-input-error" : ""}`}
           />
           {(!newTask.title || !newTask.title.trim()) && (
-            <div style={{ 
-              fontSize: "12px", 
-              color: "#ff4d4f", 
-              marginBottom: "8px" 
-            }}>
+            <div className="tasks-panel-input-error-message">
               请填写任务标题
             </div>
           )}
@@ -333,30 +250,15 @@ const TasksPanel = ({
               setNewTask({ ...newTask, description: e.target.value })
             }
             placeholder="任务描述（可选）"
-            style={{
-              width: "100%",
-              minHeight: "60px",
-              padding: "8px",
-              border: "1px solid #d9d9d9",
-              borderRadius: "4px",
-              fontSize: "14px",
-              resize: "vertical",
-              marginBottom: "8px",
-            }}
+            className="tasks-panel-textarea"
           />
-          <div style={{ display: "flex", gap: "8px", marginBottom: "8px" }}>
+          <div className="tasks-panel-form-row">
             <select
               value={newTask.assignedTo}
               onChange={(e) =>
                 setNewTask({ ...newTask, assignedTo: e.target.value })
               }
-              style={{
-                flex: 1,
-                padding: "6px",
-                border: "1px solid #d9d9d9",
-                borderRadius: "4px",
-                fontSize: "13px",
-              }}
+              className="tasks-panel-select"
             >
               <option value="">未分配</option>
               {onlineUsers.map((u) => (
@@ -370,13 +272,7 @@ const TasksPanel = ({
               onChange={(e) =>
                 setNewTask({ ...newTask, priority: e.target.value })
               }
-              style={{
-                flex: 1,
-                padding: "6px",
-                border: "1px solid #d9d9d9",
-                borderRadius: "4px",
-                fontSize: "13px",
-              }}
+              className="tasks-panel-select"
             >
               <option value="low">低优先级</option>
               <option value="medium">中优先级</option>
@@ -389,28 +285,12 @@ const TasksPanel = ({
             value={newTask.dueDate}
             onChange={(e) => setNewTask({ ...newTask, dueDate: e.target.value })}
             placeholder="截止日期（可选）"
-            style={{
-              width: "100%",
-              padding: "6px",
-              border: "1px solid #d9d9d9",
-              borderRadius: "4px",
-              fontSize: "13px",
-              marginBottom: "8px",
-            }}
+            className="tasks-panel-date-input"
           />
           <button
             onClick={handleCreateTask}
             disabled={creating || !newTask.title || !newTask.title.trim()}
-            style={{
-              width: "100%",
-              padding: "8px",
-              backgroundColor: (creating || !newTask.title || !newTask.title.trim()) ? "#ccc" : "#1890ff",
-              color: "white",
-              border: "none",
-              borderRadius: "4px",
-              cursor: (creating || !newTask.title || !newTask.title.trim()) ? "not-allowed" : "pointer",
-              fontSize: "14px",
-            }}
+            className="tasks-panel-submit-btn"
             title={!newTask.title || !newTask.title.trim() ? "请填写任务标题" : ""}
           >
             {creating ? "创建中..." : "创建任务"}
@@ -419,31 +299,19 @@ const TasksPanel = ({
       )}
 
       {/* 任务列表 */}
-      <div
-        style={{
-          flex: 1,
-          overflowY: "auto",
-          padding: "16px",
-        }}
-      >
+      <div className="tasks-panel-body">
         {tasks.length === 0 ? (
-          <div
-            style={{
-              textAlign: "center",
-              color: "#999",
-              padding: "40px 20px",
-            }}
-          >
+          <div className="tasks-panel-empty">
             暂无任务
             <br />
-            <span style={{ fontSize: "12px" }}>点击"新建任务"创建任务</span>
+            <span className="tasks-panel-empty-hint">点击"新建任务"创建任务</span>
           </div>
         ) : (
           <div>
             {/* 待处理 */}
             {tasksByStatus.pending.length > 0 && (
-              <div style={{ marginBottom: "20px" }}>
-                <h4 style={{ fontSize: "14px", fontWeight: "600", marginBottom: "8px", color: "#faad14" }}>
+              <div className="tasks-panel-section">
+                <h4 className="tasks-panel-section-title tasks-panel-section-title-pending">
                   待处理 ({tasksByStatus.pending.length})
                 </h4>
                 {tasksByStatus.pending.map((task) => (
@@ -467,8 +335,8 @@ const TasksPanel = ({
 
             {/* 进行中 */}
             {tasksByStatus.in_progress.length > 0 && (
-              <div style={{ marginBottom: "20px" }}>
-                <h4 style={{ fontSize: "14px", fontWeight: "600", marginBottom: "8px", color: "#1890ff" }}>
+              <div className="tasks-panel-section">
+                <h4 className="tasks-panel-section-title tasks-panel-section-title-in-progress">
                   进行中 ({tasksByStatus.in_progress.length})
                 </h4>
                 {tasksByStatus.in_progress.map((task) => (
@@ -492,8 +360,8 @@ const TasksPanel = ({
 
             {/* 已完成 */}
             {tasksByStatus.completed.length > 0 && (
-              <div style={{ marginBottom: "20px" }}>
-                <h4 style={{ fontSize: "14px", fontWeight: "600", marginBottom: "8px", color: "#52c41a" }}>
+              <div className="tasks-panel-section">
+                <h4 className="tasks-panel-section-title tasks-panel-section-title-completed">
                   已完成 ({tasksByStatus.completed.length})
                 </h4>
                 {tasksByStatus.completed.map((task) => (
@@ -541,23 +409,14 @@ const TaskItem = ({
     user?.role === "admin";
 
   return (
-    <div
-      style={{
-        marginBottom: "12px",
-        padding: "12px",
-        backgroundColor: task.status === "completed" ? "#f5f5f5" : "#fff",
-        border: "1px solid #e8e8e8",
-        borderRadius: "6px",
-        opacity: task.status === "completed" ? 0.7 : 1,
-      }}
-    >
-      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
-        <div style={{ flex: 1 }}>
-          <div style={{ fontWeight: "600", fontSize: "14px", marginBottom: "4px" }}>
+    <div className={`tasks-panel-item ${task.status === "completed" ? "tasks-panel-item-completed" : ""}`}>
+      <div className="tasks-panel-item-header">
+        <div className="tasks-panel-item-main">
+          <div className="tasks-panel-item-title">
             {task.title}
           </div>
           {task.description && (
-            <div style={{ fontSize: "13px", color: "#666", marginBottom: "4px" }}>
+            <div className="tasks-panel-item-description">
               {task.description}
             </div>
           )}
@@ -565,67 +424,44 @@ const TaskItem = ({
         {canEdit && (
           <button
             onClick={() => onDelete(task.id)}
-            style={{
-              padding: "4px 8px",
-              fontSize: "12px",
-              backgroundColor: "transparent",
-              border: "none",
-              color: "#ff4d4f",
-              cursor: "pointer",
-            }}
+            className="tasks-panel-item-delete-btn"
           >
             删除
           </button>
         )}
       </div>
 
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginBottom: "8px" }}>
+      <div className="tasks-panel-item-tags">
         <span
-          style={{
-            padding: "2px 8px",
-            fontSize: "12px",
-            backgroundColor: getStatusColor(task.status),
-            color: "white",
-            borderRadius: "12px",
-          }}
+          className="tasks-panel-status-badge"
+          style={{ backgroundColor: getStatusColor(task.status) }}
         >
           {getStatusText(task.status)}
         </span>
         <span
-          style={{
-            padding: "2px 8px",
-            fontSize: "12px",
-            backgroundColor: getPriorityColor(task.priority),
-            color: "white",
-            borderRadius: "12px",
-          }}
+          className="tasks-panel-priority-badge"
+          style={{ backgroundColor: getPriorityColor(task.priority) }}
         >
           {getPriorityText(task.priority)}
         </span>
         {task.assignedTo && (
-          <span style={{ fontSize: "12px", color: "#666" }}>
+          <span className="tasks-panel-item-meta">
             分配给: {getUserDisplayName(task.assignedTo)}
           </span>
         )}
         {task.dueDate && (
-          <span style={{ fontSize: "12px", color: "#666" }}>
+          <span className="tasks-panel-item-meta">
             截止: {formatDate(task.dueDate)}
           </span>
         )}
       </div>
 
       {canEdit && task.status !== "completed" && (
-        <div style={{ display: "flex", gap: "8px" }}>
+        <div className="tasks-panel-item-actions">
           <select
             value={task.status}
             onChange={(e) => onUpdate(task.id, { status: e.target.value })}
-            style={{
-              flex: 1,
-              padding: "4px",
-              border: "1px solid #d9d9d9",
-              borderRadius: "4px",
-              fontSize: "12px",
-            }}
+            className="tasks-panel-item-select"
           >
             <option value="pending">待处理</option>
             <option value="in_progress">进行中</option>
@@ -636,13 +472,7 @@ const TaskItem = ({
             <select
               value={task.assignedTo.id}
               onChange={(e) => onUpdate(task.id, { assignedTo: e.target.value || null })}
-              style={{
-                flex: 1,
-                padding: "4px",
-                border: "1px solid #d9d9d9",
-                borderRadius: "4px",
-                fontSize: "12px",
-              }}
+              className="tasks-panel-item-select"
             >
               <option value="">未分配</option>
               {onlineUsers.map((u) => (
@@ -656,7 +486,7 @@ const TaskItem = ({
       )}
 
       {task.status === "completed" && task.completedBy && (
-        <div style={{ fontSize: "12px", color: "#999", marginTop: "8px" }}>
+        <div className="tasks-panel-item-completed-info">
           完成于: {formatDate(task.completedAt)} by {getUserDisplayName(task.completedBy)}
         </div>
       )}

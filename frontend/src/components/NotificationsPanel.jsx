@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import api from "../api";
+import "../styles/components/NotificationsPanel.css";
 
 const NotificationsPanel = ({ user, onClose, socket }) => {
   const [notifications, setNotifications] = useState([]);
@@ -212,111 +213,30 @@ const NotificationsPanel = ({ user, onClose, socket }) => {
   }, [filter]);
 
   return (
-    <div
-      style={{
-        position: "fixed",
-        top: "60px",
-        right: "20px",
-        width: "400px",
-        maxHeight: "600px",
-        backgroundColor: "white",
-        border: "1px solid #ddd",
-        borderRadius: "8px",
-        boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-        zIndex: 1000,
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
+    <div className="notifications-panel">
       {/* 头部 */}
-      <div
-        style={{
-          padding: "16px",
-          borderBottom: "1px solid #eee",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          <h3
-            style={{
-              margin: 0,
-              fontSize: "18px",
-              fontWeight: 600,
-              color: "#333",
-            }}
-          >
+      <div className="notifications-panel-header">
+        <div className="notifications-panel-header-left">
+          <h3 className="notifications-panel-title">
             🔔 通知
           </h3>
           {unreadCount > 0 && (
-            <span
-              style={{
-                backgroundColor: "#ff4d4f",
-                color: "white",
-                borderRadius: "10px",
-                padding: "2px 8px",
-                fontSize: "12px",
-                fontWeight: "bold",
-                minWidth: "20px",
-                textAlign: "center",
-              }}
-            >
+            <span className="notifications-panel-badge">
               {unreadCount}
             </span>
           )}
         </div>
-        <div style={{ display: "flex", gap: "8px" }}>
+        <div className="notifications-panel-header-actions">
           <button
             onClick={() => setShowSettings(!showSettings)}
-            style={{
-              padding: "6px 12px",
-              border: "1px solid #d9d9d9",
-              backgroundColor: showSettings ? "#1890ff" : "#fff",
-              color: showSettings ? "#fff" : "#333",
-              borderRadius: "6px",
-              cursor: "pointer",
-              fontSize: "14px",
-              transition: "all 0.2s",
-            }}
+            className={`notifications-panel-settings-btn ${showSettings ? "notifications-panel-settings-btn-active" : ""}`}
             title="通知设置"
-            onMouseEnter={(e) => {
-              if (!showSettings) {
-                e.target.style.borderColor = "#1890ff";
-                e.target.style.color = "#1890ff";
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (!showSettings) {
-                e.target.style.borderColor = "#d9d9d9";
-                e.target.style.color = "#333";
-              }
-            }}
           >
             ⚙️
           </button>
           <button
             onClick={onClose}
-            style={{
-              padding: "6px 12px",
-              border: "none",
-              backgroundColor: "transparent",
-              cursor: "pointer",
-              fontSize: "20px",
-              color: "#666",
-              borderRadius: "4px",
-              transition: "all 0.2s",
-              lineHeight: "1",
-              fontWeight: "bold",
-            }}
-            onMouseEnter={(e) => {
-              e.target.style.backgroundColor = "#f5f5f5";
-              e.target.style.color = "#ff4d4f";
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.backgroundColor = "transparent";
-              e.target.style.color = "#666";
-            }}
+            className="notifications-panel-close-btn"
           >
             ×
           </button>
@@ -325,16 +245,10 @@ const NotificationsPanel = ({ user, onClose, socket }) => {
 
       {/* 通知设置 */}
       {showSettings && settings && (
-        <div
-          style={{
-            padding: "16px",
-            borderBottom: "1px solid #eee",
-            backgroundColor: "#f9f9f9",
-          }}
-        >
-          <h4 style={{ margin: "0 0 12px 0", fontSize: "14px" }}>通知设置</h4>
-          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-            <label style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px" }}>
+        <div className="notifications-panel-settings">
+          <h4 className="notifications-panel-settings-title">通知设置</h4>
+          <div className="notifications-panel-settings-list">
+            <label className="notifications-panel-settings-item">
               <input
                 type="checkbox"
                 checked={settings.comment_notifications}
@@ -344,7 +258,7 @@ const NotificationsPanel = ({ user, onClose, socket }) => {
               />
               评论通知
             </label>
-            <label style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px" }}>
+            <label className="notifications-panel-settings-item">
               <input
                 type="checkbox"
                 checked={settings.task_notifications}
@@ -354,7 +268,7 @@ const NotificationsPanel = ({ user, onClose, socket }) => {
               />
               任务通知
             </label>
-            <label style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px" }}>
+            <label className="notifications-panel-settings-item">
               <input
                 type="checkbox"
                 checked={settings.mention_notifications}
@@ -364,7 +278,7 @@ const NotificationsPanel = ({ user, onClose, socket }) => {
               />
               提及通知
             </label>
-            <label style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px" }}>
+            <label className="notifications-panel-settings-item">
               <input
                 type="checkbox"
                 checked={settings.document_shared_notifications}
@@ -374,7 +288,7 @@ const NotificationsPanel = ({ user, onClose, socket }) => {
               />
               文档共享通知
             </label>
-            <label style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px" }}>
+            <label className="notifications-panel-settings-item">
               <input
                 type="checkbox"
                 checked={settings.document_updated_notifications}
@@ -389,25 +303,11 @@ const NotificationsPanel = ({ user, onClose, socket }) => {
       )}
 
       {/* 筛选和操作 */}
-      <div
-        style={{
-          padding: "12px 16px",
-          borderBottom: "1px solid #eee",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          gap: "8px",
-        }}
-      >
+      <div className="notifications-panel-filters">
         <select
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
-          style={{
-            padding: "4px 8px",
-            border: "1px solid #ddd",
-            borderRadius: "4px",
-            fontSize: "13px",
-          }}
+          className="notifications-panel-filter-select"
         >
           <option value="all">全部</option>
           <option value="unread">未读</option>
@@ -418,14 +318,7 @@ const NotificationsPanel = ({ user, onClose, socket }) => {
         {unreadCount > 0 && (
           <button
             onClick={markAllAsRead}
-            style={{
-              padding: "4px 12px",
-              border: "1px solid #ddd",
-              borderRadius: "4px",
-              backgroundColor: "white",
-              cursor: "pointer",
-              fontSize: "13px",
-            }}
+            className="notifications-panel-mark-all-read-btn"
           >
             全部标记为已读
           </button>
@@ -433,19 +326,13 @@ const NotificationsPanel = ({ user, onClose, socket }) => {
       </div>
 
       {/* 通知列表 */}
-      <div
-        style={{
-          flex: 1,
-          overflowY: "auto",
-          padding: "8px",
-        }}
-      >
+      <div className="notifications-panel-body">
         {loading ? (
-          <div style={{ padding: "20px", textAlign: "center", color: "#999" }}>
+          <div className="notifications-panel-loading">
             加载中...
           </div>
         ) : notifications.length === 0 ? (
-          <div style={{ padding: "20px", textAlign: "center", color: "#999" }}>
+          <div className="notifications-panel-empty">
             暂无通知
           </div>
         ) : (
@@ -453,73 +340,36 @@ const NotificationsPanel = ({ user, onClose, socket }) => {
             <div
               key={notification.id}
               onClick={() => handleNotificationClick(notification)}
-              style={{
-                padding: "12px",
-                marginBottom: "8px",
-                backgroundColor: notification.is_read ? "white" : "#e6f7ff",
-                border: "1px solid #eee",
-                borderRadius: "6px",
-                cursor: "pointer",
-                transition: "background-color 0.2s",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = notification.is_read ? "#f5f5f5" : "#bae7ff";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = notification.is_read ? "white" : "#e6f7ff";
-              }}
+              className={`notifications-panel-item ${!notification.is_read ? "notifications-panel-item-unread" : ""}`}
             >
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start" }}>
-                <div style={{ flex: 1 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
-                    <span style={{ fontSize: "18px" }}>
+              <div className="notifications-panel-item-content">
+                <div className="notifications-panel-item-main">
+                  <div className="notifications-panel-item-header">
+                    <span className="notifications-panel-item-icon">
                       {getNotificationIcon(notification.type)}
                     </span>
                     <span
-                      style={{
-                        fontWeight: notification.is_read ? "normal" : "bold",
-                        fontSize: "14px",
-                      }}
+                      className={`notifications-panel-item-title ${!notification.is_read ? "notifications-panel-item-title-unread" : ""}`}
                     >
                       {notification.title}
                     </span>
                   </div>
                   {notification.content && (
-                    <div
-                      style={{
-                        fontSize: "13px",
-                        color: "#666",
-                        marginBottom: "4px",
-                        marginLeft: "26px",
-                      }}
-                    >
+                    <div className="notifications-panel-item-content-text">
                       {notification.content}
                     </div>
                   )}
-                  <div
-                    style={{
-                      fontSize: "12px",
-                      color: "#999",
-                      marginLeft: "26px",
-                    }}
-                  >
+                  <div className="notifications-panel-item-time">
                     {formatTime(notification.created_at)}
                   </div>
                 </div>
-                <div style={{ display: "flex", gap: "4px" }}>
+                <div className="notifications-panel-item-actions">
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       deleteNotification(notification.id);
                     }}
-                    style={{
-                      padding: "2px 6px",
-                      border: "none",
-                      backgroundColor: "transparent",
-                      cursor: "pointer",
-                      fontSize: "14px",
-                      color: "#999",
-                    }}
+                    className="notifications-panel-item-delete-btn"
                     title="删除"
                   >
                     ×

@@ -14,7 +14,7 @@ import NotificationsPanel from "../components/NotificationsPanel";
 import VideoConferencePanel from "../components/VideoConferencePanel";
 import DOMPurify from "dompurify";
 import { marked } from "marked";
-import "./EditorPage.css";
+import "../styles/pages/EditorPage.css";
 
 const cloneDelta = (delta) => {
   if (!delta || typeof delta !== "object") {
@@ -1340,7 +1340,6 @@ function EditorPage({ user }) {
               setShowNotifications(!showNotifications);
             }}
             className={`editor-btn ${showNotifications ? "editor-btn-active" : "editor-btn-secondary"}`}
-            style={{ position: "relative" }}
           >
             🔔 通知
           </button>
@@ -1684,13 +1683,14 @@ function EditorPage({ user }) {
                         dangerouslySetInnerHTML={{ __html: previewMarkdownHtml }}
                       />
                     ) : previewContent ? (
-                      <ReactQuill
-                        value={previewContent}
-                        readOnly
-                        theme="bubble"
-                        modules={{ toolbar: false }}
-                        style={{ minHeight: "300px" }}
-                      />
+                      <div className="editor-version-preview-content">
+                        <ReactQuill
+                          value={previewContent}
+                          readOnly
+                          theme="bubble"
+                          modules={{ toolbar: false }}
+                        />
+                      </div>
                     ) : (
                       <div className="editor-version-preview-empty">
                         该版本没有内容

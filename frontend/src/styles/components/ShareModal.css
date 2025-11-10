@@ -1,0 +1,260 @@
+/* ShareModal.css - 分享模态框样式 */
+
+.share-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(4px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.share-modal-container {
+  background-color: #fff;
+  border-radius: 8px;
+  width: 100%;
+  max-width: 600px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+  position: relative;
+}
+
+.share-modal-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid #e8e8e8;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.share-modal-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+}
+
+.share-modal-close-btn {
+  padding: 6px 12px;
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
+  font-size: 24px;
+  color: #666;
+  border-radius: 4px;
+  transition: all 0.2s;
+  line-height: 1;
+}
+
+.share-modal-close-btn:hover {
+  background-color: #f5f5f5;
+  color: #ff4d4f;
+}
+
+.share-modal-body {
+  padding: 24px;
+  overflow-y: auto;
+}
+
+.share-modal-error {
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  background-color: #fff2e8;
+  color: #fa8c16;
+  border-radius: 6px;
+  font-size: 14px;
+  border: 1px solid #ffd591;
+}
+
+.share-modal-search-section {
+  margin-bottom: 24px;
+}
+
+.share-modal-label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+}
+
+.share-modal-input {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 14px;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  transition: all 0.2s;
+  outline: none;
+}
+
+.share-modal-input:focus {
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+.share-modal-search-results {
+  list-style: none;
+  padding: 0;
+  margin-top: 12px;
+  border: 1px solid #e8e8e8;
+  border-radius: 6px;
+  background-color: #fafafa;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.share-modal-search-item {
+  padding: 12px 16px;
+  border-bottom: 1px solid #e8e8e8;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.share-modal-search-item:last-child {
+  border-bottom: none;
+}
+
+.share-modal-search-email {
+  font-size: 14px;
+  color: #333;
+}
+
+.share-modal-search-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.share-modal-btn-viewer {
+  padding: 6px 12px;
+  background-color: #fff;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  color: #333;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s;
+}
+
+.share-modal-btn-viewer:hover {
+  border-color: #1890ff;
+  color: #1890ff;
+}
+
+.share-modal-btn-editor {
+  padding: 6px 12px;
+  background-color: #1890ff;
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s;
+}
+
+.share-modal-btn-editor:hover {
+  background-color: #40a9ff;
+}
+
+.share-modal-collaborators-section {
+  width: 100%;
+}
+
+.share-modal-collaborators-title {
+  margin: 0 0 16px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.share-modal-loading {
+  text-align: center;
+  padding: 40px;
+  color: #666;
+  font-size: 14px;
+}
+
+.share-modal-empty {
+  text-align: center;
+  padding: 40px;
+  color: #999;
+  font-size: 14px;
+}
+
+.share-modal-collaborators-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.share-modal-collaborator-item {
+  padding: 12px 16px;
+  border: 1px solid #e8e8e8;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #fafafa;
+  transition: all 0.2s;
+}
+
+.share-modal-collaborator-item:hover {
+  background-color: #f0f0f0;
+  border-color: #d9d9d9;
+}
+
+.share-modal-collaborator-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.share-modal-collaborator-email {
+  font-size: 14px;
+  color: #333;
+  font-weight: 500;
+}
+
+.share-modal-role-badge {
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.share-modal-role-badge-editor {
+  background-color: #e6f7ff;
+  color: #1890ff;
+}
+
+.share-modal-role-badge-viewer {
+  background-color: #f6ffed;
+  color: #52c41a;
+}
+
+.share-modal-remove-btn {
+  padding: 6px 12px;
+  background-color: #fff;
+  border: 1px solid #ff4d4f;
+  border-radius: 6px;
+  color: #ff4d4f;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s;
+}
+
+.share-modal-remove-btn:hover {
+  background-color: #ff4d4f;
+  color: #fff;
+}
+

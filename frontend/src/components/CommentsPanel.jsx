@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import api from "../api";
+import "../styles/components/CommentsPanel.css";
 
 const CommentsPanel = ({
   documentId,
@@ -153,40 +154,10 @@ const CommentsPanel = ({
   };
 
   return (
-    <div
-      style={{
-        position: "fixed",
-        right: 0,
-        top: 0,
-        width: "400px",
-        height: "100vh",
-        backgroundColor: "#fff",
-        borderLeft: "1px solid #e8e8e8",
-        display: "flex",
-        flexDirection: "column",
-        zIndex: 1000,
-        boxShadow: "-2px 0 8px rgba(0,0,0,0.1)",
-      }}
-    >
+    <div className="comments-panel">
       {/* 头部 */}
-      <div
-        style={{
-          padding: "16px",
-          borderBottom: "1px solid #e8e8e8",
-          backgroundColor: "#fafafa",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <h3
-          style={{
-            margin: 0,
-            fontSize: "18px",
-            fontWeight: 600,
-            color: "#333",
-          }}
-        >
+      <div className="comments-panel-header">
+        <h3 className="comments-panel-title">
           💬 评论 ({comments.length})
         </h3>
         <button
@@ -198,27 +169,8 @@ const CommentsPanel = ({
               onClose();
             }
           }}
-          style={{
-            padding: "6px 12px",
-            fontSize: "20px",
-            backgroundColor: "transparent",
-            border: "none",
-            cursor: "pointer",
-            color: "#666",
-            borderRadius: "4px",
-            transition: "all 0.2s",
-            lineHeight: "1",
-            fontWeight: "bold",
-          }}
+          className="comments-panel-close-btn"
           title="关闭评论面板"
-          onMouseEnter={(e) => {
-            e.target.style.backgroundColor = "#f5f5f5";
-            e.target.style.color = "#ff4d4f";
-          }}
-          onMouseLeave={(e) => {
-            e.target.style.backgroundColor = "transparent";
-            e.target.style.color = "#666";
-          }}
         >
           ×
         </button>
@@ -226,14 +178,8 @@ const CommentsPanel = ({
 
       {/* 创建评论区域 */}
       {selectedText && selectedText.text && selectedText.text.trim() && (
-        <div
-          style={{
-            padding: "12px 16px",
-            borderBottom: "1px solid #e8e8e8",
-            backgroundColor: "#f0f7ff",
-          }}
-        >
-          <div style={{ fontSize: "12px", color: "#666", marginBottom: "8px" }}>
+        <div className="comments-panel-create-section">
+          <div className="comments-panel-selected-text">
             选中文本: "{selectedText.text.substring(0, 50)}
             {selectedText.text.length > 50 ? "..." : ""}"
           </div>
@@ -241,29 +187,13 @@ const CommentsPanel = ({
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
             placeholder="添加评论..."
-            style={{
-              width: "100%",
-              minHeight: "60px",
-              padding: "8px",
-              border: "1px solid #d9d9d9",
-              borderRadius: "4px",
-              fontSize: "14px",
-              resize: "vertical",
-            }}
+            className="comments-panel-textarea"
           />
-          <div style={{ display: "flex", gap: "8px", marginTop: "8px" }}>
+          <div className="comments-panel-create-actions">
             <button
               onClick={handleCreateComment}
               disabled={creating || !newComment.trim()}
-              style={{
-                padding: "6px 16px",
-                backgroundColor: "#1890ff",
-                color: "white",
-                border: "none",
-                borderRadius: "4px",
-                cursor: creating ? "not-allowed" : "pointer",
-                fontSize: "13px",
-              }}
+              className="comments-panel-create-btn"
             >
               {creating ? "创建中..." : "添加评论"}
             </button>
@@ -272,15 +202,7 @@ const CommentsPanel = ({
                 setNewComment("");
                 onSelectText(null);
               }}
-              style={{
-                padding: "6px 16px",
-                backgroundColor: "#fff",
-                color: "#666",
-                border: "1px solid #d9d9d9",
-                borderRadius: "4px",
-                cursor: "pointer",
-                fontSize: "13px",
-              }}
+              className="comments-panel-cancel-btn"
             >
               取消
             </button>
@@ -289,24 +211,12 @@ const CommentsPanel = ({
       )}
 
       {/* 评论列表 */}
-      <div
-        style={{
-          flex: 1,
-          overflowY: "auto",
-          padding: "16px",
-        }}
-      >
+      <div className="comments-panel-body">
         {comments.length === 0 ? (
-          <div
-            style={{
-              textAlign: "center",
-              color: "#999",
-              padding: "40px 20px",
-            }}
-          >
+          <div className="comments-panel-empty">
             暂无评论
             <br />
-            <span style={{ fontSize: "12px" }}>
+            <span className="comments-panel-empty-hint">
               选中文本后可以添加评论
             </span>
           </div>
@@ -314,44 +224,23 @@ const CommentsPanel = ({
           comments.map((comment) => (
             <div
               key={comment.id}
-              style={{
-                marginBottom: "16px",
-                padding: "12px",
-                backgroundColor: comment.isResolved ? "#f5f5f5" : "#fff",
-                border: "1px solid #e8e8e8",
-                borderRadius: "6px",
-                opacity: comment.isResolved ? 0.7 : 1,
-              }}
+              className={`comments-panel-item ${comment.isResolved ? "comments-panel-item-resolved" : ""}`}
             >
               {/* 评论头部 */}
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "flex-start",
-                  marginBottom: "8px",
-                }}
-              >
+              <div className="comments-panel-item-header">
                 <div>
-                  <div style={{ fontWeight: "600", fontSize: "14px" }}>
+                  <div className="comments-panel-item-author">
                     {getUserDisplayName(comment.author)}
                   </div>
-                  <div style={{ fontSize: "12px", color: "#999" }}>
+                  <div className="comments-panel-item-time">
                     {formatDate(comment.createdAt)}
                   </div>
                 </div>
-                <div style={{ display: "flex", gap: "8px" }}>
+                <div className="comments-panel-item-actions">
                   {comment.author?.id === user?.id && (
                     <button
                       onClick={() => handleDelete(comment.id, false)}
-                      style={{
-                        padding: "4px 8px",
-                        fontSize: "12px",
-                        backgroundColor: "transparent",
-                        border: "none",
-                        color: "#ff4d4f",
-                        cursor: "pointer",
-                      }}
+                      className="comments-panel-item-delete-btn"
                     >
                       删除
                     </button>
@@ -361,15 +250,7 @@ const CommentsPanel = ({
                       handleResolve(comment.id, !comment.isResolved)
                     }
                     disabled={creating}
-                    style={{
-                      padding: "4px 8px",
-                      fontSize: "12px",
-                      backgroundColor: "transparent",
-                      border: "none",
-                      color: comment.isResolved ? "#52c41a" : "#1890ff",
-                      cursor: creating ? "not-allowed" : "pointer",
-                      opacity: creating ? 0.6 : 1,
-                    }}
+                    className={`comments-panel-item-resolve-btn ${comment.isResolved ? "comments-panel-item-resolve-btn-resolved" : "comments-panel-item-resolve-btn-unresolved"}`}
                   >
                     {creating ? "处理中..." : comment.isResolved ? "已解决" : "解决"}
                   </button>
@@ -377,30 +258,13 @@ const CommentsPanel = ({
               </div>
 
               {/* 评论内容 */}
-              <div
-                style={{
-                  fontSize: "14px",
-                  lineHeight: "1.6",
-                  marginBottom: "8px",
-                  whiteSpace: "pre-wrap",
-                }}
-              >
+              <div className="comments-panel-item-content">
                 {comment.content}
               </div>
 
               {/* 锚点文本 */}
               {comment.anchorText && (
-                <div
-                  style={{
-                    fontSize: "12px",
-                    color: "#666",
-                    padding: "8px",
-                    backgroundColor: "#f5f5f5",
-                    borderRadius: "4px",
-                    marginBottom: "8px",
-                    fontStyle: "italic",
-                  }}
-                >
+                <div className="comments-panel-item-anchor">
                   "{comment.anchorText}"
                 </div>
               )}
@@ -408,48 +272,25 @@ const CommentsPanel = ({
               {/* 回复按钮 */}
               <button
                 onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
-                style={{
-                  padding: "4px 8px",
-                  fontSize: "12px",
-                  backgroundColor: "transparent",
-                  border: "none",
-                  color: "#1890ff",
-                  cursor: "pointer",
-                }}
+                className="comments-panel-item-reply-btn"
               >
                 {replyingTo === comment.id ? "取消回复" : "回复"}
               </button>
 
               {/* 回复输入框 */}
               {replyingTo === comment.id && (
-                <div style={{ marginTop: "8px" }}>
+                <div className="comments-panel-reply-section">
                   <textarea
                     value={replyContent}
                     onChange={(e) => setReplyContent(e.target.value)}
                     placeholder="输入回复..."
-                    style={{
-                      width: "100%",
-                      minHeight: "50px",
-                      padding: "6px",
-                      border: "1px solid #d9d9d9",
-                      borderRadius: "4px",
-                      fontSize: "13px",
-                      resize: "vertical",
-                    }}
+                    className="comments-panel-reply-textarea"
                   />
-                  <div style={{ display: "flex", gap: "8px", marginTop: "6px" }}>
+                  <div className="comments-panel-reply-actions">
                     <button
                       onClick={() => handleReply(comment.id)}
                       disabled={creating || !replyContent.trim()}
-                      style={{
-                        padding: "4px 12px",
-                        backgroundColor: "#1890ff",
-                        color: "white",
-                        border: "none",
-                        borderRadius: "4px",
-                        cursor: creating ? "not-allowed" : "pointer",
-                        fontSize: "12px",
-                      }}
+                      className="comments-panel-reply-send-btn"
                     >
                       发送
                     </button>
@@ -458,15 +299,7 @@ const CommentsPanel = ({
                         setReplyContent("");
                         setReplyingTo(null);
                       }}
-                      style={{
-                        padding: "4px 12px",
-                        backgroundColor: "#fff",
-                        color: "#666",
-                        border: "1px solid #d9d9d9",
-                        borderRadius: "4px",
-                        cursor: "pointer",
-                        fontSize: "12px",
-                      }}
+                      className="comments-panel-reply-cancel-btn"
                     >
                       取消
                     </button>
@@ -476,7 +309,7 @@ const CommentsPanel = ({
 
               {/* 回复列表 */}
               {comment.replies && comment.replies.length > 0 && (
-                <div style={{ marginTop: "12px", paddingLeft: "16px", borderLeft: "2px solid #e8e8e8" }}>
+                <div className="comments-panel-replies">
                   {comment.replies
                     .filter((reply, index, self) => 
                       // 过滤重复的回复：只保留第一个出现的
@@ -485,39 +318,27 @@ const CommentsPanel = ({
                     .map((reply, index) => (
                       <div
                         key={`reply-${comment.id}-${reply.id}-${index}`}
-                        style={{
-                          marginBottom: "8px",
-                          padding: "8px",
-                          backgroundColor: "#fafafa",
-                          borderRadius: "4px",
-                        }}
+                        className="comments-panel-reply-item"
                       >
-                      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
+                      <div className="comments-panel-reply-item-header">
                         <div>
-                          <span style={{ fontWeight: "600", fontSize: "13px" }}>
+                          <span className="comments-panel-reply-item-author">
                             {getUserDisplayName(reply.author)}
                           </span>
-                          <span style={{ fontSize: "11px", color: "#999", marginLeft: "8px" }}>
+                          <span className="comments-panel-reply-item-time">
                             {formatDate(reply.createdAt)}
                           </span>
                         </div>
                         {reply.author?.id === user?.id && (
                           <button
                             onClick={() => handleDelete(reply.id, true)}
-                            style={{
-                              padding: "2px 6px",
-                              fontSize: "11px",
-                              backgroundColor: "transparent",
-                              border: "none",
-                              color: "#ff4d4f",
-                              cursor: "pointer",
-                            }}
+                            className="comments-panel-reply-item-delete-btn"
                           >
                             删除
                           </button>
                         )}
                       </div>
-                      <div style={{ fontSize: "13px", lineHeight: "1.5", whiteSpace: "pre-wrap" }}>
+                      <div className="comments-panel-reply-item-content">
                         {reply.content}
                       </div>
                     </div>

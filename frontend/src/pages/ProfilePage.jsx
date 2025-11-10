@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../api";
+import "../styles/pages/ProfilePage.css";
 
 const ProfilePage = ({ user, setUser }) => {
   const [fullName, setFullName] = useState(user.full_name || "");
@@ -123,218 +124,74 @@ const ProfilePage = ({ user, setUser }) => {
   };
 
   return (
-    <div
-      style={{
-        minHeight: "calc(100vh - 64px)",
-        backgroundColor: "#f5f5f5",
-        padding: "24px",
-      }}
-    >
-      <div
-        style={{
-          maxWidth: "800px",
-          margin: "0 auto",
-          backgroundColor: "#fff",
-          borderRadius: "8px",
-          boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
-          overflow: "hidden",
-        }}
-      >
+    <div className="profile-page">
+      <div className="profile-container">
         {/* 头部 */}
-        <div
-          style={{
-            padding: "24px",
-            borderBottom: "1px solid #e8e8e8",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <h2
-            style={{
-              margin: 0,
-              fontSize: "24px",
-              fontWeight: 600,
-              color: "#333",
-            }}
-          >
+        <div className="profile-header">
+          <h2 className="profile-header-title">
             个人资料
           </h2>
-          <Link
-            to="/"
-            style={{
-              padding: "8px 16px",
-              backgroundColor: "#fff",
-              border: "1px solid #d9d9d9",
-              borderRadius: "6px",
-              textDecoration: "none",
-              color: "#333",
-              fontSize: "14px",
-              transition: "all 0.2s",
-            }}
-            onMouseEnter={(e) => {
-              e.target.style.borderColor = "#1890ff";
-              e.target.style.color = "#1890ff";
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.borderColor = "#d9d9d9";
-              e.target.style.color = "#333";
-            }}
-          >
+          <Link to="/" className="profile-back-link">
             ← 返回仪表盘
           </Link>
         </div>
 
-        <div style={{ padding: "24px" }}>
+        <div className="profile-content">
           {/* 头像部分 */}
-          <div
-            style={{
-              textAlign: "center",
-              marginBottom: "32px",
-              paddingBottom: "32px",
-              borderBottom: "1px solid #e8e8e8",
-            }}
-          >
-            <div
-              style={{
-                width: "120px",
-                height: "120px",
-                borderRadius: "50%",
-                margin: "0 auto 16px",
-                border: "4px solid #e8e8e8",
-                overflow: "hidden",
-                position: "relative",
-              }}
-            >
+          <div className="profile-avatar-section">
+            <div className="profile-avatar-wrapper">
               <img
                 src={avatarPreview || "/default-avatar.png"}
                 alt="User Avatar"
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover",
-                }}
+                className="profile-avatar-image"
               />
             </div>
             <input
               type="file"
               accept="image/*"
               onChange={handleFileChange}
-              style={{ display: "none" }}
+              className="profile-avatar-input"
               id="avatar-input"
             />
-            <label
-              htmlFor="avatar-input"
-              style={{
-                display: "inline-block",
-                padding: "8px 16px",
-                backgroundColor: "#1890ff",
-                color: "#fff",
-                borderRadius: "6px",
-                cursor: "pointer",
-                fontSize: "14px",
-                fontWeight: 500,
-                transition: "all 0.2s",
-                marginRight: "8px",
-              }}
-              onMouseEnter={(e) => {
-                e.target.style.backgroundColor = "#40a9ff";
-                e.target.style.transform = "translateY(-1px)";
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.backgroundColor = "#1890ff";
-                e.target.style.transform = "translateY(0)";
-              }}
-            >
+            <label htmlFor="avatar-input" className="profile-avatar-label">
               选择头像
             </label>
             <button
               onClick={handleAvatarUpload}
               disabled={!avatarFile || loading}
-              style={{
-                padding: "8px 16px",
-                backgroundColor: avatarFile && !loading ? "#52c41a" : "#d9d9d9",
-                color: "#fff",
-                border: "none",
-                borderRadius: "6px",
-                cursor: avatarFile && !loading ? "pointer" : "not-allowed",
-                fontSize: "14px",
-                fontWeight: 500,
-                transition: "all 0.2s",
-              }}
-              onMouseEnter={(e) => {
-                if (avatarFile && !loading) {
-                  e.target.style.backgroundColor = "#73d13d";
-                  e.target.style.transform = "translateY(-1px)";
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (avatarFile && !loading) {
-                  e.target.style.backgroundColor = "#52c41a";
-                  e.target.style.transform = "translateY(0)";
-                }
-              }}
+              className="profile-avatar-upload-btn"
             >
               {loading ? "上传中..." : "上传头像"}
             </button>
           </div>
 
           {/* 账户信息 */}
-          <div style={{ marginBottom: "32px" }}>
-            <h3
-              style={{
-                margin: "0 0 16px 0",
-                fontSize: "18px",
-                fontWeight: 600,
-                color: "#333",
-              }}
-            >
+          <div className="profile-section">
+            <h3 className="profile-section-title">
               账户信息
             </h3>
-            <div
-              style={{
-                padding: "16px",
-                backgroundColor: "#f5f5f5",
-                borderRadius: "6px",
-                marginBottom: "16px",
-              }}
-            >
-              <div style={{ marginBottom: "8px" }}>
-                <strong style={{ color: "#666", fontSize: "14px" }}>邮箱：</strong>
-                <span style={{ color: "#333", fontSize: "14px" }}>{user.email}</span>
+            <div className="profile-account-info">
+              <div className="profile-account-item">
+                <strong className="profile-account-label">邮箱：</strong>
+                <span className="profile-account-value">{user.email}</span>
               </div>
               {user.phone && (
-                <div>
-                  <strong style={{ color: "#666", fontSize: "14px" }}>手机号：</strong>
-                  <span style={{ color: "#333", fontSize: "14px" }}>{user.phone}</span>
+                <div className="profile-account-item">
+                  <strong className="profile-account-label">手机号：</strong>
+                  <span className="profile-account-value">{user.phone}</span>
                 </div>
               )}
             </div>
           </div>
 
           {/* 联系方式表单 */}
-          <div style={{ marginBottom: "32px" }}>
-            <h3
-              style={{
-                margin: "0 0 16px 0",
-                fontSize: "18px",
-                fontWeight: 600,
-                color: "#333",
-              }}
-            >
+          <div className="profile-section">
+            <h3 className="profile-section-title">
               联系方式
             </h3>
-            <form onSubmit={handleProfileSubmit}>
-              <div style={{ marginBottom: "16px" }}>
-                <label
-                  style={{
-                    display: "block",
-                    marginBottom: "8px",
-                    fontSize: "14px",
-                    fontWeight: 500,
-                    color: "#333",
-                  }}
-                >
+            <form onSubmit={handleProfileSubmit} className="profile-form">
+              <div className="profile-form-group">
+                <label className="profile-label">
                   姓名
                 </label>
                 <input
@@ -342,35 +199,11 @@ const ProfilePage = ({ user, setUser }) => {
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   placeholder="填写个人或团队称呼"
-                  style={{
-                    width: "100%",
-                    padding: "10px 12px",
-                    fontSize: "14px",
-                    border: "1px solid #d9d9d9",
-                    borderRadius: "6px",
-                    transition: "all 0.2s",
-                    outline: "none",
-                  }}
-                  onFocus={(e) => {
-                    e.target.style.borderColor = "#1890ff";
-                    e.target.style.boxShadow = "0 0 0 2px rgba(24, 144, 255, 0.2)";
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = "#d9d9d9";
-                    e.target.style.boxShadow = "none";
-                  }}
+                  className="profile-input"
                 />
               </div>
-              <div style={{ marginBottom: "16px" }}>
-                <label
-                  style={{
-                    display: "block",
-                    marginBottom: "8px",
-                    fontSize: "14px",
-                    fontWeight: 500,
-                    color: "#333",
-                  }}
-                >
+              <div className="profile-form-group">
+                <label className="profile-label">
                   联系邮箱
                 </label>
                 <input
@@ -378,35 +211,11 @@ const ProfilePage = ({ user, setUser }) => {
                   value={contactEmail}
                   onChange={(e) => setContactEmail(e.target.value)}
                   placeholder="接收通知的邮箱"
-                  style={{
-                    width: "100%",
-                    padding: "10px 12px",
-                    fontSize: "14px",
-                    border: "1px solid #d9d9d9",
-                    borderRadius: "6px",
-                    transition: "all 0.2s",
-                    outline: "none",
-                  }}
-                  onFocus={(e) => {
-                    e.target.style.borderColor = "#1890ff";
-                    e.target.style.boxShadow = "0 0 0 2px rgba(24, 144, 255, 0.2)";
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = "#d9d9d9";
-                    e.target.style.boxShadow = "none";
-                  }}
+                  className="profile-input"
                 />
               </div>
-              <div style={{ marginBottom: "20px" }}>
-                <label
-                  style={{
-                    display: "block",
-                    marginBottom: "8px",
-                    fontSize: "14px",
-                    fontWeight: 500,
-                    color: "#333",
-                  }}
-                >
+              <div className="profile-form-group-last">
+                <label className="profile-label">
                   联系电话
                 </label>
                 <input
@@ -414,84 +223,23 @@ const ProfilePage = ({ user, setUser }) => {
                   value={contactPhone}
                   onChange={(e) => setContactPhone(e.target.value)}
                   placeholder="接收通知的电话"
-                  style={{
-                    width: "100%",
-                    padding: "10px 12px",
-                    fontSize: "14px",
-                    border: "1px solid #d9d9d9",
-                    borderRadius: "6px",
-                    transition: "all 0.2s",
-                    outline: "none",
-                  }}
-                  onFocus={(e) => {
-                    e.target.style.borderColor = "#1890ff";
-                    e.target.style.boxShadow = "0 0 0 2px rgba(24, 144, 255, 0.2)";
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = "#d9d9d9";
-                    e.target.style.boxShadow = "none";
-                  }}
+                  className="profile-input"
                 />
               </div>
               {profileError && (
-                <div
-                  style={{
-                    padding: "12px 16px",
-                    marginBottom: "16px",
-                    backgroundColor: "#fff2e8",
-                    color: "#fa8c16",
-                    borderRadius: "6px",
-                    fontSize: "14px",
-                    border: "1px solid #ffd591",
-                  }}
-                >
+                <div className="profile-message profile-message-error">
                   {profileError}
                 </div>
               )}
               {profileMessage && (
-                <div
-                  style={{
-                    padding: "12px 16px",
-                    marginBottom: "16px",
-                    backgroundColor: "#f6ffed",
-                    color: "#52c41a",
-                    borderRadius: "6px",
-                    fontSize: "14px",
-                    border: "1px solid #b7eb8f",
-                  }}
-                >
+                <div className="profile-message profile-message-success">
                   {profileMessage}
                 </div>
               )}
               <button
                 type="submit"
                 disabled={loading}
-                style={{
-                  width: "100%",
-                  padding: "12px",
-                  backgroundColor: loading ? "#d9d9d9" : "#1890ff",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: "6px",
-                  fontSize: "16px",
-                  fontWeight: 500,
-                  cursor: loading ? "not-allowed" : "pointer",
-                  transition: "all 0.2s",
-                }}
-                onMouseEnter={(e) => {
-                  if (!loading) {
-                    e.target.style.backgroundColor = "#40a9ff";
-                    e.target.style.transform = "translateY(-1px)";
-                    e.target.style.boxShadow = "0 4px 12px rgba(24, 144, 255, 0.3)";
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!loading) {
-                    e.target.style.backgroundColor = "#1890ff";
-                    e.target.style.transform = "translateY(0)";
-                    e.target.style.boxShadow = "none";
-                  }
-                }}
+                className="profile-submit-btn"
               >
                 {loading ? "保存中..." : "保存资料"}
               </button>
@@ -499,189 +247,69 @@ const ProfilePage = ({ user, setUser }) => {
           </div>
 
           {/* 修改密码 */}
-          <div
-            style={{
-              paddingTop: "32px",
-              borderTop: "1px solid #e8e8e8",
-            }}
-          >
-            <h3
-              style={{
-                margin: "0 0 16px 0",
-                fontSize: "18px",
-                fontWeight: 600,
-                color: "#333",
-              }}
-            >
+          <div className="profile-password-section">
+            <h3 className="profile-section-title">
               修改密码
             </h3>
-            <form onSubmit={handlePasswordSubmit}>
-              <div style={{ marginBottom: "16px" }}>
-                <label
-                  style={{
-                    display: "block",
-                    marginBottom: "8px",
-                    fontSize: "14px",
-                    fontWeight: 500,
-                    color: "#333",
-                  }}
-                >
+            <form onSubmit={handlePasswordSubmit} className="profile-form">
+              <div className="profile-form-group">
+                <label className="profile-label">
                   当前密码
                 </label>
-                <div style={{ position: "relative" }}>
+                <div className="profile-password-wrapper">
                   <input
                     type={showPassword ? "text" : "password"}
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
                     required
-                    style={{
-                      width: "100%",
-                      padding: "10px 12px",
-                      paddingRight: "40px",
-                      fontSize: "14px",
-                      border: "1px solid #d9d9d9",
-                      borderRadius: "6px",
-                      transition: "all 0.2s",
-                      outline: "none",
-                    }}
-                    onFocus={(e) => {
-                      e.target.style.borderColor = "#1890ff";
-                      e.target.style.boxShadow = "0 0 0 2px rgba(24, 144, 255, 0.2)";
-                    }}
-                    onBlur={(e) => {
-                      e.target.style.borderColor = "#d9d9d9";
-                      e.target.style.boxShadow = "none";
-                    }}
+                    className="profile-input profile-input-password"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    style={{
-                      position: "absolute",
-                      right: "8px",
-                      top: "50%",
-                      transform: "translateY(-50%)",
-                      background: "none",
-                      border: "none",
-                      cursor: "pointer",
-                      padding: "4px",
-                      color: "#666",
-                      fontSize: "16px",
-                    }}
+                    className="profile-password-toggle"
                   >
                     {showPassword ? "👁️" : "👁️‍🗨️"}
                   </button>
                 </div>
               </div>
-              <div style={{ marginBottom: "16px" }}>
-                <label
-                  style={{
-                    display: "block",
-                    marginBottom: "8px",
-                    fontSize: "14px",
-                    fontWeight: 500,
-                    color: "#333",
-                  }}
-                >
+              <div className="profile-form-group">
+                <label className="profile-label">
                   新密码
                 </label>
-                <div style={{ position: "relative" }}>
+                <div className="profile-password-wrapper">
                   <input
                     type={showNewPassword ? "text" : "password"}
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     required
-                    style={{
-                      width: "100%",
-                      padding: "10px 12px",
-                      paddingRight: "40px",
-                      fontSize: "14px",
-                      border: "1px solid #d9d9d9",
-                      borderRadius: "6px",
-                      transition: "all 0.2s",
-                      outline: "none",
-                    }}
-                    onFocus={(e) => {
-                      e.target.style.borderColor = "#1890ff";
-                      e.target.style.boxShadow = "0 0 0 2px rgba(24, 144, 255, 0.2)";
-                    }}
-                    onBlur={(e) => {
-                      e.target.style.borderColor = "#d9d9d9";
-                      e.target.style.boxShadow = "none";
-                    }}
+                    className="profile-input profile-input-password"
                   />
                   <button
                     type="button"
                     onClick={() => setShowNewPassword(!showNewPassword)}
-                    style={{
-                      position: "absolute",
-                      right: "8px",
-                      top: "50%",
-                      transform: "translateY(-50%)",
-                      background: "none",
-                      border: "none",
-                      cursor: "pointer",
-                      padding: "4px",
-                      color: "#666",
-                      fontSize: "16px",
-                    }}
+                    className="profile-password-toggle"
                   >
                     {showNewPassword ? "👁️" : "👁️‍🗨️"}
                   </button>
                 </div>
               </div>
-              <div style={{ marginBottom: "20px" }}>
-                <label
-                  style={{
-                    display: "block",
-                    marginBottom: "8px",
-                    fontSize: "14px",
-                    fontWeight: 500,
-                    color: "#333",
-                  }}
-                >
+              <div className="profile-form-group-last">
+                <label className="profile-label">
                   确认新密码
                 </label>
-                <div style={{ position: "relative" }}>
+                <div className="profile-password-wrapper">
                   <input
                     type={showConfirmPassword ? "text" : "password"}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     required
-                    style={{
-                      width: "100%",
-                      padding: "10px 12px",
-                      paddingRight: "40px",
-                      fontSize: "14px",
-                      border: "1px solid #d9d9d9",
-                      borderRadius: "6px",
-                      transition: "all 0.2s",
-                      outline: "none",
-                    }}
-                    onFocus={(e) => {
-                      e.target.style.borderColor = "#1890ff";
-                      e.target.style.boxShadow = "0 0 0 2px rgba(24, 144, 255, 0.2)";
-                    }}
-                    onBlur={(e) => {
-                      e.target.style.borderColor = "#d9d9d9";
-                      e.target.style.boxShadow = "none";
-                    }}
+                    className="profile-input profile-input-password"
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    style={{
-                      position: "absolute",
-                      right: "8px",
-                      top: "50%",
-                      transform: "translateY(-50%)",
-                      background: "none",
-                      border: "none",
-                      cursor: "pointer",
-                      padding: "4px",
-                      color: "#666",
-                      fontSize: "16px",
-                    }}
+                    className="profile-password-toggle"
                   >
                     {showConfirmPassword ? "👁️" : "👁️‍🗨️"}
                   </button>
@@ -689,32 +317,12 @@ const ProfilePage = ({ user, setUser }) => {
               </div>
 
               {passwordError && (
-                <div
-                  style={{
-                    padding: "12px 16px",
-                    marginBottom: "16px",
-                    backgroundColor: "#fff2e8",
-                    color: "#fa8c16",
-                    borderRadius: "6px",
-                    fontSize: "14px",
-                    border: "1px solid #ffd591",
-                  }}
-                >
+                <div className="profile-message profile-message-error">
                   {passwordError}
                 </div>
               )}
               {passwordMessage && (
-                <div
-                  style={{
-                    padding: "12px 16px",
-                    marginBottom: "16px",
-                    backgroundColor: "#f6ffed",
-                    color: "#52c41a",
-                    borderRadius: "6px",
-                    fontSize: "14px",
-                    border: "1px solid #b7eb8f",
-                  }}
-                >
+                <div className="profile-message profile-message-success">
                   {passwordMessage}
                 </div>
               )}
@@ -722,32 +330,7 @@ const ProfilePage = ({ user, setUser }) => {
               <button
                 type="submit"
                 disabled={loading}
-                style={{
-                  width: "100%",
-                  padding: "12px",
-                  backgroundColor: loading ? "#d9d9d9" : "#1890ff",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: "6px",
-                  fontSize: "16px",
-                  fontWeight: 500,
-                  cursor: loading ? "not-allowed" : "pointer",
-                  transition: "all 0.2s",
-                }}
-                onMouseEnter={(e) => {
-                  if (!loading) {
-                    e.target.style.backgroundColor = "#40a9ff";
-                    e.target.style.transform = "translateY(-1px)";
-                    e.target.style.boxShadow = "0 4px 12px rgba(24, 144, 255, 0.3)";
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!loading) {
-                    e.target.style.backgroundColor = "#1890ff";
-                    e.target.style.transform = "translateY(0)";
-                    e.target.style.boxShadow = "none";
-                  }
-                }}
+                className="profile-submit-btn"
               >
                 {loading ? "更新中..." : "更新密码"}
               </button>

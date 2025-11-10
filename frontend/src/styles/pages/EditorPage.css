@@ -132,6 +132,7 @@
   font-size: 14px;
   font-weight: 500;
   transition: all 0.2s;
+  position: relative;
 }
 
 .editor-btn-primary {
@@ -595,6 +596,11 @@
   background-color: white;
   max-height: 600px;
   overflow-y: auto;
+}
+
+/* ReactQuill预览样式 */
+.editor-version-preview-content .ql-editor {
+  min-height: 300px;
 }
 
 .editor-version-preview-empty {

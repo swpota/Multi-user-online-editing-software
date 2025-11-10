@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { JitsiMeeting } from "@jitsi/react-sdk";
+import "../styles/components/VideoConferencePanel.css";
 
 const VideoConferencePanel = ({ documentId, user, onClose }) => {
   const [isLoading, setIsLoading] = useState(true);
@@ -354,89 +355,28 @@ const VideoConferencePanel = ({ documentId, user, onClose }) => {
   };
 
   return (
-    <div
-      style={{
-        position: "fixed",
-        top: "50%",
-        left: "50%",
-        transform: "translate(-50%, -50%)",
-        width: "95vw",
-        height: "90vh",
-        maxWidth: "1400px",
-        maxHeight: "900px",
-        backgroundColor: "white",
-        border: "1px solid #ddd",
-        borderRadius: "12px",
-        boxShadow: "0 8px 24px rgba(0,0,0,0.2)",
-        zIndex: 2000,
-        display: "flex",
-        flexDirection: "column",
-        overflow: "hidden",
-      }}
-    >
+    <div className="video-conference-panel">
       {/* 头部 - 优化设计 */}
-      <div
-        style={{
-          padding: "16px 20px",
-          borderBottom: "1px solid #eee",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          backgroundColor: "#f8f9fa",
-          borderRadius: "12px 12px 0 0",
-        }}
-      >
-        <div style={{ flex: 1 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-            <div
-              style={{
-                width: "40px",
-                height: "40px",
-                borderRadius: "50%",
-                backgroundColor: "#1890ff",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "white",
-                fontSize: "20px",
-                fontWeight: "bold",
-              }}
-            >
+      <div className="video-conference-header">
+        <div className="video-conference-header-left">
+          <div className="video-conference-header-content">
+            <div className="video-conference-icon">
               📹
             </div>
             <div>
-              <h3 style={{ margin: 0, fontSize: "18px", fontWeight: "600" }}>
+              <h3 className="video-conference-title">
                 视频会议
               </h3>
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "12px",
-                  marginTop: "4px",
-                }}
-              >
-                <span
-                  style={{
-                    fontSize: "12px",
-                    color: "#666",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "4px",
-                  }}
-                >
+              <div className="video-conference-status">
+                <span className="video-conference-status-item">
                   <span
-                    style={{
-                      width: "8px",
-                      height: "8px",
-                      borderRadius: "50%",
-                      backgroundColor:
-                        connectionStatus === "joined"
-                          ? "#52c41a"
-                          : connectionStatus === "connecting"
-                          ? "#faad14"
-                          : "#ff4d4f",
-                    }}
+                    className={`video-conference-status-dot ${
+                      connectionStatus === "joined"
+                        ? "video-conference-status-dot-joined"
+                        : connectionStatus === "connecting"
+                        ? "video-conference-status-dot-connecting"
+                        : "video-conference-status-dot-error"
+                    }`}
                   />
                   {connectionStatus === "joined"
                     ? "已连接"
@@ -447,19 +387,11 @@ const VideoConferencePanel = ({ documentId, user, onClose }) => {
                     : "未连接"}
                 </span>
                 {participantCount > 0 && (
-                  <span
-                    style={{
-                      fontSize: "12px",
-                      color: "#666",
-                      backgroundColor: "#e6f7ff",
-                      padding: "2px 8px",
-                      borderRadius: "12px",
-                    }}
-                  >
+                  <span className="video-conference-participant-count">
                     {participantCount} 人在线
                   </span>
                 )}
-                <span style={{ fontSize: "12px", color: "#999" }}>
+                <span className="video-conference-room-name">
                   房间: {roomName}
                 </span>
               </div>
@@ -468,64 +400,27 @@ const VideoConferencePanel = ({ documentId, user, onClose }) => {
         </div>
         <button
           onClick={handleLeave}
-          style={{
-            padding: "8px 16px",
-            cursor: "pointer",
-            backgroundColor: "#ff4d4f",
-            color: "white",
-            border: "none",
-            borderRadius: "6px",
-            fontSize: "14px",
-            fontWeight: "500",
-            display: "flex",
-            alignItems: "center",
-            gap: "6px",
-            transition: "all 0.2s",
-          }}
-          onMouseEnter={(e) => {
-            e.target.style.backgroundColor = "#ff7875";
-          }}
-          onMouseLeave={(e) => {
-            e.target.style.backgroundColor = "#ff4d4f";
-          }}
+          className="video-conference-leave-btn"
         >
           <span>离开会议</span>
         </button>
       </div>
 
       {/* 简洁的状态栏和帮助按钮 */}
-      <div
-        style={{
-          padding: "8px 16px",
-          backgroundColor: "#f8f9fa",
-          borderBottom: "1px solid #e9ecef",
-          fontSize: "13px",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-          <span style={{ color: "#666" }}>
+      <div className="video-conference-status-bar">
+        <div className="video-conference-status-bar-left">
+          <span className="video-conference-status-bar-item">
             {connectionStatus === "joined" ? "✅ 已连接" : connectionStatus === "connecting" ? "⏳ 连接中..." : "❌ 连接失败"}
           </span>
           {participantCount > 0 && (
-            <span style={{ color: "#666" }}>
+            <span className="video-conference-status-bar-item">
               👥 {participantCount} 人在线
             </span>
           )}
         </div>
         <button
           onClick={() => setShowHelp(!showHelp)}
-          style={{
-            padding: "4px 12px",
-            fontSize: "12px",
-            backgroundColor: "transparent",
-            border: "1px solid #ddd",
-            borderRadius: "4px",
-            cursor: "pointer",
-            color: "#666",
-          }}
+          className="video-conference-help-btn"
         >
           {showHelp ? "隐藏帮助" : "显示帮助"}
         </button>
@@ -533,75 +428,36 @@ const VideoConferencePanel = ({ documentId, user, onClose }) => {
 
       {/* 可折叠的帮助内容 */}
       {showHelp && (
-        <div
-          style={{
-            padding: "12px 16px",
-            backgroundColor: "#f8f9fa",
-            borderBottom: "1px solid #e9ecef",
-            fontSize: "12px",
-            color: "#666",
-            lineHeight: "1.6",
-          }}
-        >
-          <div style={{ marginBottom: "8px", fontWeight: "bold", color: "#333" }}>
+        <div className="video-conference-help-content">
+          <div className="video-conference-help-title">
             💡 使用帮助
           </div>
-          <div style={{ marginBottom: "6px" }}>
+          <div className="video-conference-help-item">
             <strong>麦克风权限：</strong>Jitsi Meet会自动请求权限，请在浏览器弹出的权限请求中点击"允许"。如果未弹出，请在会议中点击麦克风图标触发权限请求。
           </div>
-          <div style={{ marginBottom: "6px" }}>
+          <div className="video-conference-help-item">
             <strong>听不到声音：</strong>在会议中点击"设置" → "设备" → 选择正确的"音频输出"设备，并检查系统音量。
           </div>
-          <div>
+          <div className="video-conference-help-item">
             <strong>单机测试：</strong>使用无痕模式（Ctrl+Shift+N）打开另一个窗口，或使用手机加入同一文档。
           </div>
         </div>
       )}
 
       {/* 内容区域 */}
-      <div
-        style={{
-          flex: 1,
-          position: "relative",
-          overflow: "hidden",
-          backgroundColor: "#1a1a1a",
-        }}
-      >
+      <div className="video-conference-content">
         {error ? (
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              height: "100%",
-              padding: "40px",
-              backgroundColor: "#fafafa",
-            }}
-          >
-            <div
-              style={{
-                fontSize: "64px",
-                marginBottom: "24px",
-                opacity: 0.5,
-              }}
-            >
+          <div className="video-conference-error">
+            <div className="video-conference-error-icon">
               ⚠️
             </div>
-            <h3 style={{ margin: "0 0 12px 0", fontSize: "20px" }}>
+            <h3 className="video-conference-error-title">
               加载失败
             </h3>
-            <p
-              style={{
-                margin: "0 0 24px 0",
-                color: "#666",
-                textAlign: "center",
-                maxWidth: "400px",
-              }}
-            >
+            <p className="video-conference-error-message">
               {error}
             </p>
-            <div style={{ display: "flex", gap: "12px" }}>
+            <div className="video-conference-error-actions">
               <button
                 onClick={() => {
                   setError(null);
@@ -609,30 +465,13 @@ const VideoConferencePanel = ({ documentId, user, onClose }) => {
                   setConnectionStatus("connecting");
                   window.location.reload();
                 }}
-                style={{
-                  padding: "10px 20px",
-                  backgroundColor: "#1890ff",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "6px",
-                  cursor: "pointer",
-                  fontSize: "14px",
-                  fontWeight: "500",
-                }}
+                className="video-conference-retry-btn"
               >
                 重试
               </button>
               <button
                 onClick={onClose}
-                style={{
-                  padding: "10px 20px",
-                  backgroundColor: "#f0f0f0",
-                  color: "#333",
-                  border: "none",
-                  borderRadius: "6px",
-                  cursor: "pointer",
-                  fontSize: "14px",
-                }}
+                className="video-conference-close-btn"
               >
                 关闭
               </button>
@@ -665,50 +504,18 @@ const VideoConferencePanel = ({ documentId, user, onClose }) => {
                 };
               }
             }}
-            style={{
-              width: "100%",
-              height: "100%",
-            }}
+            className="video-conference-jitsi-container"
           />
         )}
 
         {isLoading && !error && (
-          <div
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              backgroundColor: "rgba(26, 26, 26, 0.95)",
-              zIndex: 1000,
-            }}
-          >
-            <div style={{ textAlign: "center", color: "white" }}>
-              <div
-                style={{
-                  width: "50px",
-                  height: "50px",
-                  border: "4px solid rgba(255, 255, 255, 0.2)",
-                  borderTop: "4px solid #1890ff",
-                  borderRadius: "50%",
-                  animation: "spin 1s linear infinite",
-                  margin: "0 auto 20px",
-                }}
-              />
-              <p style={{ margin: 0, fontSize: "16px", fontWeight: "500" }}>
+          <div className="video-conference-loading video-conference-loading-overlay">
+            <div className="video-conference-loading-content">
+              <div className="video-conference-loading-spinner" />
+              <p className="video-conference-loading-title">
                 正在加载视频会议...
               </p>
-              <p
-                style={{
-                  margin: "8px 0 0 0",
-                  fontSize: "13px",
-                  opacity: 0.7,
-                }}
-              >
+              <p className="video-conference-loading-subtitle">
                 首次加载可能需要几秒钟
               </p>
             </div>
@@ -716,13 +523,6 @@ const VideoConferencePanel = ({ documentId, user, onClose }) => {
         )}
       </div>
 
-      {/* 样式 */}
-      <style>{`
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-      `}</style>
     </div>
   );
 };

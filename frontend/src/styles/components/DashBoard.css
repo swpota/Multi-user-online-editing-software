@@ -1,0 +1,1003 @@
+/* DashBoard.css - 仪表盘样式 */
+
+/* 列表视图选择器 */
+.dashboard-select-all-wrapper {
+  flex-shrink: 0;
+  margin-bottom: 12px;
+}
+
+.dashboard-list-view {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+/* 看板视图 */
+.dashboard-kanban-view {
+  display: flex;
+  gap: 1.5rem;
+  overflow-x: auto;
+}
+
+.dashboard-kanban-column {
+  min-width: 260px;
+  background: #fafafa;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.dashboard-kanban-card {
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 12px;
+  background: white;
+}
+
+.dashboard-kanban-card.selected {
+  border: 2px solid #1890ff;
+}
+
+/* 模态框 */
+.dashboard-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.dashboard-modal {
+  background-color: #fff;
+  border-radius: 10px;
+  width: 100%;
+  max-width: 640px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.dashboard-modal-title {
+  margin: 0;
+}
+
+.dashboard-modal-close {
+  border: none;
+  background: transparent;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #666;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.dashboard-modal-close:hover {
+  background-color: #f5f5f5;
+  color: #ff4d4f;
+}
+
+.dashboard-modal-body {
+  padding: 1.5rem;
+  overflow-y: auto;
+}
+
+/* 容器和头部 */
+.dashboard-container {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.dashboard-header-left {
+  flex: 1;
+}
+
+.dashboard-title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: #333;
+}
+
+.dashboard-subtitle {
+  margin: 0;
+  color: #666;
+  font-size: 14px;
+}
+
+.dashboard-header-right {
+  display: flex;
+  gap: 12px;
+}
+
+.dashboard-link {
+  padding: 8px 16px;
+  background-color: #fff;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  text-decoration: none;
+  color: #333;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.dashboard-link:hover {
+  border-color: #1890ff;
+  color: #1890ff;
+}
+
+/* 搜索和筛选区域 */
+.dashboard-search-section {
+  background-color: #fff;
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.dashboard-section-title {
+  margin-top: 0;
+  margin-bottom: 16px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.dashboard-search-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.dashboard-form-group {
+  flex: 1 1 260px;
+}
+
+.dashboard-form-group-medium {
+  flex: 1 1 200px;
+}
+
+.dashboard-form-group-large {
+  flex: 1 1 100%;
+}
+
+.dashboard-form-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 14px;
+  color: #333;
+  font-weight: 500;
+}
+
+.dashboard-form-input {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 14px;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.dashboard-form-input:focus {
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+.dashboard-form-select {
+  width: 100%;
+  padding: 8px;
+  font-size: 14px;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.dashboard-form-select:focus {
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+.dashboard-form-actions {
+  flex: 1 1 100%;
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.dashboard-form-button {
+  padding: 8px 16px;
+  background-color: #1890ff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.dashboard-form-button:hover {
+  background-color: #40a9ff;
+}
+
+.dashboard-form-button-secondary {
+  background-color: #fff;
+  color: #333;
+  border: 1px solid #d9d9d9;
+}
+
+.dashboard-form-button-secondary:hover {
+  border-color: #1890ff;
+  color: #1890ff;
+}
+
+/* 列表视图样式 */
+.dashboard-select-all-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  color: #666;
+}
+
+.dashboard-list-view {
+  list-style: none;
+  padding: 0;
+  min-height: 240px;
+  transition: min-height 0.2s ease;
+}
+
+.dashboard-list-item {
+  border: 1px solid #e8e8e8;
+  padding: 16px;
+  margin-bottom: 12px;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  background-color: #fff;
+  transition: all 0.2s;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+}
+
+.dashboard-list-item.selected {
+  border: 2px solid #1890ff;
+  background-color: #e6f7ff;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.2);
+}
+
+.dashboard-list-item:hover:not(.selected) {
+  border-color: #1890ff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.dashboard-list-item-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.dashboard-checkbox {
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.dashboard-list-item-link {
+  text-decoration: none;
+  color: inherit;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.dashboard-list-item-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.dashboard-list-item-title {
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  color: #333;
+  transition: color 0.2s;
+}
+
+.dashboard-list-item-title:hover {
+  color: #1890ff;
+}
+
+.dashboard-badge {
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.75em;
+}
+
+.dashboard-badge-markdown {
+  background-color: #1677ff;
+  color: white;
+}
+
+.dashboard-badge-locked {
+  background-color: #ff9f43;
+  color: white;
+}
+
+.dashboard-list-item-meta {
+  color: #666;
+  font-size: 0.9em;
+}
+
+.dashboard-list-item-meta-item {
+  margin-right: 1rem;
+}
+
+.dashboard-list-item-owner {
+  color: #888;
+  font-size: 0.85em;
+}
+
+.dashboard-list-item-locked {
+  color: #d46b08;
+  font-size: 0.85em;
+}
+
+.dashboard-list-item-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+  align-items: center;
+}
+
+.dashboard-export-select {
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid #d9d9d9;
+  font-size: 0.85em;
+  cursor: pointer;
+  background-color: white;
+}
+
+.dashboard-export-btn-small {
+  background-color: #1677ff;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9em;
+  transition: all 0.2s;
+}
+
+.dashboard-export-btn-small:hover {
+  background-color: #40a9ff;
+}
+
+.dashboard-action-btn-danger {
+  background-color: #ff4d4f;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9em;
+  transition: all 0.2s;
+}
+
+.dashboard-action-btn-danger:hover {
+  background-color: #ff7875;
+}
+
+/* 看板视图样式 */
+.dashboard-kanban-view {
+  display: flex;
+  gap: 1.5rem;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.dashboard-kanban-column {
+  min-width: 260px;
+  background: #fafafa;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.dashboard-kanban-column-title {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.dashboard-kanban-card {
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 10px;
+  background-color: white;
+  transition: all 0.2s;
+}
+
+.dashboard-kanban-card.selected {
+  background-color: #e6f7ff;
+}
+
+.dashboard-kanban-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.dashboard-kanban-card-link {
+  text-decoration: none;
+  color: inherit;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.dashboard-kanban-card-title {
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  transition: color 0.2s;
+}
+
+.dashboard-kanban-card-title:hover {
+  color: #1890ff;
+}
+
+.dashboard-kanban-card-meta {
+  color: #666;
+  font-size: 0.9em;
+  margin-top: 0.5rem;
+}
+
+.dashboard-kanban-card-tags {
+  color: #666;
+  font-size: 0.85em;
+}
+
+.dashboard-kanban-card-owner {
+  color: #888;
+  font-size: 0.85em;
+}
+
+.dashboard-kanban-card-locked {
+  color: #d46b08;
+  font-size: 0.85em;
+}
+
+.dashboard-kanban-card-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.dashboard-kanban-export-select {
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid #d9d9d9;
+  font-size: 0.85em;
+  cursor: pointer;
+  background-color: white;
+  flex: 1;
+  min-width: 100px;
+}
+
+.dashboard-kanban-export-btn {
+  background-color: #1677ff;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9em;
+  transition: all 0.2s;
+}
+
+.dashboard-kanban-export-btn:hover {
+  background-color: #40a9ff;
+}
+
+.dashboard-kanban-delete-btn {
+  background-color: #ff4d4f;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9em;
+  transition: all 0.2s;
+}
+
+.dashboard-kanban-delete-btn:hover {
+  background-color: #ff7875;
+}
+
+/* 模态框样式 */
+.dashboard-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.dashboard-modal {
+  background-color: #fff;
+  border-radius: 10px;
+  width: 100%;
+  max-width: 640px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.2);
+}
+
+.dashboard-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.dashboard-modal-title {
+  margin: 0;
+}
+
+.dashboard-modal-close {
+  border: none;
+  background: transparent;
+  font-size: 1.5rem;
+  cursor: pointer;
+  line-height: 1;
+  transition: all 0.2s;
+}
+
+.dashboard-modal-close:hover {
+  opacity: 0.7;
+}
+
+.dashboard-modal-body {
+  padding: 1.5rem;
+  overflow-y: auto;
+}
+
+/* 头部样式 */
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.dashboard-header-left {
+  flex: 1;
+}
+
+.dashboard-title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.dashboard-subtitle {
+  margin: 0;
+  color: #666;
+  font-size: 14px;
+}
+
+.dashboard-header-right {
+  display: flex;
+  gap: 12px;
+}
+
+.dashboard-link {
+  padding: 8px 16px;
+  background-color: #fff;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  text-decoration: none;
+  color: #333;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.dashboard-link:hover {
+  border-color: #1890ff;
+  color: #1890ff;
+}
+
+/* 搜索和筛选区域 */
+.dashboard-search-section {
+  background-color: #fff;
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.dashboard-section-title {
+  margin-top: 0;
+  margin-bottom: 16px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.dashboard-search-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: flex-end;
+}
+
+.dashboard-form-group {
+  flex: 1 1 260px;
+}
+
+.dashboard-form-group-medium {
+  flex: 1 1 200px;
+}
+
+.dashboard-form-group-large {
+  flex: 1 1 100%;
+}
+
+.dashboard-form-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 14px;
+  color: #333;
+  font-weight: 500;
+}
+
+.dashboard-form-input {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 14px;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  transition: all 0.2s;
+  outline: none;
+}
+
+.dashboard-form-input:focus {
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+.dashboard-form-select {
+  width: 100%;
+  padding: 8px;
+  font-size: 14px;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  transition: all 0.2s;
+  outline: none;
+}
+
+.dashboard-form-select:focus {
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+.dashboard-date-group {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.dashboard-date-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.dashboard-date-label {
+  font-size: 0.85em;
+  color: #666;
+}
+
+.dashboard-date-input {
+  padding: 8px;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: all 0.2s;
+  outline: none;
+}
+
+.dashboard-date-input:focus {
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+.dashboard-form-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex: 1 1 240px;
+  align-items: flex-end;
+}
+
+.dashboard-form-button {
+  flex: 1;
+  padding: 8px 16px;
+  background-color: #1890ff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.dashboard-form-button:hover {
+  background-color: #40a9ff;
+}
+
+.dashboard-form-button-secondary {
+  flex: 1;
+  background-color: #fff;
+  color: #333;
+  border: 1px solid #d9d9d9;
+}
+
+.dashboard-form-button-secondary:hover {
+  border-color: #1890ff;
+  color: #1890ff;
+}
+
+.dashboard-bulk-export-group {
+  display: flex;
+  gap: 0.5rem;
+  flex: 1 1 300px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.dashboard-export-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1 1 150px;
+}
+
+.dashboard-export-label-text {
+  font-size: 0.9em;
+}
+
+.dashboard-export-select {
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid #d9d9d9;
+  font-size: 0.9em;
+  cursor: pointer;
+  background-color: white;
+  transition: all 0.2s;
+  outline: none;
+}
+
+.dashboard-export-select:focus {
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+.dashboard-export-button {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1 1 150px;
+}
+
+.dashboard-export-btn {
+  padding: 8px;
+  background-color: #1677ff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9em;
+  transition: all 0.2s;
+}
+
+.dashboard-export-btn:hover:not(:disabled) {
+  background-color: #40a9ff;
+}
+
+.dashboard-export-btn:disabled {
+  background-color: #d9d9d9;
+  cursor: not-allowed;
+}
+
+.dashboard-export-message {
+  color: #666;
+  font-size: 0.85em;
+}
+
+.dashboard-empty {
+  text-align: center;
+  color: #999;
+  padding: 40px 20px;
+  font-size: 14px;
+}
+
+/* 工具栏样式 */
+.dashboard-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding: 16px;
+  background-color: #fff;
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+}
+
+.dashboard-toolbar-left {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.dashboard-create-btn {
+  padding: 8px 16px;
+  background-color: #1890ff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.dashboard-create-btn:hover {
+  background-color: #40a9ff;
+}
+
+.dashboard-import-btn {
+  padding: 8px 16px;
+  background-color: #fff;
+  color: #333;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.dashboard-import-btn:hover {
+  border-color: #1890ff;
+  color: #1890ff;
+}
+
+.dashboard-selected-count {
+  color: #666;
+  font-size: 14px;
+}
+
+.dashboard-toolbar-right {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.dashboard-view-label {
+  color: #666;
+  font-size: 14px;
+}
+
+.dashboard-view-btn {
+  padding: 6px 12px;
+  background-color: #fff;
+  color: #333;
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.dashboard-view-btn:hover {
+  border-color: #1890ff;
+  color: #1890ff;
+}
+
+.dashboard-view-btn.active {
+  background-color: #1890ff;
+  color: white;
+  border-color: #1890ff;
+}
+
+.dashboard-view-btn.active:hover {
+  background-color: #40a9ff;
+}
+
+.dashboard-documents-section {
+  background-color: #fff;
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  padding: 24px;
+}
+
+.dashboard-section-title {
+  margin-top: 0;
+  margin-bottom: 20px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+
+.dashboard-documents-content {
+  min-height: 400px;
+}
+
+.dashboard-loading {
+  text-align: center;
+  padding: 40px;
+  color: #666;
+  font-size: 14px;
+}
+
+.dashboard-error {
+  padding: 12px 16px;
+  margin-bottom: 20px;
+  background-color: #fff2e8;
+  color: #fa8c16;
+  border-radius: 6px;
+  font-size: 14px;
+  border: 1px solid #ffd591;
+}
+

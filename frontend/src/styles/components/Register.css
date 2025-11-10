@@ -1,0 +1,148 @@
+/* Register.css - 注册组件样式 */
+
+.register-container {
+  width: 100%;
+}
+
+.register-header {
+  margin-bottom: 32px;
+  text-align: center;
+}
+
+.register-title {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.register-subtitle {
+  margin: 0;
+  color: #666;
+  font-size: 14px;
+}
+
+.register-form {
+  width: 100%;
+}
+
+.register-form-group {
+  margin-bottom: 16px;
+}
+
+.register-form-group-password {
+  margin-bottom: 24px;
+}
+
+.register-label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+}
+
+.register-label-optional {
+  color: #999;
+  font-size: 12px;
+}
+
+.register-label-required {
+  color: #ff4d4f;
+}
+
+.register-input {
+  width: 100%;
+  padding: 12px 16px;
+  font-size: 14px;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  transition: all 0.2s;
+  outline: none;
+}
+
+.register-input:focus {
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+.register-input-password {
+  padding-right: 40px;
+}
+
+.register-password-wrapper {
+  position: relative;
+}
+
+.register-password-toggle {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  color: #666;
+  font-size: 16px;
+}
+
+.register-submit-btn {
+  width: 100%;
+  padding: 12px;
+  font-size: 16px;
+  font-weight: 500;
+  background-color: #1890ff;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 16px;
+}
+
+.register-submit-btn:hover:not(:disabled) {
+  background-color: #40a9ff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3);
+}
+
+.register-submit-btn:disabled {
+  background-color: #d9d9d9;
+  cursor: not-allowed;
+}
+
+.register-message {
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.register-message-success {
+  background-color: #f6ffed;
+  color: #52c41a;
+  border: 1px solid #b7eb8f;
+}
+
+.register-message-error {
+  background-color: #fff2e8;
+  color: #fa8c16;
+  border: 1px solid #ffd591;
+}
+
+.register-tips {
+  margin-top: 24px;
+  padding: 16px;
+  background-color: #f5f5f5;
+  border-radius: 6px;
+  font-size: 12px;
+  color: #666;
+}
+
+.register-tips-title {
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+

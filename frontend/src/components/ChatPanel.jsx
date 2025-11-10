@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import api from "../api";
+import "../styles/components/ChatPanel.css";
 
 const ChatPanel = ({ documentId, user, socket, onlineUsers = [], onClose }) => {
   const [messages, setMessages] = useState([]);
@@ -178,285 +179,130 @@ const ChatPanel = ({ documentId, user, socket, onlineUsers = [], onClose }) => {
   };
 
   return (
-    <div
-      style={{
-        position: "fixed",
-        bottom: "20px",
-        right: "20px",
-        width: "400px",
-        height: "500px",
-        backgroundColor: "white",
-        border: "1px solid #ddd",
-        borderRadius: "8px",
-        boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-        zIndex: 1000,
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
+    <div className="chat-panel">
       {/* 头部 */}
-      <div
-        style={{
-          padding: "12px 16px",
-          borderBottom: "1px solid #eee",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          backgroundColor: "#fafafa",
-        }}
-      >
-        <div>
-          <h3
-            style={{
-              margin: 0,
-              fontSize: "18px",
-              fontWeight: 600,
-              color: "#333",
-            }}
-          >
+      <div className="chat-panel-header">
+        <div className="chat-panel-header-info">
+          <h3 className="chat-panel-title">
             💬 聊天
           </h3>
-          <div
-            style={{
-              fontSize: "12px",
-              color: "#666",
-              marginTop: "4px",
-            }}
-          >
+          <div className="chat-panel-online-count">
             {onlineUsers.length} 人在线
           </div>
         </div>
         <button
           onClick={onClose}
-          style={{
-            padding: "6px 12px",
-            border: "none",
-            backgroundColor: "transparent",
-            cursor: "pointer",
-            fontSize: "20px",
-            color: "#666",
-            borderRadius: "4px",
-            transition: "all 0.2s",
-            lineHeight: "1",
-            fontWeight: "bold",
-          }}
-          onMouseEnter={(e) => {
-            e.target.style.backgroundColor = "#f5f5f5";
-            e.target.style.color = "#ff4d4f";
-          }}
-          onMouseLeave={(e) => {
-            e.target.style.backgroundColor = "transparent";
-            e.target.style.color = "#666";
-          }}
+          className="chat-panel-close-btn"
         >
           ×
         </button>
       </div>
 
       {/* 消息列表 */}
-      <div
-        style={{
-          flex: 1,
-          overflowY: "auto",
-          padding: "12px",
-          backgroundColor: "#f9f9f9",
-        }}
-      >
+      <div className="chat-panel-messages">
         {loading ? (
-          <div style={{ textAlign: "center", color: "#999", padding: "20px" }}>
+          <div className="chat-panel-loading">
             加载中...
           </div>
         ) : messages.length === 0 ? (
-          <div style={{ textAlign: "center", color: "#999", padding: "20px" }}>
+          <div className="chat-panel-empty">
             暂无消息
           </div>
         ) : (
-          messages.map((message) => (
-            <div
-              key={message.id}
-              style={{
-                marginBottom: "12px",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: message.user.id === user.id ? "flex-end" : "flex-start",
-              }}
-            >
-              {/* 回复的消息预览 */}
-              {message.reply_to_message && (
-                <div
-                  style={{
-                    fontSize: "12px",
-                    color: "#999",
-                    padding: "4px 8px",
-                    backgroundColor: "#f0f0f0",
-                    borderRadius: "4px",
-                    marginBottom: "4px",
-                    maxWidth: "80%",
-                  }}
-                >
-                  回复 {getUserDisplayName(message.reply_to_message.user)}:{" "}
-                  {message.reply_to_message.message?.substring(0, 50)}
-                  {message.reply_to_message.message?.length > 50 ? "..." : ""}
-                </div>
-              )}
-
+          messages.map((message) => {
+            const isOwn = message.user.id === user.id;
+            return (
               <div
-                style={{
-                  display: "flex",
-                  alignItems: "flex-start",
-                  gap: "8px",
-                  maxWidth: "80%",
-                  flexDirection: message.user.id === user.id ? "row-reverse" : "row",
-                }}
+                key={message.id}
+                className={`chat-panel-message ${isOwn ? "chat-panel-message-own" : "chat-panel-message-other"}`}
               >
-                {/* 用户头像 */}
-                <div
-                  style={{
-                    width: "32px",
-                    height: "32px",
-                    borderRadius: "50%",
-                    backgroundColor: getUserColor(message.user.id),
-                    color: "white",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: "14px",
-                    fontWeight: "bold",
-                    flexShrink: 0,
-                  }}
-                >
-                  {getUserDisplayName(message.user)
-                    .substring(0, 1)
-                    .toUpperCase()}
-                </div>
+                {/* 回复的消息预览 */}
+                {message.reply_to_message && (
+                  <div className="chat-panel-message-reply">
+                    回复 {getUserDisplayName(message.reply_to_message.user)}:{" "}
+                    {message.reply_to_message.message?.substring(0, 50)}
+                    {message.reply_to_message.message?.length > 50 ? "..." : ""}
+                  </div>
+                )}
 
-                {/* 消息内容 */}
                 <div
-                  style={{
-                    flex: 1,
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: message.user.id === user.id ? "flex-end" : "flex-start",
-                  }}
+                  className={`chat-panel-message-content-wrapper ${isOwn ? "chat-panel-message-content-wrapper-own" : "chat-panel-message-content-wrapper-other"}`}
                 >
-                  {/* 用户名称和时间 */}
+                  {/* 用户头像 */}
                   <div
-                    style={{
-                      fontSize: "12px",
-                      color: "#999",
-                      marginBottom: "4px",
-                    }}
+                    className="chat-panel-message-avatar"
+                    style={{ backgroundColor: getUserColor(message.user.id) }}
                   >
-                    {message.user.id === user.id
-                      ? "我"
-                      : getUserDisplayName(message.user)}{" "}
-                    · {formatTime(message.created_at)}
+                    {getUserDisplayName(message.user)
+                      .substring(0, 1)
+                      .toUpperCase()}
                   </div>
 
                   {/* 消息内容 */}
                   <div
-                    style={{
-                      padding: "8px 12px",
-                      backgroundColor:
-                        message.user.id === user.id ? "#1890ff" : "white",
-                      color: message.user.id === user.id ? "white" : "#333",
-                      borderRadius: "12px",
-                      border:
-                        message.user.id === user.id
-                          ? "none"
-                          : "1px solid #eee",
-                      wordBreak: "break-word",
-                    }}
+                    className={`chat-panel-message-body ${isOwn ? "chat-panel-message-body-own" : "chat-panel-message-body-other"}`}
                   >
-                    {message.message_type === "file" ? (
-                      <div>
-                        <div style={{ marginBottom: "4px" }}>📎 {message.file_name || message.message}</div>
-                        <div style={{ fontSize: "12px", opacity: 0.8 }}>
-                          {formatFileSize(message.file_size)}
+                    {/* 用户名称和时间 */}
+                    <div className="chat-panel-message-meta">
+                      {isOwn ? "我" : getUserDisplayName(message.user)} · {formatTime(message.created_at)}
+                    </div>
+
+                    {/* 消息内容 */}
+                    <div
+                      className={`chat-panel-message-bubble ${isOwn ? "chat-panel-message-bubble-own" : "chat-panel-message-bubble-other"}`}
+                    >
+                      {message.message_type === "file" ? (
+                        <div>
+                          <div className="chat-panel-message-file">📎 {message.file_name || message.message}</div>
+                          <div className="chat-panel-message-file-size">
+                            {formatFileSize(message.file_size)}
+                          </div>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              window.open(`/api/chat-messages/${message.id}/download`, "_blank");
+                            }}
+                            className="chat-panel-message-download-btn"
+                          >
+                            下载文件
+                          </button>
                         </div>
+                      ) : (
+                        <div className="chat-panel-message-text">{message.message}</div>
+                      )}
+                    </div>
+
+                    {/* 操作按钮 */}
+                    {isOwn && (
+                      <div className="chat-panel-message-actions">
                         <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            window.open(`/api/chat-messages/${message.id}/download`, "_blank");
-                          }}
-                          style={{
-                            color: message.user.id === user.id ? "white" : "#1890ff",
-                            textDecoration: "underline",
-                            fontSize: "12px",
-                            background: "none",
-                            border: "none",
-                            cursor: "pointer",
-                            padding: 0,
-                            marginTop: "4px",
-                          }}
+                          onClick={() => deleteMessage(message.id)}
+                          className="chat-panel-message-delete-btn"
                         >
-                          下载文件
+                          删除
                         </button>
                       </div>
-                    ) : (
-                      <div style={{ whiteSpace: "pre-wrap" }}>{message.message}</div>
                     )}
                   </div>
-
-                  {/* 操作按钮 */}
-                  {message.user.id === user.id && (
-                    <div
-                      style={{
-                        display: "flex",
-                        gap: "8px",
-                        marginTop: "4px",
-                        fontSize: "12px",
-                      }}
-                    >
-                      <button
-                        onClick={() => deleteMessage(message.id)}
-                        style={{
-                          padding: "2px 6px",
-                          border: "none",
-                          backgroundColor: "transparent",
-                          cursor: "pointer",
-                          color: "#ff4d4f",
-                          fontSize: "12px",
-                        }}
-                      >
-                        删除
-                      </button>
-                    </div>
-                  )}
                 </div>
               </div>
-            </div>
-          ))
+            );
+          })
         )}
         <div ref={messagesEndRef} />
       </div>
 
       {/* 回复提示 */}
       {replyingTo && (
-        <div
-          style={{
-            padding: "8px 12px",
-            backgroundColor: "#e6f7ff",
-            borderTop: "1px solid #eee",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <div style={{ fontSize: "12px", color: "#666" }}>
+        <div className="chat-panel-reply-preview">
+          <div className="chat-panel-reply-preview-text">
             回复 {getUserDisplayName(replyingTo.user)}:{" "}
             {replyingTo.message?.substring(0, 30)}
             {replyingTo.message?.length > 30 ? "..." : ""}
           </div>
           <button
             onClick={() => setReplyingTo(null)}
-            style={{
-              padding: "2px 6px",
-              border: "none",
-              backgroundColor: "transparent",
-              cursor: "pointer",
-              fontSize: "12px",
-            }}
+            className="chat-panel-reply-preview-close"
           >
             ×
           </button>
@@ -464,24 +310,11 @@ const ChatPanel = ({ documentId, user, socket, onlineUsers = [], onClose }) => {
       )}
 
       {/* 输入区域 */}
-      <div
-        style={{
-          padding: "12px",
-          borderTop: "1px solid #eee",
-          backgroundColor: "white",
-        }}
-      >
-        <div style={{ display: "flex", gap: "8px", marginBottom: "8px" }}>
+      <div className="chat-panel-input-area">
+        <div className="chat-panel-input-actions">
           <button
             onClick={() => fileInputRef.current?.click()}
-            style={{
-              padding: "6px 12px",
-              border: "1px solid #ddd",
-              borderRadius: "4px",
-              backgroundColor: "white",
-              cursor: "pointer",
-              fontSize: "14px",
-            }}
+            className="chat-panel-file-btn"
             disabled={sending}
           >
             📎 文件
@@ -489,41 +322,23 @@ const ChatPanel = ({ documentId, user, socket, onlineUsers = [], onClose }) => {
           <input
             ref={fileInputRef}
             type="file"
-            style={{ display: "none" }}
+            className="chat-panel-file-input"
             onChange={handleFileUpload}
           />
         </div>
-        <div style={{ display: "flex", gap: "8px" }}>
+        <div className="chat-panel-input-wrapper">
           <textarea
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder="输入消息..."
             disabled={sending}
-            style={{
-              flex: 1,
-              padding: "8px",
-              border: "1px solid #ddd",
-              borderRadius: "4px",
-              resize: "none",
-              minHeight: "60px",
-              maxHeight: "120px",
-              fontSize: "14px",
-            }}
+            className="chat-panel-textarea"
           />
           <button
             onClick={sendMessage}
             disabled={!newMessage.trim() || sending}
-            style={{
-              padding: "8px 16px",
-              border: "none",
-              borderRadius: "4px",
-              backgroundColor:
-                !newMessage.trim() || sending ? "#d9d9d9" : "#1890ff",
-              color: "white",
-              cursor: !newMessage.trim() || sending ? "not-allowed" : "pointer",
-              fontSize: "14px",
-            }}
+            className="chat-panel-send-btn"
           >
             {sending ? "发送中..." : "发送"}
           </button>

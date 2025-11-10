@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import api from "../api";
+import "../styles/components/Register.css";
 
 function Register() {
   const [email, setEmail] = useState("");
@@ -67,112 +68,62 @@ function Register() {
     }
   };
 
-  const inputStyle = {
-    width: "100%",
-    padding: "12px 16px",
-    fontSize: "14px",
-    border: "1px solid #d9d9d9",
-    borderRadius: "6px",
-    transition: "all 0.2s",
-    outline: "none",
-  };
-
-  const labelStyle = {
-    display: "block",
-    marginBottom: "8px",
-    fontSize: "14px",
-    fontWeight: 500,
-    color: "#333",
-  };
-
   return (
-    <div style={{ width: "100%" }}>
-      <div style={{ marginBottom: "32px", textAlign: "center" }}>
-        <h2
-          style={{
-            margin: 0,
-            fontSize: "28px",
-            fontWeight: 600,
-            color: "#333",
-            marginBottom: "8px",
-          }}
-        >
+    <div className="register-container">
+      <div className="register-header">
+        <h2 className="register-title">
           创建账户
         </h2>
-        <p style={{ margin: 0, color: "#666", fontSize: "14px" }}>
+        <p className="register-subtitle">
           注册新账户以开始使用
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} style={{ width: "100%" }}>
-        <div style={{ marginBottom: "16px" }}>
-          <label style={labelStyle}>
-            邮箱 <span style={{ color: "#999", fontSize: "12px" }}>(可选)</span>
+      <form onSubmit={handleSubmit} className="register-form">
+        <div className="register-form-group">
+          <label className="register-label">
+            邮箱 <span className="register-label-optional">(可选)</span>
           </label>
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="name@example.com"
-            style={inputStyle}
-            onFocus={(e) => {
-              e.target.style.borderColor = "#1890ff";
-              e.target.style.boxShadow = "0 0 0 2px rgba(24, 144, 255, 0.2)";
-            }}
-            onBlur={(e) => {
-              e.target.style.borderColor = "#d9d9d9";
-              e.target.style.boxShadow = "none";
-            }}
+            className="register-input"
           />
         </div>
 
-        <div style={{ marginBottom: "16px" }}>
-          <label style={labelStyle}>
-            手机号 <span style={{ color: "#999", fontSize: "12px" }}>(可选)</span>
+        <div className="register-form-group">
+          <label className="register-label">
+            手机号 <span className="register-label-optional">(可选)</span>
           </label>
           <input
             type="tel"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             placeholder="例如: 13800001234"
-            style={inputStyle}
-            onFocus={(e) => {
-              e.target.style.borderColor = "#1890ff";
-              e.target.style.boxShadow = "0 0 0 2px rgba(24, 144, 255, 0.2)";
-            }}
-            onBlur={(e) => {
-              e.target.style.borderColor = "#d9d9d9";
-              e.target.style.boxShadow = "none";
-            }}
+            className="register-input"
           />
         </div>
 
-        <div style={{ marginBottom: "16px" }}>
-          <label style={labelStyle}>
-            姓名 <span style={{ color: "#999", fontSize: "12px" }}>(可选)</span>
+        <div className="register-form-group">
+          <label className="register-label">
+            姓名 <span className="register-label-optional">(可选)</span>
           </label>
           <input
             type="text"
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
             placeholder="团队成员姓名"
-            style={inputStyle}
-            onFocus={(e) => {
-              e.target.style.borderColor = "#1890ff";
-              e.target.style.boxShadow = "0 0 0 2px rgba(24, 144, 255, 0.2)";
-            }}
-            onBlur={(e) => {
-              e.target.style.borderColor = "#d9d9d9";
-              e.target.style.boxShadow = "none";
-            }}
+            className="register-input"
           />
         </div>
 
-        <div style={{ marginBottom: "16px" }}>
-          <label style={labelStyle}>
-            密码 <span style={{ color: "#ff4d4f" }}>*</span>
+        <div className="register-form-group">
+          <label className="register-label">
+            密码 <span className="register-label-required">*</span>
           </label>
-          <div style={{ position: "relative" }}>
+          <div className="register-password-wrapper">
             <input
               type={showPassword ? "text" : "password"}
               value={password}
@@ -180,42 +131,23 @@ function Register() {
               required
               minLength={6}
               placeholder="至少6位字符"
-              style={{ ...inputStyle, paddingRight: "40px" }}
-              onFocus={(e) => {
-                e.target.style.borderColor = "#1890ff";
-                e.target.style.boxShadow = "0 0 0 2px rgba(24, 144, 255, 0.2)";
-              }}
-              onBlur={(e) => {
-                e.target.style.borderColor = "#d9d9d9";
-                e.target.style.boxShadow = "none";
-              }}
+              className="register-input register-input-password"
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              style={{
-                position: "absolute",
-                right: "8px",
-                top: "50%",
-                transform: "translateY(-50%)",
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                padding: "4px",
-                color: "#666",
-                fontSize: "16px",
-              }}
+              className="register-password-toggle"
             >
               {showPassword ? "👁️" : "👁️‍🗨️"}
             </button>
           </div>
         </div>
 
-        <div style={{ marginBottom: "24px" }}>
-          <label style={labelStyle}>
-            确认密码 <span style={{ color: "#ff4d4f" }}>*</span>
+        <div className="register-form-group-password">
+          <label className="register-label">
+            确认密码 <span className="register-label-required">*</span>
           </label>
-          <div style={{ position: "relative" }}>
+          <div className="register-password-wrapper">
             <input
               type={showConfirmPassword ? "text" : "password"}
               value={confirmPassword}
@@ -223,31 +155,12 @@ function Register() {
               required
               minLength={6}
               placeholder="再次输入密码"
-              style={{ ...inputStyle, paddingRight: "40px" }}
-              onFocus={(e) => {
-                e.target.style.borderColor = "#1890ff";
-                e.target.style.boxShadow = "0 0 0 2px rgba(24, 144, 255, 0.2)";
-              }}
-              onBlur={(e) => {
-                e.target.style.borderColor = "#d9d9d9";
-                e.target.style.boxShadow = "none";
-              }}
+              className="register-input register-input-password"
             />
             <button
               type="button"
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              style={{
-                position: "absolute",
-                right: "8px",
-                top: "50%",
-                transform: "translateY(-50%)",
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                padding: "4px",
-                color: "#666",
-                fontSize: "16px",
-              }}
+              className="register-password-toggle"
             >
               {showConfirmPassword ? "👁️" : "👁️‍🗨️"}
             </button>
@@ -257,33 +170,7 @@ function Register() {
         <button
           type="submit"
           disabled={loading}
-          style={{
-            width: "100%",
-            padding: "12px",
-            fontSize: "16px",
-            fontWeight: 500,
-            backgroundColor: loading ? "#d9d9d9" : "#1890ff",
-            color: "#fff",
-            border: "none",
-            borderRadius: "6px",
-            cursor: loading ? "not-allowed" : "pointer",
-            transition: "all 0.2s",
-            marginBottom: "16px",
-          }}
-          onMouseEnter={(e) => {
-            if (!loading) {
-              e.target.style.backgroundColor = "#40a9ff";
-              e.target.style.transform = "translateY(-1px)";
-              e.target.style.boxShadow = "0 4px 12px rgba(24, 144, 255, 0.3)";
-            }
-          }}
-          onMouseLeave={(e) => {
-            if (!loading) {
-              e.target.style.backgroundColor = "#1890ff";
-              e.target.style.transform = "translateY(0)";
-              e.target.style.boxShadow = "none";
-            }
-          }}
+          className="register-submit-btn"
         >
           {loading ? "注册中..." : "注册"}
         </button>
@@ -291,33 +178,16 @@ function Register() {
 
       {message && (
         <div
-          style={{
-            padding: "12px 16px",
-            marginBottom: "16px",
-            borderRadius: "6px",
-            fontSize: "14px",
-            backgroundColor: message.includes("成功")
-              ? "#f6ffed"
-              : "#fff2e8",
-            color: message.includes("成功") ? "#52c41a" : "#fa8c16",
-            border: `1px solid ${message.includes("成功") ? "#b7eb8f" : "#ffd591"}`,
-          }}
+          className={`register-message ${
+            message.includes("成功") ? "register-message-success" : "register-message-error"
+          }`}
         >
           {message}
         </div>
       )}
 
-      <div
-        style={{
-          marginTop: "24px",
-          padding: "16px",
-          backgroundColor: "#f5f5f5",
-          borderRadius: "6px",
-          fontSize: "12px",
-          color: "#666",
-        }}
-      >
-        <div style={{ marginBottom: "8px", fontWeight: 500 }}>提示：</div>
+      <div className="register-tips">
+        <div className="register-tips-title">提示：</div>
         <div>• 邮箱和手机号至少填写一个</div>
         <div>• 密码长度至少为6位</div>
         <div>• 其他信息为可选，可稍后完善</div>

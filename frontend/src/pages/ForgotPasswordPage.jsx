@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../api";
 import "../styles/pages/ForgotPasswordPage.css";
+import logo from "../assets/logo.png";
 
 const ForgotPasswordPage = () => {
   const [identifier, setIdentifier] = useState("");
@@ -35,29 +36,64 @@ const ForgotPasswordPage = () => {
 
   return (
     <div className="forgot-password-page">
-      <div className="forgot-password-container">
-        <div className="forgot-password-header">
-          <h2 className="forgot-password-title">
-            忘记密码
+      {/* 左侧品牌展示区 */}
+      <div className="forgot-password-brand-section">
+        <div className="forgot-password-brand-content">
+          <div className="forgot-password-brand-logo">
+            <img src={logo} alt="MindFlow Logo" />
+            <h1>MindFlow</h1>
+          </div>
+          <h2 className="forgot-password-brand-title">
+            忘记密码？别担心
           </h2>
-          <p className="forgot-password-subtitle">
-            请输入你的邮箱或手机号，我们将向你发送密码重置指引。
+          <p className="forgot-password-brand-description">
+            我们会帮你快速重置密码，让你继续使用 MindFlow。
           </p>
+          <div className="forgot-password-brand-features">
+            <div className="forgot-password-brand-feature">
+              <ion-icon name="mail-outline"></ion-icon>
+              <span>邮箱重置</span>
+            </div>
+            <div className="forgot-password-brand-feature">
+              <ion-icon name="shield-checkmark-outline"></ion-icon>
+              <span>安全验证</span>
+            </div>
+            <div className="forgot-password-brand-feature">
+              <ion-icon name="time-outline"></ion-icon>
+              <span>快速恢复</span>
+            </div>
+          </div>
         </div>
+      </div>
+
+      {/* 右侧表单区域 */}
+      <div className="forgot-password-form-section">
+        <div className="forgot-password-container">
+          <div className="forgot-password-header">
+            <h2 className="forgot-password-title">
+              忘记密码
+            </h2>
+            <p className="forgot-password-subtitle">
+              请输入你的邮箱或手机号，我们将向你发送密码重置指引。
+            </p>
+          </div>
 
         <form onSubmit={handleSubmit} className="forgot-password-form">
           <div className="forgot-password-form-group">
             <label className="forgot-password-label">
+              <ion-icon name="person-outline"></ion-icon>
               账号 (邮箱或手机号)
             </label>
-            <input
+            <div className="forgot-password-input-wrapper">
+              <input
               type="text"
               value={identifier}
               onChange={(e) => setIdentifier(e.target.value)}
               required
               placeholder="name@example.com 或 13800001234"
-              className="forgot-password-input"
-            />
+                className="forgot-password-input"
+              />
+            </div>
           </div>
 
           {error && (
@@ -74,16 +110,28 @@ const ForgotPasswordPage = () => {
           <button
             type="submit"
             disabled={loading}
-            className="forgot-password-submit-btn"
+            className={`forgot-password-submit-btn ${loading ? 'forgot-password-submit-btn-loading' : ''}`}
           >
-            {loading ? "发送中..." : "发送重置链接"}
+            {loading ? (
+              <>
+                <span className="forgot-password-btn-spinner"></span>
+                发送中...
+              </>
+            ) : (
+              <>
+                <span>发送重置链接</span>
+                <ion-icon name="arrow-forward-outline"></ion-icon>
+              </>
+            )}
           </button>
         </form>
 
-        <div className="forgot-password-back-link">
-          <Link to="/">
-            ← 返回登录
-          </Link>
+          <div className="forgot-password-back-link">
+            <Link to="/login">
+              <ion-icon name="arrow-back-outline"></ion-icon>
+              返回登录
+            </Link>
+          </div>
         </div>
       </div>
     </div>

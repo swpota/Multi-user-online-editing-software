@@ -1,10 +1,13 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { useParams, Link } from "react-router-dom";
-import api from "../api";
+import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
-import "react-quill/dist/quill.bubble.css";
+import "../styles/pages/EditorPage.css";
+import api from "../api";
 import io from "socket.io-client";
+import DOMPurify from "dompurify";
+import { marked } from "marked";
+import EditorSkeleton from "../components/EditorSkeleton";
 import ShareModal from "../components/ShareModal";
 import CommentsPanel from "../components/CommentsPanel";
 import TasksPanel from "../components/TasksPanel";
@@ -12,9 +15,6 @@ import ChatPanel from "../components/ChatPanel";
 import FilePanel from "../components/FilePanel";
 import NotificationsPanel from "../components/NotificationsPanel";
 import VideoConferencePanel from "../components/VideoConferencePanel";
-import DOMPurify from "dompurify";
-import { marked } from "marked";
-import "../styles/pages/EditorPage.css";
 
 const cloneDelta = (delta) => {
   if (!delta || typeof delta !== "object") {
@@ -109,7 +109,26 @@ function EditorPage({ user }) {
   const [showMarkdownPreview, setShowMarkdownPreview] = useState(false);
   const [isLocked, setIsLocked] = useState(false);
   const [lockedBy, setLockedBy] = useState(null);
+  const [documentLoading, setDocumentLoading] = useState(true);
   const [lockProcessing, setLockProcessing] = useState(false);
+
+  // 计算字数
+  const wordCount = useMemo(() => {
+    if (contentFormat === "markdown") {
+      // Markdown模式：统计markdown文本的字数
+      const text = markdownValue.replace(/[#*\-_`>\[\]()]/g, '').trim();
+      return text.length;
+    } else {
+      // 富文本模式：统计Delta内容的字数
+      if (!content || !content.ops) return 0;
+      return content.ops.reduce((count, op) => {
+        if (typeof op.insert === 'string') {
+          return count + op.insert.replace(/\n/g, '').length;
+        }
+        return count;
+      }, 0);
+    }
+  }, [contentFormat, markdownValue, content]);
   const [compareFrom, setCompareFrom] = useState(null);
   const [compareTo, setCompareTo] = useState(null);
   const [diffHtml, setDiffHtml] = useState("");
@@ -134,6 +153,14 @@ function EditorPage({ user }) {
   const [showVideoConference, setShowVideoConference] = useState(false);
   // 光标位置相关状态
   const [remoteCursors, setRemoteCursors] = useState(new Map()); // 其他用户的光标位置
+  // 功能开关设置
+  const [featureSettings, setFeatureSettings] = useState({
+    enable_chat: true,
+    enable_comments: true,
+    enable_tasks: true,
+    enable_notifications: true,
+    enable_video_conference: true
+  });
 
   const markdownPreviewHtml = useMemo(() => {
     if (!showMarkdownPreview) return "";
@@ -205,13 +232,19 @@ function EditorPage({ user }) {
       setIsLocked(locked);
       setLockedBy(doc.lockedBy || null);
 
-        const canEdit =
-          doc.userRoleForDoc === "owner" || doc.userRoleForDoc === "editor";
+      // 检查编辑权限：使用后端返回的 canEdit 字段，或者检查 role 是否为 owner/editor
+      // 管理员用户始终可以编辑（除非被其他用户锁定且不是管理员自己锁定的）
+      const canEdit = doc.canEdit !== undefined 
+        ? doc.canEdit 
+        : (doc.role === "owner" || doc.role === "editor" || user?.role === "admin");
+      
       const lockedByOther =
         locked &&
         doc.lockedBy &&
         doc.lockedBy.id !== user.id &&
         user.role !== "admin";
+      
+      // 管理员即使文档被锁定也可以编辑（除非是自己锁定的，那就不算"被锁定"）
       const editable = canEdit && !lockedByOther;
       setIsEditor(editable);
       if (lockedByOther) {
@@ -226,12 +259,32 @@ function EditorPage({ user }) {
 
       // 确保内容始终被设置，即使文档被锁定
       // 内容同步到编辑器将在 useEffect 中处理
+      
+      // 文档加载完成
+      setDocumentLoading(false);
       } catch (error) {
+        setDocumentLoading(false);
         console.error("获取文档失败", error);
-        setSaveStatus("加载失败或无权限");
+        
+        // 区分不同的错误类型
+        if (error.response) {
+          if (error.response.status === 404) {
+            setSaveStatus("文档不存在");
+            alert("文档不存在，可能已被删除");
+            window.location.href = '/';
+            return;
+          } else if (error.response.status === 403) {
+            setSaveStatus("无权访问此文档");
+          } else {
+            setSaveStatus("加载失败");
+          }
+        } else {
+          setSaveStatus("网络错误");
+        }
+        
         setIsEditor(false);
-      // 即使出错，也设置一个默认内容，确保编辑器可以显示
-      setContent({ ops: [{ insert: "\n" }] });
+        // 即使出错，也设置一个默认内容，确保编辑器可以显示
+        setContent({ ops: [{ insert: "\n" }] });
     }
   }, [documentId, user]);
 
@@ -278,7 +331,21 @@ function EditorPage({ user }) {
     }
   }, [documentId, user]);
 
-  // --- Effect 0: 当 documentId 变化时，强制滚动到页面顶部 ---
+  // --- Effect 0: 获取功能开关设置 ---
+  useEffect(() => {
+    const fetchFeatureSettings = async () => {
+      try {
+        const response = await api.get("/admin/settings/public");
+        setFeatureSettings(response.data);
+      } catch (error) {
+        console.error("获取功能设置失败:", error);
+        // 如果获取失败，使用默认值（所有功能启用）
+      }
+    };
+    fetchFeatureSettings();
+  }, []);
+
+  // --- Effect 0.5: 当 documentId 变化时，强制滚动到页面顶部 ---
   useEffect(() => {
     // 强制滚动到页面顶部
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
@@ -299,12 +366,119 @@ function EditorPage({ user }) {
   useEffect(() => {
     if (!user) return;
 
+    console.log("建立 Socket 连接 - documentId:", documentId);
     const s = io("http://localhost:5000");
     setSocket(s);
 
-    fetchDocument();
-    fetchComments();
-    fetchTasks();
+    // 直接在这里加载数据，而不是依赖外部函数
+    const loadData = async () => {
+      try {
+        const response = await api.get(`/documents/${documentId}`);
+        const doc = response.data;
+        setTitle(doc.title);
+
+        let initialContent = { ops: [{ insert: "\n" }] };
+        if (doc.content) {
+          try {
+            if (typeof doc.content === "string") {
+              initialContent = JSON.parse(doc.content);
+            } else if (typeof doc.content === "object" && doc.content.ops) {
+              initialContent = doc.content;
+            }
+          } catch (e) {
+            console.error("解析文档内容失败:", e);
+          }
+        }
+        const clonedContent = cloneDelta(initialContent);
+        setContent(clonedContent);
+
+        setCategory(doc.category || "");
+        const incomingTags = toArray(doc.tags);
+        setTagsInput(incomingTags.length > 0 ? incomingTags.join(", ") : "");
+
+        const format = doc.content_format || "rich";
+        setContentFormat(format);
+        setMarkdownValue(doc.markdown_content || "");
+        setShowMarkdownPreview(false);
+
+        const locked = !!doc.is_locked;
+        setIsLocked(locked);
+        setLockedBy(doc.lockedBy || null);
+
+        const canEdit = doc.canEdit !== undefined 
+          ? doc.canEdit 
+          : (doc.role === "owner" || doc.role === "editor" || user?.role === "admin");
+        
+        const lockedByOther =
+          locked &&
+          doc.lockedBy &&
+          doc.lockedBy.id !== user.id &&
+          user.role !== "admin";
+        
+        const editable = canEdit && !lockedByOther;
+        setIsEditor(editable);
+        if (lockedByOther) {
+          const lockerName =
+            doc.lockedBy?.full_name ||
+            doc.lockedBy?.email ||
+            `用户${doc.lockedBy?.id || ""}`;
+          setSaveStatus(`已锁定（${lockerName}）`);
+        } else {
+          setSaveStatus(editable ? "已同步" : "查看模式");
+        }
+
+        setDocumentLoading(false);
+      } catch (error) {
+        setDocumentLoading(false);
+        console.error("获取文档失败", error);
+        
+        // 区分不同的错误类型
+        if (error.response) {
+          if (error.response.status === 404) {
+            setSaveStatus("文档不存在");
+            alert("文档不存在，可能已被删除");
+            window.location.href = '/';
+            return;
+          } else if (error.response.status === 403) {
+            setSaveStatus("无权访问此文档");
+          } else {
+            setSaveStatus("加载失败");
+          }
+        } else {
+          setSaveStatus("网络错误");
+        }
+        
+        setIsEditor(false);
+        setContent({ ops: [{ insert: "\n" }] });
+      }
+
+      // 加载评论和任务
+      if (featureSettings.enable_comments) {
+        try {
+          setCommentsLoading(true);
+          const response = await api.get(`/documents/${documentId}/comments`);
+          setComments(response.data || []);
+        } catch (error) {
+          console.error("获取评论失败", error);
+        } finally {
+          setCommentsLoading(false);
+        }
+      }
+
+      if (featureSettings.enable_tasks) {
+        try {
+          setTasksLoading(true);
+          const response = await api.get(`/documents/${documentId}/tasks`);
+          setTasks(response.data || []);
+        } catch (error) {
+          console.error("获取任务失败", error);
+        } finally {
+          setTasksLoading(false);
+        }
+      }
+    };
+
+    loadData();
 
     s.emit("joinDocument", { documentId, user });
 
@@ -461,26 +635,36 @@ function EditorPage({ user }) {
     s.on("receiveChange", receiveChangeHandler);
     s.on("updateUserList", updateUserListHandler);
     s.on("receiveCursor", receiveCursorHandler);
-    s.on("newComment", newCommentHandler);
-    s.on("commentUpdated", commentUpdatedHandler);
-    s.on("commentDeleted", commentDeletedHandler);
-    s.on("newTask", newTaskHandler);
-    s.on("taskUpdated", taskUpdatedHandler);
-    s.on("taskDeleted", taskDeletedHandler);
+    // 只在功能启用时才监听相关事件
+    if (featureSettings.enable_comments) {
+      s.on("newComment", newCommentHandler);
+      s.on("commentUpdated", commentUpdatedHandler);
+      s.on("commentDeleted", commentDeletedHandler);
+    }
+    if (featureSettings.enable_tasks) {
+      s.on("newTask", newTaskHandler);
+      s.on("taskUpdated", taskUpdatedHandler);
+      s.on("taskDeleted", taskDeletedHandler);
+    }
 
     return () => {
       s.off("receiveChange", receiveChangeHandler);
       s.off("updateUserList", updateUserListHandler);
       s.off("receiveCursor", receiveCursorHandler);
-      s.off("newComment", newCommentHandler);
-      s.off("commentUpdated", commentUpdatedHandler);
-      s.off("commentDeleted", commentDeletedHandler);
-      s.off("newTask", newTaskHandler);
-      s.off("taskUpdated", taskUpdatedHandler);
-      s.off("taskDeleted", taskDeletedHandler);
+      if (featureSettings.enable_comments) {
+        s.off("newComment", newCommentHandler);
+        s.off("commentUpdated", commentUpdatedHandler);
+        s.off("commentDeleted", commentDeletedHandler);
+      }
+      if (featureSettings.enable_tasks) {
+        s.off("newTask", newTaskHandler);
+        s.off("taskUpdated", taskUpdatedHandler);
+        s.off("taskDeleted", taskDeletedHandler);
+      }
       s.disconnect();
+      console.log("断开 Socket 连接 - documentId:", documentId);
     };
-  }, [documentId, user, fetchDocument, fetchComments, fetchTasks]);
+  }, [documentId, user?.id, featureSettings.enable_comments, featureSettings.enable_tasks]); // 只依赖真正变化的值
 
 
   useEffect(() => {
@@ -921,6 +1105,39 @@ function EditorPage({ user }) {
     user?.id,
   ]);
 
+  // 在离开页面前强制保存
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (!isEditor || !content) return;
+      
+      // 立即保存
+      const sanitizedTags = parseTagsInput(tagsInput);
+      const payload = {
+        title,
+        category: category ? category.trim() : null,
+        tags: sanitizedTags,
+      };
+
+      if (contentFormat === "markdown") {
+        payload.contentFormat = "markdown";
+        payload.markdownContent = markdownValue;
+      } else {
+        payload.content = content;
+        payload.contentFormat = "rich";
+      }
+
+      // 立即同步保存（不等待响应）
+      try {
+        api.put(`/documents/${documentId}`, payload);
+      } catch (error) {
+        console.error('保存失败:', error);
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [documentId, title, content, isEditor, category, tagsInput, contentFormat, markdownValue]);
+
   // --- (最终版) handleQuillChange ---
   const handleQuillChange = (value, delta, source, editor) => {
     if (contentFormat === "markdown") {
@@ -1196,13 +1413,25 @@ function EditorPage({ user }) {
 
     setTemplateSaving(true);
     try {
-      await api.post("/documents/templates", {
+      const payload = {
         name: templateName.trim(),
         description: descriptionInput ? descriptionInput.trim() : null,
         category: category ? category.trim() : null,
         tags: sanitizedTags,
-        content,
-      });
+        format: contentFormat, // 添加格式字段：'markdown' 或 'rich'
+        isPublic: false, // 默认设置为私有模板
+      };
+
+      // 根据格式保存正确的内容
+      if (contentFormat === "markdown") {
+        // Markdown格式：保存markdown字符串
+        payload.content = markdownValue;
+      } else {
+        // 富文本格式：保存Delta对象
+        payload.content = content;
+      }
+
+      await api.post("/documents/templates", payload);
       alert("模板已保存，可在仪表盘中使用。");
     } catch (error) {
       console.error("保存模板失败:", error);
@@ -1211,6 +1440,11 @@ function EditorPage({ user }) {
       setTemplateSaving(false);
     }
   };
+
+  // 如果文档正在加载，显示骨架屏
+  if (documentLoading) {
+    return <EditorSkeleton />;
+  }
 
   return (
     <div className="editor-page">
@@ -1286,56 +1520,62 @@ function EditorPage({ user }) {
           >
             版本历史
           </button>
-          <button
-            onClick={() => {
-              if (showComments) {
-                setShowComments(false);
-              } else {
-                setShowTasks(false);
-                setShowFiles(false);
-                setShowNotifications(false);
-                setShowChat(false);
-                setShowComments(true);
-                fetchComments();
-              }
-            }}
-            className={`editor-btn ${showComments ? "editor-btn-active" : "editor-btn-secondary"}`}
-          >
-            💬 评论 {comments.length > 0 && `(${comments.length})`}
-          </button>
-          <button
-            onClick={() => {
-              if (showTasks) {
-                setShowTasks(false);
-              } else {
-                setShowComments(false);
-                setShowFiles(false);
-                setShowNotifications(false);
-                setShowChat(false);
-                setShowTasks(true);
-                fetchTasks();
-              }
-            }}
-            className={`editor-btn ${showTasks ? "editor-btn-active" : "editor-btn-secondary"}`}
-          >
-            ✅ 任务 {tasks.length > 0 && `(${tasks.length})`}
-          </button>
-          <button
-            onClick={() => {
-              if (showChat) {
-                setShowChat(false);
-              } else {
-                setShowComments(false);
-                setShowTasks(false);
-                setShowFiles(false);
-                setShowNotifications(false);
-                setShowChat(true);
-              }
-            }}
-            className={`editor-btn ${showChat ? "editor-btn-active" : "editor-btn-secondary"}`}
-          >
-            💬 聊天
-          </button>
+          {featureSettings.enable_comments && (
+            <button
+              onClick={() => {
+                if (showComments) {
+                  setShowComments(false);
+                } else {
+                  setShowTasks(false);
+                  setShowFiles(false);
+                  setShowNotifications(false);
+                  setShowChat(false);
+                  setShowComments(true);
+                  fetchComments();
+                }
+              }}
+              className={`editor-btn ${showComments ? "editor-btn-active" : "editor-btn-secondary"}`}
+            >
+              💬 评论 {comments.length > 0 && `(${comments.length})`}
+            </button>
+          )}
+          {featureSettings.enable_tasks && (
+            <button
+              onClick={() => {
+                if (showTasks) {
+                  setShowTasks(false);
+                } else {
+                  setShowComments(false);
+                  setShowFiles(false);
+                  setShowNotifications(false);
+                  setShowChat(false);
+                  setShowTasks(true);
+                  fetchTasks();
+                }
+              }}
+              className={`editor-btn ${showTasks ? "editor-btn-active" : "editor-btn-secondary"}`}
+            >
+              ✅ 任务 {tasks.length > 0 && `(${tasks.length})`}
+            </button>
+          )}
+          {featureSettings.enable_chat && (
+            <button
+              onClick={() => {
+                if (showChat) {
+                  setShowChat(false);
+                } else {
+                  setShowComments(false);
+                  setShowTasks(false);
+                  setShowFiles(false);
+                  setShowNotifications(false);
+                  setShowChat(true);
+                }
+              }}
+              className={`editor-btn ${showChat ? "editor-btn-active" : "editor-btn-secondary"}`}
+            >
+              💬 聊天
+            </button>
+          )}
           <button
             onClick={() => {
               if (showFiles) {
@@ -1352,22 +1592,26 @@ function EditorPage({ user }) {
           >
             📁 文件
           </button>
-          <button
-            onClick={() => {
-              setShowNotifications(!showNotifications);
-            }}
-            className={`editor-btn ${showNotifications ? "editor-btn-active" : "editor-btn-secondary"}`}
-          >
-            🔔 通知
-          </button>
-          <button
-            onClick={() => {
-              setShowVideoConference(!showVideoConference);
-            }}
-            className={`editor-btn ${showVideoConference ? "editor-btn-active" : "editor-btn-secondary"}`}
-          >
-            📹 视频会议
-          </button>
+          {featureSettings.enable_notifications && (
+            <button
+              onClick={() => {
+                setShowNotifications(!showNotifications);
+              }}
+              className={`editor-btn ${showNotifications ? "editor-btn-active" : "editor-btn-secondary"}`}
+            >
+              🔔 通知
+            </button>
+          )}
+          {featureSettings.enable_video_conference && (
+            <button
+              onClick={() => {
+                setShowVideoConference(!showVideoConference);
+              }}
+              className={`editor-btn ${showVideoConference ? "editor-btn-active" : "editor-btn-secondary"}`}
+            >
+              📹 视频会议
+            </button>
+          )}
           <button
             onClick={() => setShowShareModal(true)}
             className="editor-btn editor-btn-secondary"
@@ -1377,6 +1621,9 @@ function EditorPage({ user }) {
           <div className="editor-status-group">
             <span className="editor-save-status">
               {saveStatus}
+            </span>
+            <span className="editor-save-status">
+              {wordCount} 字
             </span>
             {onlineUsers.length > 0 && (
               <div className="editor-online-users">
@@ -1543,7 +1790,7 @@ function EditorPage({ user }) {
                 value={content && content.ops ? content : { ops: [{ insert: "\n" }] }}
             onChange={handleQuillChange}
             readOnly={!isEditor}
-                placeholder={isEditor ? "开始输入..." : "您没有编辑权限"}
+                placeholder={isEditor ? "" : "您没有编辑权限"}
                 modules={
                   isEditor
                     ? {
@@ -1573,16 +1820,6 @@ function EditorPage({ user }) {
                   "image",
                 ]}
               />
-            </div>
-            {/* 状态信息 */}
-            <div className="editor-rich-status">
-              <strong>编辑器状态：</strong>
-              <span>
-                格式: {contentFormat} | 
-                模式: {isMarkdownMode ? "Markdown" : "富文本"} | 
-                权限: {isEditor ? "可编辑" : "只读"} | 
-                内容: {content && content.ops ? `${content.ops.length} 个操作` : "无"}
-              </span>
             </div>
           </div>
         )}
@@ -1794,16 +2031,16 @@ function EditorPage({ user }) {
       )}
 
       {/* 评论面板 */}
-      {showComments && (
+      {featureSettings.enable_comments && showComments && (
         <CommentsPanel
-          documentId={documentId}
-          user={user}
-          comments={comments}
-          onCommentCreated={(comment) => {
-            // 这个回调现在不会被调用，因为 CommentsPanel 中已经移除了回调
-            // Socket.IO 的 newCommentHandler 会处理实时更新
-          }}
-          onCommentUpdated={(comment) => {
+            documentId={documentId}
+            user={user}
+            comments={comments}
+            onCommentCreated={(comment) => {
+              // 这个回调现在不会被调用，因为 CommentsPanel 中已经移除了回调
+              // Socket.IO 的 newCommentHandler 会处理实时更新
+            }}
+            onCommentUpdated={(comment) => {
             setComments((prev) =>
               prev.map((c) => {
                 if (c.id === comment.id) {
@@ -1860,7 +2097,7 @@ function EditorPage({ user }) {
       )}
 
       {/* 任务面板 */}
-      {showTasks && (
+      {featureSettings.enable_tasks && showTasks && (
         <TasksPanel
           documentId={documentId}
           user={user}
@@ -1883,7 +2120,7 @@ function EditorPage({ user }) {
       )}
 
       {/* 聊天面板 */}
-      {showChat && (
+      {featureSettings.enable_chat && showChat && (
         <ChatPanel
           documentId={documentId}
           user={user}
@@ -1904,7 +2141,7 @@ function EditorPage({ user }) {
       )}
 
       {/* 通知面板 */}
-      {showNotifications && (
+      {featureSettings.enable_notifications && showNotifications && (
         <NotificationsPanel
           user={user}
           socket={socket}
@@ -1913,7 +2150,7 @@ function EditorPage({ user }) {
       )}
 
       {/* 视频会议面板 */}
-      {showVideoConference && (
+      {featureSettings.enable_video_conference && showVideoConference && (
         <VideoConferencePanel
           documentId={documentId}
           user={user}

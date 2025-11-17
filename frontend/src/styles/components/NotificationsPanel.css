@@ -64,14 +64,14 @@
 }
 
 .notifications-panel-settings-btn:hover:not(.notifications-panel-settings-btn-active) {
-  border-color: #1890ff;
-  color: #1890ff;
+  border-color: #FF8A3D;
+  color: #FF8A3D;
 }
 
 .notifications-panel-settings-btn-active {
-  background-color: #1890ff;
+  background-color: #FF8A3D;
   color: #fff;
-  border-color: #1890ff;
+  border-color: #FF8A3D;
 }
 
 .notifications-panel-close-btn {
@@ -134,8 +134,8 @@
 }
 
 .notifications-panel-filter-select:focus {
-  border-color: #1890ff;
-  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+  border-color: #FF8A3D;
+  box-shadow: 0 0 0 2px rgba(255, 138, 61, 0.2);
 }
 
 .notifications-panel-mark-all-read-btn {
@@ -149,8 +149,8 @@
 }
 
 .notifications-panel-mark-all-read-btn:hover {
-  border-color: #1890ff;
-  color: #1890ff;
+  border-color: #FF8A3D;
+  color: #FF8A3D;
 }
 
 .notifications-panel-body {

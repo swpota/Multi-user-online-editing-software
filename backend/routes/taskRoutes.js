@@ -2,14 +2,16 @@ const express = require("express");
 const { protect } = require("../middleware/authMiddleware");
 const pool = require("../db");
 const { logActivity } = require("../services/logService");
+const { logUserActivity, logSystemLog } = require("../services/activityService");
 const { createNotification } = require("../services/notificationService");
+const { validateDocumentId, validateTaskCreate } = require("../middleware/validators");
 
 // 创建任务路由函数，接收 io 实例用于实时通知
 const createTaskRoutes = (io) => {
   const router = express.Router();
 
   // 获取文档的所有任务
-  router.get("/documents/:documentId/tasks", protect, async (req, res) => {
+  router.get("/documents/:documentId/tasks", protect, validateDocumentId, async (req, res) => {
     try {
       const documentId = parseInt(req.params.documentId, 10);
       if (isNaN(documentId)) {
@@ -40,7 +42,8 @@ const createTaskRoutes = (io) => {
       }
 
       const userRole = docCheck.rows[0].user_role;
-      if (!userRole) {
+      // 管理员可以查看所有文档的任务
+      if (!userRole && req.user.role !== "admin") {
         return res.status(403).json({ message: "无权查看该文档的任务" });
       }
 
@@ -138,7 +141,7 @@ const createTaskRoutes = (io) => {
   });
 
   // 创建任务
-  router.post("/documents/:documentId/tasks", protect, async (req, res) => {
+  router.post("/documents/:documentId/tasks", protect, validateDocumentId, validateTaskCreate, async (req, res) => {
     try {
       const documentId = parseInt(req.params.documentId, 10);
       if (isNaN(documentId)) {
@@ -348,9 +351,32 @@ const createTaskRoutes = (io) => {
         }
       }
 
+      // 记录用户活动
+      logUserActivity(
+        req.user.id,
+        'task_create',
+        'task',
+        newTask.id,
+        { documentId, assignedTo: assignedTo || null },
+        req
+      ).catch(err => {
+        console.error("记录任务创建活动失败:", err);
+      });
+
       res.status(201).json(fullTask);
     } catch (error) {
       console.error("创建任务失败:", error);
+      
+      // 记录系统错误日志
+      logSystemLog(
+        'error',
+        'error',
+        `创建任务失败: ${error.message}`,
+        { stack: error.stack, code: error.code, documentId: req.params.documentId },
+        req.user?.id,
+        req
+      ).catch(err => console.error("记录错误日志失败:", err));
+      
       res.status(500).json({ message: "服务器内部错误" });
     }
   });
@@ -699,6 +725,33 @@ const createTaskRoutes = (io) => {
             title: `${req.user.full_name || req.user.email} 在 "${docTitle}" 中给您分配了任务`,
           });
         }
+      }
+
+      // 记录用户活动
+      // 如果任务状态变为完成，记录完成活动
+      if (status === "completed" && task.status !== "completed") {
+        logUserActivity(
+          req.user.id,
+          'task_complete',
+          'task',
+          taskId,
+          { documentId: task.document_id, previousStatus: task.status },
+          req
+        ).catch(err => {
+          console.error("记录任务完成活动失败:", err);
+        });
+      } else if (updateFields.length > 0) {
+        // 其他更新操作记录为 task_update
+        logUserActivity(
+          req.user.id,
+          'task_update',
+          'task',
+          taskId,
+          { documentId: task.document_id, updatedFields: Object.keys(req.body) },
+          req
+        ).catch(err => {
+          console.error("记录任务更新活动失败:", err);
+        });
       }
 
       res.json(fullTask);

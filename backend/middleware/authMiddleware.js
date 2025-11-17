@@ -1,5 +1,10 @@
 const jwt = require("jsonwebtoken");
 const pool = require("../db");
+const { getConfig } = require("../config/env");
+const { handleJWTError, handleJWTExpiredError, AppError } = require("./errorHandler");
+const logger = require("../utils/logger");
+
+const config = getConfig();
 
 const protect = async (req, res, next) => {
   let token;
@@ -16,7 +21,7 @@ const protect = async (req, res, next) => {
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, config.jwt.secret);
 
     const userResult = await pool.query(
       `SELECT id,
@@ -41,7 +46,16 @@ const protect = async (req, res, next) => {
 
     next();
   } catch (error) {
-    console.error("Token 验证失败:", error);
+    logger.error("Token 验证失败:", error);
+    
+    // 处理 JWT 错误
+    if (error.name === "JsonWebTokenError") {
+      return res.status(401).json({ message: handleJWTError().message });
+    }
+    if (error.name === "TokenExpiredError") {
+      return res.status(401).json({ message: handleJWTExpiredError().message });
+    }
+    
     res.status(401).json({ message: "认证失败，token 无效" });
   }
 };

@@ -2,14 +2,16 @@ const express = require("express");
 const { protect } = require("../middleware/authMiddleware");
 const pool = require("../db");
 const { logActivity } = require("../services/logService");
+const { logUserActivity, logSystemLog } = require("../services/activityService");
 const { createNotification } = require("../services/notificationService");
+const { validateDocumentId, validateCommentCreate } = require("../middleware/validators");
 
 // 创建评论路由函数，接收 io 实例用于实时通知
 const createCommentRoutes = (io) => {
   const router = express.Router();
 
   // 获取文档的所有评论（包括回复）
-  router.get("/documents/:documentId/comments", protect, async (req, res) => {
+  router.get("/documents/:documentId/comments", protect, validateDocumentId, async (req, res) => {
     try {
       const documentId = parseInt(req.params.documentId, 10);
       if (isNaN(documentId)) {
@@ -40,7 +42,8 @@ const createCommentRoutes = (io) => {
       }
 
       const userRole = docCheck.rows[0].user_role;
-      if (!userRole) {
+      // 管理员可以查看所有文档的评论
+      if (!userRole && req.user.role !== "admin") {
         return res.status(403).json({ message: "无权查看该文档的评论" });
       }
 
@@ -133,7 +136,7 @@ const createCommentRoutes = (io) => {
   });
 
   // 创建评论
-  router.post("/documents/:documentId/comments", protect, async (req, res) => {
+  router.post("/documents/:documentId/comments", protect, validateDocumentId, validateCommentCreate, async (req, res) => {
     try {
       const documentId = parseInt(req.params.documentId, 10);
       if (isNaN(documentId)) {
@@ -416,9 +419,32 @@ const createCommentRoutes = (io) => {
         }
       }
 
+      // 记录用户活动
+      logUserActivity(
+        req.user.id,
+        'comment_create',
+        'comment',
+        newComment.id,
+        { documentId, parentId: parentId || null },
+        req
+      ).catch(err => {
+        console.error("记录评论创建活动失败:", err);
+      });
+
       res.status(201).json(fullComment);
     } catch (error) {
       console.error("创建评论失败:", error);
+      
+      // 记录系统错误日志
+      logSystemLog(
+        'error',
+        'error',
+        `创建评论失败: ${error.message}`,
+        { stack: error.stack, code: error.code, documentId: req.params.documentId },
+        req.user?.id,
+        req
+      ).catch(err => console.error("记录错误日志失败:", err));
+      
       res.status(500).json({ message: "服务器内部错误" });
     }
   });

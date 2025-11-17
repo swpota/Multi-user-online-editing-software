@@ -3,7 +3,9 @@ const fs = require("fs");
 const path = require("path");
 const { protect } = require("../middleware/authMiddleware");
 const pool = require("../db"); // 假设你将数据库连接池导出
+const { logUserActivity } = require("../services/activityService");
 const { logActivity } = require("../services/logService");
+const { validateDocumentId, validateDocumentCreate, validateDocumentUpdate } = require("../middleware/validators");
 
 // 创建路由函数，接收 io 实例
 const createDocumentRoutes = (io) => {
@@ -1676,7 +1678,7 @@ router.get("/", protect, async (req, res) => {
 });
 
 // 2. 创建一个新文档
-router.post("/", protect, async (req, res) => {
+router.post("/", protect, validateDocumentCreate, async (req, res) => {
   const {
     title,
     category,
@@ -1772,8 +1774,32 @@ router.post("/", protect, async (req, res) => {
       ]
     );
 
+    const createdDoc = newDocument.rows[0];
+    
+    // 记录创建文档活动
+    console.log("开始记录文档创建活动 - 文档ID:", createdDoc.id, "用户ID:", ownerId);
+    try {
+      await logUserActivity(
+        ownerId,
+        'document_create',
+        'document',
+        createdDoc.id,
+        { title: createdDoc.title, category: documentCategory },
+        req
+      );
+      console.log("文档创建活动记录成功 - 文档ID:", createdDoc.id);
+    } catch (err) {
+      console.error("记录文档创建活动失败:", err);
+      console.error("失败详情:", {
+        ownerId,
+        documentId: createdDoc.id,
+        error: err.message,
+        stack: err.stack
+      });
+    }
+
     res.status(201).json({
-      ...newDocument.rows[0],
+      ...createdDoc,
       tags: sanitizedTags,
     });
   } catch (error) {
@@ -1953,7 +1979,7 @@ router.get("/:id/versions/compare", protect, async (req, res) => {
 });
 
 // 3. 获取单个文档 (【最终终极修正版】)
-router.get("/:id", protect, async (req, res) => {
+router.get("/:id", protect, validateDocumentId, async (req, res) => {
   try {
     const id = parseInt(req.params.id, 10);
     if (isNaN(id)) {
@@ -2018,7 +2044,7 @@ router.get("/:id", protect, async (req, res) => {
 });
 
 // 4. 更新文档 (【最终终极绝对修正版】)
-router.put("/:id", protect, async (req, res) => {
+router.put("/:id", protect, validateDocumentId, validateDocumentUpdate, async (req, res) => {
   try {
     const id = parseInt(req.params.id, 10);
     if (isNaN(id)) {
@@ -2224,6 +2250,28 @@ router.put("/:id", protect, async (req, res) => {
           markdown_content: fullDoc.markdown_content || "",
         });
       }
+    }
+
+    // 记录编辑文档活动
+    console.log("开始记录文档编辑活动 - 文档ID:", id, "用户ID:", req.user.id);
+    try {
+      await logUserActivity(
+        req.user.id,
+        'document_edit',
+        'document',
+        id,
+        { title: result.title },
+        req
+      );
+      console.log("文档编辑活动记录成功 - 文档ID:", id);
+    } catch (err) {
+      console.error("记录文档编辑活动失败:", err);
+      console.error("失败详情:", {
+        userId: req.user.id,
+        documentId: id,
+        error: err.message,
+        stack: err.stack
+      });
     }
 
     res.json(result);

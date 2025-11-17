@@ -40,7 +40,7 @@
   padding: 6px 16px;
   border: 1px solid #d9d9d9;
   border-radius: 6px;
-  background-color: #1890ff;
+  background-color: #FF8A3D;
   color: #fff;
   cursor: pointer;
   font-size: 14px;
@@ -49,7 +49,7 @@
 }
 
 .file-panel-upload-btn:hover:not(.file-panel-upload-btn-active) {
-  background-color: #40a9ff;
+  background-color: #FF6B35;
   transform: translateY(-1px);
 }
 
@@ -59,8 +59,8 @@
 }
 
 .file-panel-upload-btn-active:hover {
-  border-color: #1890ff;
-  color: #1890ff;
+  border-color: #FF8A3D;
+  color: #FF8A3D;
 }
 
 .file-panel-close-btn {
@@ -192,8 +192,8 @@
 }
 
 .file-panel-download-btn:hover {
-  border-color: #1890ff;
-  color: #1890ff;
+  border-color: #FF8A3D;
+  color: #FF8A3D;
 }
 
 .file-panel-delete-btn {

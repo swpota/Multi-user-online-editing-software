@@ -84,5 +84,5 @@ coverage/
 # *.ps1
 
 # 文档文件（可选，如果不想上传文档可以取消注释）
-*.md
-!README.md
+# *.md
+# !README.md

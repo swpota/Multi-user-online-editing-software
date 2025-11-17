@@ -127,7 +127,7 @@ const ResetPasswordPage = () => {
         </form>
 
         <div className="reset-password-back-link">
-          <Link to="/">
+          <Link to="/login">
             ← 返回登录
           </Link>
         </div>

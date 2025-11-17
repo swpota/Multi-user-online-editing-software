@@ -1,0 +1,116 @@
+/* 编辑器骨架屏样式 */
+
+@keyframes shimmer {
+  0% {
+    background-position: -468px 0;
+  }
+  100% {
+    background-position: 468px 0;
+  }
+}
+
+.editor-skeleton {
+  padding: 2rem;
+  background: #FFFFFF;
+  min-height: 100vh;
+}
+
+.editor-skeleton-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #E5E7EB;
+}
+
+.editor-skeleton-title {
+  height: 32px;
+  width: 300px;
+  background: linear-gradient(
+    90deg,
+    #F3F4F6 0px,
+    #E5E7EB 40px,
+    #F3F4F6 80px
+  );
+  background-size: 468px 100%;
+  border-radius: 6px;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+.editor-skeleton-buttons {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.editor-skeleton-button {
+  height: 36px;
+  width: 100px;
+  background: linear-gradient(
+    90deg,
+    #F3F4F6 0px,
+    #E5E7EB 40px,
+    #F3F4F6 80px
+  );
+  background-size: 468px 100%;
+  border-radius: 8px;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+.editor-skeleton-meta {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.editor-skeleton-meta-item {
+  height: 38px;
+  width: 200px;
+  background: linear-gradient(
+    90deg,
+    #F3F4F6 0px,
+    #E5E7EB 40px,
+    #F3F4F6 80px
+  );
+  background-size: 468px 100%;
+  border-radius: 6px;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+.editor-skeleton-toolbar {
+  height: 42px;
+  width: 100%;
+  margin-bottom: 1rem;
+  background: linear-gradient(
+    90deg,
+    #F3F4F6 0px,
+    #E5E7EB 40px,
+    #F3F4F6 80px
+  );
+  background-size: 468px 100%;
+  border-radius: 8px;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+.editor-skeleton-content {
+  padding: 1.5rem;
+  background: #FAFAFA;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  min-height: 400px;
+}
+
+.editor-skeleton-line {
+  height: 16px;
+  width: 100%;
+  margin-bottom: 16px;
+  background: linear-gradient(
+    90deg,
+    #F3F4F6 0px,
+    #E5E7EB 40px,
+    #F3F4F6 80px
+  );
+  background-size: 468px 100%;
+  border-radius: 4px;
+  animation: shimmer 1.5s ease-in-out infinite;
+}

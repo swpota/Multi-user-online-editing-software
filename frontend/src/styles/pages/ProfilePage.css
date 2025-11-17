@@ -42,8 +42,9 @@
 }
 
 .profile-back-link:hover {
-  border-color: #1890ff;
-  color: #1890ff;
+  border-color: #FF8A3D;
+  color: #FF8A3D;
+  background: rgba(255, 138, 61, 0.04);
 }
 
 .profile-content {
@@ -81,19 +82,22 @@
 .profile-avatar-label {
   display: inline-block;
   padding: 8px 16px;
-  background-color: #1890ff;
+  background: linear-gradient(135deg, #FF8A3D 0%, #FF6B35 100%);
   color: #fff;
-  border-radius: 6px;
+  border: none;
+  border-radius: 8px;
   cursor: pointer;
   font-size: 14px;
   font-weight: 500;
-  transition: all 0.2s;
+  transition: all 0.3s;
   margin-right: 8px;
+  box-shadow: 0 4px 12px rgba(255, 138, 61, 0.25);
 }
 
 .profile-avatar-label:hover {
-  background-color: #40a9ff;
-  transform: translateY(-1px);
+  background: linear-gradient(135deg, #FF6B35 0%, #F85125 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 138, 61, 0.35);
 }
 
 .profile-avatar-upload-btn {
@@ -184,8 +188,8 @@
 }
 
 .profile-input:focus {
-  border-color: #1890ff;
-  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+  border-color: #FF8A3D;
+  box-shadow: 0 0 0 3px rgba(255, 138, 61, 0.12);
 }
 
 .profile-password-wrapper {
@@ -231,20 +235,21 @@
 .profile-submit-btn {
   width: 100%;
   padding: 12px;
-  background-color: #1890ff;
+  background: linear-gradient(135deg, #FF8A3D 0%, #FF6B35 100%);
   color: #fff;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 16px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s;
+  box-shadow: 0 4px 12px rgba(255, 138, 61, 0.25);
 }
 
 .profile-submit-btn:hover:not(:disabled) {
-  background-color: #40a9ff;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3);
+  background: linear-gradient(135deg, #FF6B35 0%, #F85125 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 138, 61, 0.35);
 }
 
 .profile-submit-btn:disabled {

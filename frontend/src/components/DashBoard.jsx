@@ -7,6 +7,12 @@ import React, {
 } from "react";
 import { Link } from "react-router-dom";
 import api from "../api";
+import "../styles/components/DashBoard.css";
+import ShareModal from "./ShareModal";
+import EmptyState from "./EmptyState";
+import { useToast } from "./ToastContainer";
+import { formatRelativeTime, formatFullTime } from "../utils/timeUtils";
+import { SkeletonList } from "./Skeleton";
 
 const toArray = (value) => {
   if (Array.isArray(value)) {
@@ -36,7 +42,74 @@ const toArray = (value) => {
 
 const dedupe = (items) => Array.from(new Set(items));
 
+// Modal组件
+const Modal = ({ visible, title, onClose, width = "640px", children }) => {
+  if (!visible) return null;
+  return (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        backgroundColor: "rgba(0,0,0,0.45)",
+        backdropFilter: "blur(4px)",
+        zIndex: 1000,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "2rem",
+      }}
+    >
+      <div
+        style={{
+          backgroundColor: "#fff",
+          borderRadius: "10px",
+          width: "100%",
+          maxWidth: width,
+          maxHeight: "80vh",
+          display: "flex",
+          flexDirection: "column",
+          boxShadow: "0 18px 48px rgba(0,0,0,0.2)",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "1rem 1.5rem",
+            borderBottom: "1px solid #f0f0f0",
+          }}
+        >
+          <h3 style={{ margin: 0 }}>{title}</h3>
+          <button
+            onClick={onClose}
+            style={{
+              border: "none",
+              background: "transparent",
+              fontSize: "1.5rem",
+              cursor: "pointer",
+              lineHeight: 1,
+            }}
+            aria-label="关闭"
+          >
+            ×
+          </button>
+        </div>
+        <div
+          style={{
+            padding: "1.5rem",
+            overflowY: "auto",
+          }}
+        >
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 function Dashboard({ user }) {
+  const toast = useToast();
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -59,7 +132,15 @@ function Dashboard({ user }) {
   const [updatedFrom, setUpdatedFrom] = useState("");
   const [updatedTo, setUpdatedTo] = useState("");
   const [ownerFilter, setOwnerFilter] = useState("");
-  const [viewMode, setViewMode] = useState("list");
+  const [viewMode, setViewMode] = useState(() => {
+    try {
+      const saved = localStorage.getItem("dashboardViewMode");
+      return saved || "list";
+    } catch (error) {
+      console.warn("加载视图模式失败:", error);
+      return "list";
+    }
+  });
   const [selectedDocs, setSelectedDocs] = useState(() => {
     try {
       const saved = localStorage.getItem("selectedDocs");
@@ -105,6 +186,10 @@ function Dashboard({ user }) {
   const [bulkExportMessage, setBulkExportMessage] = useState("");
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
+  
+  // 分页状态
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const allSelected = documents.length > 0 && selectedDocs.length === documents.length;
 
@@ -195,7 +280,9 @@ function Dashboard({ user }) {
         ...template,
         tags: toArray(template.tags),
       }));
-      setTemplates(normalized);
+      // 按ID升序排序模板，确保ID小的在前
+      const sorted = normalized.sort((a, b) => a.id - b.id);
+      setTemplates(sorted);
       setTemplateError("");
     } catch (err) {
       console.error("获取模板列表失败:", err);
@@ -246,9 +333,16 @@ function Dashboard({ user }) {
     return dedupe(tagPool);
   }, [documents, templates]);
 
+  // 分页计算
+  const paginatedDocuments = useMemo(() => {
+    const startIndex = (currentPage - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    return documents.slice(startIndex, endIndex);
+  }, [documents, currentPage, pageSize]);
+
   const groupedDocuments = useMemo(() => {
     const groups = new Map();
-    documents.forEach((doc) => {
+    paginatedDocuments.forEach((doc) => {
       const key = doc.category || "未分类";
       if (!groups.has(key)) {
         groups.set(key, []);
@@ -256,20 +350,30 @@ function Dashboard({ user }) {
       groups.get(key).push(doc);
     });
     return groups;
-  }, [documents]);
+  }, [paginatedDocuments]);
+
+  const totalPages = useMemo(() => {
+    return Math.ceil(documents.length / pageSize);
+  }, [documents.length, pageSize]);
+
+  // 当筛选条件变化时重置到第一页
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedCategory, selectedTag, sortBy, sortOrder]);
+
+  // 保存视图模式到 localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem("dashboardViewMode", viewMode);
+    } catch (error) {
+      console.warn("保存视图模式失败:", error);
+    }
+  }, [viewMode]);
 
   const renderListView = () => (
     <>
       {documents.length > 0 && (
-        <label
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "0.5rem",
-            marginBottom: "0.75rem",
-            color: "#666",
-          }}
-        >
+        <label className="dashboard-select-all-label">
           <input
             type="checkbox"
             checked={allSelected}
@@ -279,15 +383,8 @@ function Dashboard({ user }) {
         </label>
       )}
       {documents.length > 0 ? (
-        <ul
-          style={{
-            listStyle: "none",
-            padding: 0,
-            minHeight: "240px",
-            transition: "min-height 0.2s ease",
-          }}
-        >
-          {documents.map((doc) => {
+        <ul className="dashboard-list-view">
+          {paginatedDocuments.map((doc) => {
             const isSelected = selectedDocs.includes(doc.id);
             const lockedLabel =
               doc.locked_by_name ||
@@ -296,33 +393,9 @@ function Dashboard({ user }) {
             return (
               <li
                 key={doc.id}
-                style={{
-                  border: isSelected ? "2px solid #1890ff" : "1px solid #e8e8e8",
-                  padding: "16px",
-                  marginBottom: "12px",
-                  borderRadius: "8px",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  gap: "1rem",
-                  backgroundColor: isSelected ? "#e6f7ff" : "#fff",
-                  transition: "all 0.2s",
-                  boxShadow: isSelected ? "0 2px 8px rgba(24, 144, 255, 0.2)" : "0 1px 4px rgba(0,0,0,0.04)",
-                }}
-                onMouseEnter={(e) => {
-                  if (!isSelected) {
-                    e.currentTarget.style.borderColor = "#1890ff";
-                    e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.08)";
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!isSelected) {
-                    e.currentTarget.style.borderColor = "#e8e8e8";
-                    e.currentTarget.style.boxShadow = "0 1px 4px rgba(0,0,0,0.04)";
-                  }
-                }}
+                className={`dashboard-list-item ${isSelected ? 'selected' : ''}`}
               >
-                <div style={{ flex: 1, display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                <div className="dashboard-list-item-content">
                   <input
                     type="checkbox"
                     checked={isSelected}
@@ -333,18 +406,11 @@ function Dashboard({ user }) {
                     onClick={(e) => {
                       e.stopPropagation();
                     }}
-                    style={{ cursor: "pointer", flexShrink: 0 }}
+                    className="dashboard-checkbox"
                   />
                   <Link
                     to={`/documents/${doc.id}`}
-                    style={{
-                      textDecoration: "none",
-                      color: "inherit",
-                      flex: 1,
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: "0.5rem",
-                    }}
+                    className="dashboard-list-item-link"
                     onClick={(e) => {
                       // 如果点击的是链接本身，允许导航
                       if (e.target === e.currentTarget || e.target.tagName === "STRONG") {
@@ -356,59 +422,29 @@ function Dashboard({ user }) {
                       }
                     }}
                   >
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "0.75rem",
-                        flexWrap: "wrap",
-                      }}
-                    >
-                      <strong
-                      style={{
-                        fontSize: "16px",
-                        fontWeight: 600,
-                        cursor: "pointer",
-                        color: "#333",
-                        transition: "color 0.2s",
-                      }}
-                      onMouseEnter={(e) => (e.target.style.color = "#1890ff")}
-                      onMouseLeave={(e) => (e.target.style.color = "#333")}
-                    >
+                    <div className="dashboard-list-item-header">
+                      <strong className="dashboard-list-item-title">
                       {doc.title}
                     </strong>
                       {doc.content_format === "markdown" && (
-                        <span
-                          style={{
-                            backgroundColor: "#1677ff",
-                            color: "white",
-                            padding: "2px 6px",
-                            borderRadius: "4px",
-                            fontSize: "0.75em",
-                          }}
-                        >
+                        <span className="dashboard-badge dashboard-badge-markdown">
                           Markdown
                         </span>
                       )}
                       {doc.is_locked && (
-                        <span
-                          style={{
-                            backgroundColor: "#ff9f43",
-                            color: "white",
-                            padding: "2px 6px",
-                            borderRadius: "4px",
-                            fontSize: "0.75em",
-                          }}
-                        >
+                        <span className="dashboard-badge dashboard-badge-locked">
                           🔒 锁定
                         </span>
                       )}
                     </div>
-                    <div style={{ color: "#666", fontSize: "0.9em" }}>
-                      <span style={{ marginRight: "1rem" }}>
-                        更新：{new Date(doc.updated_at).toLocaleString()}
+                    <div className="dashboard-list-item-meta">
+                      <span 
+                        className="dashboard-list-item-meta-item"
+                        title={formatFullTime(doc.updated_at)}
+                      >
+                        更新：{formatRelativeTime(doc.updated_at)}
                       </span>
-                      <span style={{ marginRight: "1rem" }}>
+                      <span className="dashboard-list-item-meta-item">
                         分类：{doc.category || "未分类"}
                       </span>
                       <span>
@@ -418,18 +454,18 @@ function Dashboard({ user }) {
                           : "无"}
                       </span>
                     </div>
-                    <div style={{ color: "#888", fontSize: "0.85em" }}>
+                    <div className="dashboard-list-item-owner">
                       所有者：
                       {doc.owner_name || doc.owner_email || "未知"}
                     </div>
                     {doc.is_locked && (
-                      <div style={{ color: "#d46b08", fontSize: "0.85em" }}>
+                      <div className="dashboard-list-item-locked">
                         锁定人：{lockedLabel}
                       </div>
                     )}
                   </Link>
                 </div>
-                <div style={{ display: "flex", gap: "0.5rem", flexShrink: 0, alignItems: "center" }}>
+                <div className="dashboard-list-item-actions">
                   <select
                     value={getDocumentExportFormat(doc.id)}
                     onChange={(e) => {
@@ -438,14 +474,7 @@ function Dashboard({ user }) {
                     }}
                     onClick={(e) => e.stopPropagation()}
                     onMouseDown={(e) => e.stopPropagation()}
-                    style={{
-                      padding: "4px 8px",
-                      borderRadius: "4px",
-                      border: "1px solid #d9d9d9",
-                      fontSize: "0.85em",
-                      cursor: "pointer",
-                      backgroundColor: "white",
-                    }}
+                    className="dashboard-export-select"
                   >
                     <option value="json">JSON</option>
                     <option value="markdown">Markdown</option>
@@ -457,15 +486,7 @@ function Dashboard({ user }) {
                       e.stopPropagation();
                       handleExportDocument(doc.id, null, e);
                     }}
-                    style={{
-                      backgroundColor: "#1677ff",
-                      color: "white",
-                      border: "none",
-                      padding: "6px 12px",
-                      borderRadius: "4px",
-                      cursor: "pointer",
-                      fontSize: "0.9em",
-                    }}
+                    className="dashboard-export-btn-small"
                     title="使用选择的格式导出"
                   >
                     导出
@@ -475,15 +496,7 @@ function Dashboard({ user }) {
                       e.stopPropagation();
                       handleDeleteDocument(doc.id, e);
                     }}
-                    style={{
-                      backgroundColor: "#ff4d4f",
-                      color: "white",
-                      border: "none",
-                      padding: "6px 12px",
-                      borderRadius: "4px",
-                      cursor: "pointer",
-                      fontSize: "0.9em",
-                    }}
+                    className="dashboard-action-btn-danger"
                   >
                     删除
                   </button>
@@ -499,28 +512,13 @@ function Dashboard({ user }) {
   );
 
   const renderKanbanView = () => (
-    <div
-      style={{
-        display: "flex",
-        gap: "1.5rem",
-        overflowX: "auto",
-        paddingBottom: "0.5rem",
-        justifyContent: "center",
-        alignItems: "flex-start",
-      }}
-    >
+    <div className="dashboard-kanban-view">
       {Array.from(groupedDocuments.entries()).map(([group, docs]) => (
         <div
           key={group}
-          style={{
-            minWidth: "260px",
-            background: "#fafafa",
-            border: "1px solid #eee",
-            borderRadius: "8px",
-            padding: "1rem",
-          }}
+          className="dashboard-kanban-column"
         >
-          <h4>
+          <h4 className="dashboard-kanban-column-title">
             {group} ({docs.length})
           </h4>
           {docs.map((doc) => {
@@ -530,121 +528,76 @@ function Dashboard({ user }) {
               doc.locked_by_email ||
               (doc.locked_by ? `用户${doc.locked_by}` : "未知");
             return (
-              <div
+              <Link
                 key={doc.id}
-                style={{
-                  border: "1px solid #ccc",
-                  borderRadius: "6px",
-                  padding: "12px",
-                  marginBottom: "10px",
-                  backgroundColor: isSelected ? "#e6f7ff" : "white",
-                }}
+                to={`/documents/${doc.id}`}
+                className={`dashboard-kanban-card ${isSelected ? 'selected' : ''}`}
               >
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "0.5rem",
-                    marginBottom: "0.5rem",
-                  }}
-                >
+                <div className="dashboard-kanban-card-header">
                   <input
                     type="checkbox"
                     checked={isSelected}
                     onChange={(e) => {
+                      e.preventDefault();
                       e.stopPropagation();
                       toggleDocumentSelection(doc.id);
                     }}
                     onClick={(e) => {
+                      e.preventDefault();
                       e.stopPropagation();
                     }}
-                    style={{ cursor: "pointer", flexShrink: 0 }}
+                    className="dashboard-checkbox"
                   />
-                  <Link
-                    to={`/documents/${doc.id}`}
-                    style={{
-                      textDecoration: "none",
-                      color: "inherit",
-                      flex: 1,
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "0.5rem",
-                      flexWrap: "wrap",
-                    }}
-                  >
-                    <strong style={{ cursor: "pointer" }}>{doc.title}</strong>
-                    {doc.content_format === "markdown" && (
-                      <span
-                        style={{
-                          backgroundColor: "#1677ff",
-                          color: "white",
-                          padding: "2px 6px",
-                          borderRadius: "4px",
-                          fontSize: "0.75em",
-                        }}
-                      >
-                        Markdown
-                      </span>
-                    )}
-                    {doc.is_locked && (
-                      <span
-                        style={{
-                          backgroundColor: "#ff9f43",
-                          color: "white",
-                          padding: "2px 6px",
-                          borderRadius: "4px",
-                          fontSize: "0.75em",
-                        }}
-                      >
-                        🔒 锁定
-                      </span>
-                    )}
-                  </Link>
+                  <div className="dashboard-kanban-card-header-content">
+                    <strong className="dashboard-kanban-card-title">{doc.title}</strong>
+                    <div className="dashboard-kanban-card-badges">
+                      {doc.content_format === "markdown" && (
+                        <span className="dashboard-badge dashboard-badge-markdown">
+                          Markdown
+                        </span>
+                      )}
+                      {doc.is_locked && (
+                        <span className="dashboard-badge dashboard-badge-locked">
+                          🔒 锁定
+                        </span>
+                      )}
+                    </div>
+                  </div>
                 </div>
-                <div style={{ color: "#666", fontSize: "0.9em", marginTop: "0.5rem" }}>
-                  更新：{new Date(doc.updated_at).toLocaleString()}
+                <div 
+                  className="dashboard-kanban-card-meta"
+                  title={formatFullTime(doc.updated_at)}
+                >
+                  更新：{formatRelativeTime(doc.updated_at)}
                 </div>
-                <div style={{ color: "#666", fontSize: "0.85em" }}>
+                <div className="dashboard-kanban-card-tags">
                   标签：
                   {doc.tags && doc.tags.length > 0
                     ? doc.tags.join("、")
                     : "无"}
                 </div>
-                <div style={{ color: "#888", fontSize: "0.85em" }}>
+                <div className="dashboard-kanban-card-owner">
                   所有者：{doc.owner_name || doc.owner_email || "未知"}
                 </div>
                 {doc.is_locked && (
-                  <div style={{ color: "#d46b08", fontSize: "0.85em" }}>
+                  <div className="dashboard-kanban-card-locked">
                     锁定人：{lockedLabel}
                   </div>
                 )}
-                <div
-                  style={{
-                    display: "flex",
-                    gap: "0.5rem",
-                    marginTop: "0.5rem",
-                    flexWrap: "wrap",
-                    alignItems: "center",
-                  }}
-                >
+                <div className="dashboard-kanban-card-actions" onClick={(e) => e.preventDefault()}>
                   <select
                     value={getDocumentExportFormat(doc.id)}
                     onChange={(e) => {
+                      e.preventDefault();
                       e.stopPropagation();
                       updateDocumentExportFormat(doc.id, e.target.value);
                     }}
-                    onClick={(e) => e.stopPropagation()}
-                    onMouseDown={(e) => e.stopPropagation()}
-                    style={{
-                      padding: "4px 8px",
-                      borderRadius: "4px",
-                      border: "1px solid #d9d9d9",
-                      fontSize: "0.85em",
-                      cursor: "pointer",
-                      backgroundColor: "white",
-                      flex: "1",
-                      minWidth: "100px",
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
                     }}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    className="dashboard-kanban-export-select"
                   >
                     <option value="json">JSON</option>
                     <option value="markdown">Markdown</option>
@@ -653,43 +606,27 @@ function Dashboard({ user }) {
                   </select>
                   <button
                     onClick={(e) => {
+                      e.preventDefault();
                       e.stopPropagation();
                       handleExportDocument(doc.id, null, e);
                     }}
-                    style={{
-                      backgroundColor: "#1677ff",
-                      color: "white",
-                      border: "none",
-                      padding: "6px 12px",
-                      borderRadius: "4px",
-                      cursor: "pointer",
-                      fontSize: "0.85em",
-                      flex: "1",
-                    }}
+                    className="dashboard-kanban-export-btn"
                     title="使用选择的格式导出"
                   >
                     导出
                   </button>
                   <button
                     onClick={(e) => {
+                      e.preventDefault();
                       e.stopPropagation();
                       handleDeleteDocument(doc.id, e);
                     }}
-                    style={{
-                      backgroundColor: "#ff4d4f",
-                      color: "white",
-                      border: "none",
-                      padding: "6px 12px",
-                      borderRadius: "4px",
-                      cursor: "pointer",
-                      fontSize: "0.85em",
-                      flex: "1",
-                    }}
+                    className="dashboard-kanban-delete-btn"
                   >
                     删除
                   </button>
                 </div>
-              </div>
+              </Link>
             );
           })}
         </div>
@@ -733,7 +670,7 @@ function Dashboard({ user }) {
     event.preventDefault();
 
     if (!newDocTitle.trim()) {
-      alert("请填写文档标题");
+      toast.warning("请填写文档标题");
       return;
     }
 
@@ -778,9 +715,10 @@ function Dashboard({ user }) {
       await handleClearFilters();
       setShowCreateModal(false);
       setTemplatePanelOpen(false);
+      toast.success("文档创建成功！");
     } catch (err) {
       console.error("创建文档失败:", err);
-      alert("创建文档时出错，请稍后再试。");
+      toast.error("创建文档失败，请稍后再试");
     }
   };
 
@@ -789,20 +727,90 @@ function Dashboard({ user }) {
   };
 
   const handleSelectTemplate = (templateId) => {
-    setSelectedTemplateId((prev) =>
-      prev === String(templateId) ? "" : String(templateId)
-    );
+    const previousTemplateId = selectedTemplateId;
+    const newTemplateId = String(templateId);
+    
+    // 如果点击的是已选中的模板，取消选择
+    if (previousTemplateId === newTemplateId) {
+      setSelectedTemplateId("");
+      // 取消选择时清空表单字段
+      setNewDocTitle("");
+      setNewDocCategory("");
+      setNewDocTags("");
+      setNewDocFormat("rich"); // 重置为默认格式
+      return;
+    }
+    
+    // 选择新模板
+    setSelectedTemplateId(newTemplateId);
 
-    const template = templates.find((item) => item.id === templateId);
+    const template = templates.find((item) => String(item.id) === newTemplateId);
     if (template) {
-      if (!newDocTitle.trim()) {
-        setNewDocTitle(template.name);
+      console.log("选择的模板数据:", template); // 调试日志
+      console.log("模板content字段:", template.content); // 调试日志
+      
+      // 始终用模板数据覆盖表单字段
+      setNewDocTitle(template.name || "");
+      setNewDocCategory(template.category || "");
+      setNewDocTags(template.tags && template.tags.length > 0 ? template.tags.join(", ") : "");
+      
+      // 智能判断格式：
+      // 1. 优先使用 template.format
+      // 2. 检查 content.ops（Quill Delta格式）→ 富文本
+      // 3. 检查 content.type
+      // 4. 如果content是字符串 → markdown
+      let detectedFormat = "rich";
+      
+      if (template.format) {
+        detectedFormat = template.format.toLowerCase() === "markdown" ? "markdown" : "rich";
+      } else if (template.content) {
+        // 检查是否为Quill Delta格式（富文本）
+        if (typeof template.content === 'object' && template.content.ops) {
+          detectedFormat = "rich";
+        } else if (typeof template.content === 'object' && template.content.type) {
+          detectedFormat = template.content.type === "doc" ? "rich" : "markdown";
+        } else if (typeof template.content === 'string') {
+          // 如果content是字符串，认为是markdown
+          detectedFormat = "markdown";
+        }
       }
-      if (!newDocCategory.trim() && template.category) {
-        setNewDocCategory(template.category);
+      
+      console.log("检测到的格式:", detectedFormat); // 调试日志
+      setNewDocFormat(detectedFormat);
+      
+      // 设置内容到对话框
+      if (detectedFormat === "markdown") {
+        // Markdown格式：content应该是字符串
+        if (typeof template.content === 'string') {
+          setNewDocMarkdown(template.content);
+        } else {
+          setNewDocMarkdown("");
+        }
       }
-      if (!newDocTags.trim() && template.tags && template.tags.length > 0) {
-        setNewDocTags(template.tags.join(", "));
+    }
+  };
+
+  const handleDeleteTemplate = async (templateId, event) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (window.confirm("确定要删除这个模板吗？")) {
+      try {
+        await api.delete(`/documents/templates/${templateId}`);
+        // 如果删除的是当前选中的模板，清除选择
+        if (String(templateId) === selectedTemplateId) {
+          setSelectedTemplateId("");
+          setNewDocTitle("");
+          setNewDocCategory("");
+          setNewDocTags("");
+          setNewDocFormat("rich");
+        }
+        // 重新加载模板列表
+        await loadTemplates();
+        toast.success("模板已删除");
+      } catch (err) {
+        console.error("删除模板失败:", err);
+        toast.error("删除模板失败，请重试");
       }
     }
   };
@@ -824,9 +832,10 @@ function Dashboard({ user }) {
           return filtered;
         });
         await loadDocuments(activeFilters);
+        toast.success("文档已删除");
       } catch (err) {
         console.error("删除文档失败:", err);
-        alert("删除文档时出错，请重试。");
+        toast.error("删除文档失败，请重试");
       }
     }
   };
@@ -1101,152 +1110,30 @@ function Dashboard({ user }) {
     }
   };
 
-  const Modal = ({ visible, title, onClose, width = "640px", children }) => {
-    if (!visible) return null;
-    return (
-      <div
-        style={{
-          position: "fixed",
-          inset: 0,
-          backgroundColor: "rgba(0,0,0,0.45)",
-          backdropFilter: "blur(4px)",
-          zIndex: 1000,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: "2rem",
-        }}
-      >
-        <div
-          style={{
-            backgroundColor: "#fff",
-            borderRadius: "10px",
-            width: "100%",
-            maxWidth: width,
-            maxHeight: "80vh",
-            display: "flex",
-            flexDirection: "column",
-            boxShadow: "0 18px 48px rgba(0,0,0,0.2)",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              padding: "1rem 1.5rem",
-              borderBottom: "1px solid #f0f0f0",
-            }}
-          >
-            <h3 style={{ margin: 0 }}>{title}</h3>
-            <button
-              onClick={onClose}
-              style={{
-                border: "none",
-                background: "transparent",
-                fontSize: "1.5rem",
-                cursor: "pointer",
-                lineHeight: 1,
-              }}
-              aria-label="关闭"
-            >
-              ×
-            </button>
-          </div>
-          <div
-            style={{
-              padding: "1.5rem",
-              overflowY: "auto",
-            }}
-          >
-            {children}
-          </div>
-        </div>
-      </div>
-    );
-  };
-
   return (
-    <div style={{ padding: "24px", maxWidth: "1400px", margin: "0 auto" }}>
+    <div className="dashboard-container">
       {/* 头部区域 */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: "24px",
-          paddingBottom: "16px",
-          borderBottom: "1px solid #e8e8e8",
-        }}
-      >
-        <div>
-          <h2
-            style={{
-              margin: 0,
-              fontSize: "24px",
-              fontWeight: 600,
-              color: "#333",
-              marginBottom: "8px",
-            }}
-          >
+      <div className="dashboard-header">
+        <div className="dashboard-header-left">
+          <h2 className="dashboard-title">
             我的文档
           </h2>
-          <p
-            style={{
-              margin: 0,
-              color: "#666",
-              fontSize: "14px",
-            }}
-          >
+          <p className="dashboard-subtitle">
             欢迎回来, {user.full_name || user.email || user.phone}!
           </p>
         </div>
-        <div style={{ display: "flex", gap: "12px" }}>
+        <div className="dashboard-header-right">
           {user && user.role === "admin" && (
             <Link
               to="/admin"
-              style={{
-                padding: "8px 16px",
-                backgroundColor: "#fff",
-                border: "1px solid #d9d9d9",
-                borderRadius: "6px",
-                textDecoration: "none",
-                color: "#333",
-                fontSize: "14px",
-                transition: "all 0.2s",
-              }}
-              onMouseEnter={(e) => {
-                e.target.style.borderColor = "#1890ff";
-                e.target.style.color = "#1890ff";
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.borderColor = "#d9d9d9";
-                e.target.style.color = "#333";
-              }}
+              className="dashboard-link"
             >
               后台管理
             </Link>
           )}
           <Link
             to="/profile"
-            style={{
-              padding: "8px 16px",
-              backgroundColor: "#fff",
-              border: "1px solid #d9d9d9",
-              borderRadius: "6px",
-              textDecoration: "none",
-              color: "#333",
-              fontSize: "14px",
-              transition: "all 0.2s",
-            }}
-            onMouseEnter={(e) => {
-              e.target.style.borderColor = "#1890ff";
-              e.target.style.color = "#1890ff";
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.borderColor = "#d9d9d9";
-              e.target.style.color = "#333";
-            }}
+            className="dashboard-link"
           >
             个人资料
           </Link>
@@ -1254,35 +1141,13 @@ function Dashboard({ user }) {
       </div>
 
       {/* 搜索与筛选 */}
-      <section
-        style={{
-          backgroundColor: "#fff",
-          border: "1px solid #e8e8e8",
-          borderRadius: "8px",
-          padding: "20px",
-          marginBottom: "24px",
-          boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
-        }}
-      >
-        <h3
-          style={{
-            marginTop: 0,
-            marginBottom: "16px",
-            fontSize: "16px",
-            fontWeight: 600,
-            color: "#333",
-          }}
-        >
+      <section className="dashboard-search-section">
+        <h3 className="dashboard-section-title">
           快速查找
         </h3>
         <form
           onSubmit={handleSearchSubmit}
-          style={{
-            display: "flex",
-            flexWrap: "wrap",
-            gap: "1rem",
-            alignItems: "flex-end",
-          }}
+          className="dashboard-search-form"
         >
           <div style={{ flex: "1 1 260px" }}>
             <label style={{ display: "block", marginBottom: "0.5rem" }}>
@@ -1659,17 +1524,100 @@ function Dashboard({ user }) {
 
       <section>
       <h3>我的文档</h3>
-      {loading && <p>正在加载文档...</p>}
+      {loading && <SkeletonList count={5} />}
       {error && <p style={{ color: "red" }}>{error}</p>}
 
-        {!loading && !error &&
-          (viewMode === "kanban" ? renderKanbanView() : renderListView())}
+        {!loading && !error && (
+        <>
+          {documents.length === 0 ? (
+            <EmptyState
+              icon="📝"
+              title="还没有文档"
+              description="创建您的第一个文档，开始协作之旅"
+              action={{
+                text: "创建文档",
+                onClick: () => setShowCreateModal(true)
+              }}
+            />
+          ) : (
+            <>
+              {viewMode === "kanban" ? renderKanbanView() : renderListView()}
+              
+              {/* 分页控制 */}
+              {documents.length > 0 && (
+            <div className="dashboard-pagination">
+              <div className="dashboard-pagination-size">
+                <span className="dashboard-pagination-label">每页显示：</span>
+                <select
+                  value={pageSize}
+                  onChange={(e) => {
+                    setPageSize(Number(e.target.value));
+                    setCurrentPage(1);
+                  }}
+                  className="dashboard-pagination-select"
+                >
+                  <option value="5">5条</option>
+                  <option value="10">10条</option>
+                  <option value="20">20条</option>
+                  <option value="50">50条</option>
+                </select>
+                <span className="dashboard-pagination-info">
+                  共 {documents.length} 篇文档
+                </span>
+              </div>
+              
+              <div className="dashboard-pagination-controls">
+                <button
+                  onClick={() => setCurrentPage(1)}
+                  disabled={currentPage === 1}
+                  className="dashboard-pagination-btn"
+                >
+                  首页
+                </button>
+                <button
+                  onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                  className="dashboard-pagination-btn"
+                >
+                  上一页
+                </button>
+                
+                <span className="dashboard-pagination-current">
+                  第 {currentPage} / {totalPages} 页
+                </span>
+                
+                <button
+                  onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                  className="dashboard-pagination-btn"
+                >
+                  下一页
+                </button>
+                <button
+                  onClick={() => setCurrentPage(totalPages)}
+                  disabled={currentPage === totalPages}
+                  className="dashboard-pagination-btn"
+                >
+                  末页
+                </button>
+              </div>
+            </div>
+          )}
+            </>
+          )}
+        </>
+      )}
       </section>
 
       <Modal
         visible={showCreateModal}
         title="创建新文档"
-        onClose={() => setShowCreateModal(false)}
+        onClose={() => {
+          setShowCreateModal(false);
+          // 关闭对话框时重置模板选择
+          setSelectedTemplateId("");
+          setTemplatePanelOpen(false);
+        }}
         width="600px"
       >
         <form
@@ -1742,95 +1690,82 @@ function Dashboard({ user }) {
               />
             </div>
           )}
-          <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-              gap: "1rem",
-              flexWrap: "wrap",
-                  }}
-                >
-                  <div>
+          <div className="dashboard-template-selector">
+                  <div className="dashboard-template-current">
               <strong>当前模板：</strong>
-              {selectedTemplateId ? `ID ${selectedTemplateId}` : "默认空白文档"}
+              {selectedTemplateId ? (
+                templates.find(t => String(t.id) === selectedTemplateId)?.name || "未知模板"
+              ) : "默认空白文档"}
               {selectedTemplateId && (
                   <button
-                  type="button"
-                  onClick={() => setSelectedTemplateId("")}
-                    style={{
-                    marginLeft: "0.5rem",
-                    padding: "4px 8px",
-                    fontSize: "0.85em",
-                    border: "1px solid #d9d9d9",
-                      borderRadius: "4px",
-                    background: "#fff",
-                      cursor: "pointer",
-                    }}
+                    type="button"
+                    onClick={() => setSelectedTemplateId("")}
+                    className="dashboard-template-cancel-btn"
                   >
-                  清除
+                    ✕ 取消模板
                   </button>
               )}
             </div>
-            <button type="button" onClick={toggleTemplatePanel}>
+            <button 
+              type="button" 
+              onClick={toggleTemplatePanel}
+              className="dashboard-template-toggle-btn"
+            >
               {isTemplatePanelOpen ? "收起模板库" : "选择模板"}
             </button>
           </div>
           {isTemplatePanelOpen && (
-            <div
-              style={{
-                border: "1px solid #f0f0f0",
-                borderRadius: "8px",
-                padding: "1rem",
-                maxHeight: "240px",
-                overflowY: "auto",
-              }}
-            >
+            <div className="dashboard-template-panel-wrapper">
               {templatesLoading && <p>正在加载模板...</p>}
               {templateError && <p style={{ color: "#d9363e" }}>{templateError}</p>}
               {!templatesLoading && !templateError && templates.length === 0 && (
                 <p>暂无模板，可在文档编辑页将文档保存为模板。</p>
               )}
               {!templatesLoading && !templateError && templates.length > 0 && (
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-                    gap: "0.75rem",
-                  }}
-                >
+                <div className="dashboard-template-grid-wrapper">
                   {templates.map((template) => {
                     const isSelected =
                       String(template.id) === selectedTemplateId;
                     return (
-                      <label
+                      <div
                         key={template.id}
-                        style={{
-                          border: isSelected
-                            ? "2px solid #1677ff"
-                            : "1px solid #e0e0e0",
-                          borderRadius: "6px",
-                          padding: "0.75rem",
-                          cursor: "pointer",
-                          display: "block",
-                          backgroundColor: isSelected ? "#f0f7ff" : "white",
-                        }}
+                        className={`dashboard-template-card ${isSelected ? 'selected' : ''}`}
                       >
-                        <div style={{ marginBottom: "0.5rem" }}>
-                          <strong>{template.name}</strong>
+                        <div className="dashboard-template-card-header">
+                          <strong className="dashboard-template-card-title">{template.name || "未命名模板"}</strong>
+                          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                            <span className="dashboard-template-card-id">ID:{template.id}</span>
+                            <button
+                              onClick={(e) => handleDeleteTemplate(template.id, e)}
+                              className="dashboard-template-delete-btn"
+                              title="删除模板"
+                            >
+                              ✕
+                            </button>
+                          </div>
                         </div>
+                        {template.category && (
+                          <p className="dashboard-template-card-category">
+                            分类: {template.category}
+                          </p>
+                        )}
                         {template.description && (
-                          <p style={{ margin: "0 0 0.5rem", color: "#666" }}>
+                          <p className="dashboard-template-card-description">
                             {template.description}
                           </p>
                         )}
-                        <p style={{ margin: "0", fontSize: "0.85em", color: "#999" }}>
+                        <p className="dashboard-template-card-tags">
                           标签：
                           {template.tags && template.tags.length > 0
                             ? template.tags.join("、")
                             : "无"}
                         </p>
-                        <div style={{ marginTop: "0.75rem" }}>
+                        {template.created_at && (
+                          <p className="dashboard-template-card-created">
+                            创建于: {new Date(template.created_at).toLocaleString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                          </p>
+                        )}
+                        <label className="dashboard-template-card-radio">
                           <input
                             type="radio"
                             name="template"
@@ -1838,11 +1773,11 @@ function Dashboard({ user }) {
                             checked={isSelected}
                             onChange={() => handleSelectTemplate(template.id)}
                           />
-                          <span style={{ marginLeft: "0.5rem" }}>
+                          <span className="dashboard-template-card-label">
                             {isSelected ? "已选择" : "选择模板"}
                           </span>
-                        </div>
-                      </label>
+                        </label>
+                      </div>
                     );
                   })}
                 </div>
@@ -1850,10 +1785,37 @@ function Dashboard({ user }) {
             </div>
           )}
           <div style={{ display: "flex", justifyContent: "flex-end", gap: "0.75rem" }}>
-            <button type="button" onClick={() => setShowCreateModal(false)}>
+            <button 
+              type="button" 
+              onClick={() => {
+                setShowCreateModal(false);
+                setSelectedTemplateId("");
+                setTemplatePanelOpen(false);
+              }}
+              style={{
+                padding: "8px 20px",
+                backgroundColor: "#fff",
+                border: "1px solid #d9d9d9",
+                borderRadius: "4px",
+                cursor: "pointer",
+                fontSize: "14px",
+                color: "#333",
+              }}
+            >
               取消
             </button>
-            <button type="submit" className="button-like">
+            <button 
+              type="submit" 
+              style={{
+                padding: "8px 20px",
+                backgroundColor: "#1890ff",
+                color: "#fff",
+                border: "none",
+                borderRadius: "4px",
+                cursor: "pointer",
+                fontSize: "14px",
+              }}
+            >
               创建文档
             </button>
           </div>

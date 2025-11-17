@@ -53,8 +53,8 @@
 }
 
 .admin-dashboard-back-link:hover {
-  border-color: #1890ff;
-  color: #1890ff;
+  border-color: #FF8A3D;
+  color: #FF8A3D;
 }
 
 .admin-dashboard-content {
@@ -79,7 +79,7 @@
   width: 40px;
   height: 40px;
   border: 4px solid #f3f3f3;
-  border-top: 4px solid #1890ff;
+  border-top: 4px solid #FF8A3D;
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin: 0 auto 16px;
@@ -162,7 +162,7 @@
 }
 
 .admin-dashboard-role-badge-user {
-  background-color: #1890ff;
+  background-color: #FF8A3D;
   color: white;
 }
 
@@ -178,8 +178,8 @@
 }
 
 .admin-dashboard-select:focus {
-  border-color: #1890ff;
-  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+  border-color: #FF8A3D;
+  box-shadow: 0 0 0 2px rgba(255, 138, 61, 0.2);
 }
 
 .admin-dashboard-button {
@@ -192,12 +192,12 @@
 }
 
 .admin-dashboard-button-primary {
-  background-color: #1890ff;
+  background-color: #FF8A3D;
   color: white;
 }
 
 .admin-dashboard-button-primary:hover {
-  background-color: #40a9ff;
+  background-color: #FF6B35;
 }
 
 .admin-dashboard-button-danger {
@@ -220,5 +220,224 @@
   color: #999;
   font-size: 14px;
   font-style: italic;
+}
+
+/* 标签页导航 */
+.admin-dashboard-tabs {
+  display: flex;
+  border-bottom: 1px solid #e8e8e8;
+  padding: 0 24px;
+  gap: 8px;
+}
+
+.admin-dashboard-tab {
+  padding: 12px 20px;
+  border: none;
+  background: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  font-size: 14px;
+  color: #666;
+  transition: all 0.2s;
+}
+
+.admin-dashboard-tab:hover {
+  color: #FF8A3D;
+}
+
+.admin-dashboard-tab.active {
+  color: #FF8A3D;
+  border-bottom-color: #FF8A3D;
+  font-weight: 600;
+}
+
+/* 统计卡片 */
+.admin-dashboard-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.admin-dashboard-stat-card {
+  padding: 20px;
+  background-color: #fafafa;
+  border-radius: 8px;
+  border: 1px solid #e8e8e8;
+}
+
+.admin-dashboard-stat-label {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 8px;
+}
+
+.admin-dashboard-stat-value {
+  font-size: 24px;
+  font-weight: 600;
+  color: #333;
+}
+
+.admin-dashboard-stat-value.healthy {
+  color: #52c41a;
+}
+
+.admin-dashboard-stat-value.unhealthy {
+  color: #ff4d4f;
+}
+
+/* 分析部分 */
+.admin-dashboard-analytics {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.admin-dashboard-analytics-section {
+  margin-top: 24px;
+}
+
+.admin-dashboard-analytics-section h4 {
+  margin: 0 0 16px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+/* 设置部分 */
+.admin-dashboard-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.admin-dashboard-settings-group {
+  padding: 20px;
+  background-color: #fafafa;
+  border-radius: 8px;
+  border: 1px solid #e8e8e8;
+}
+
+.admin-dashboard-settings-group h4 {
+  margin: 0 0 16px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.admin-dashboard-setting-item {
+  margin-bottom: 16px;
+}
+
+.admin-dashboard-setting-item:last-child {
+  margin-bottom: 0;
+}
+
+.admin-dashboard-setting-item label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #333;
+  cursor: pointer;
+}
+
+.admin-dashboard-setting-item input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.admin-dashboard-setting-input {
+  margin-left: 8px;
+  padding: 6px 12px;
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  font-size: 14px;
+  width: 100px;
+}
+
+.admin-dashboard-setting-input:focus {
+  border-color: #FF8A3D;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(255, 138, 61, 0.2);
+}
+
+.admin-dashboard-settings-actions {
+  margin-top: 24px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* 满意度调查 */
+.admin-dashboard-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.admin-dashboard-period-select {
+  padding: 6px 12px;
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  font-size: 14px;
+  background-color: #fff;
+  cursor: pointer;
+}
+
+.admin-dashboard-survey-form {
+  padding: 20px;
+  background-color: #fafafa;
+  border-radius: 8px;
+  border: 1px solid #e8e8e8;
+  margin-bottom: 24px;
+}
+
+.admin-dashboard-form-group {
+  margin-bottom: 16px;
+}
+
+.admin-dashboard-form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+}
+
+.admin-dashboard-form-input,
+.admin-dashboard-form-textarea {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  font-size: 14px;
+  font-family: inherit;
+}
+
+.admin-dashboard-form-input:focus,
+.admin-dashboard-form-textarea:focus {
+  border-color: #FF8A3D;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(255, 138, 61, 0.2);
+}
+
+.admin-dashboard-form-textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.admin-dashboard-surveys {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* 系统监控 */
+.admin-dashboard-monitoring {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
 

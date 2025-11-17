@@ -4,18 +4,22 @@ import {
   Routes,
   Route,
   Navigate,
+  useLocation,
 } from "react-router-dom";
 import api from "./api";
+import logo from "./assets/logo.png";
 
 // 组件和页面
 import Register from "./components/Register";
 import Login from "./components/Login";
-import Dashboard from "./components/Dashboard";
+import Dashboard from "./components/DashBoard";
 import EditorPage from "./pages/EditorPage";
 import ProfilePage from "./pages/ProfilePage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import AdminDashboardPage from "./pages/AdminDashboardPage";
+import LandingPage from "./pages/LandingPage";
+import { ToastProvider } from "./components/ToastContainer";
 
 import "./styles/App.css";
 
@@ -59,15 +63,37 @@ function App() {
   }
 
   return (
-    <Router>
-      <div className="App">
+    <ToastProvider>
+      <Router>
+        <AppContent user={user} setUser={setUser} handleLogout={handleLogout} />
+      </Router>
+    </ToastProvider>
+  );
+}
+
+function AppContent({ user, setUser, handleLogout }) {
+  const location = useLocation();
+  // 认证相关页面不显示header（包括landing、登录、注册、忘记密码等）
+  const authPages = ["/", "/login", "/register", "/forgot-password", "/reset-password"];
+  const isAuthPage = authPages.some(page => 
+    location.pathname === page || location.pathname.startsWith(page + "/")
+  ) && !user;
+  const isLandingPage = location.pathname === "/" && !user;
+
+  return (
+    <div className="App">
+      {!isAuthPage && (
         <header className="App-header">
           <div className="app-header-left">
             <h1
               className="app-header-title"
               onClick={() => window.location.href = "/"}
             >
-              📝 协作文档
+              <img src={logo} alt="MindFlow" className="app-header-logo" />
+              <span className="app-header-title-text">
+                <span className="app-logo-text-m">M</span>ind
+                <span className="app-logo-text-f">F</span>low
+              </span>
             </h1>
           </div>
           {user && (
@@ -97,7 +123,8 @@ function App() {
             </div>
           )}
         </header>
-        <main className="app-main">
+      )}
+      <main className="app-main">
           <Routes>
             <Route
               path="/"
@@ -105,42 +132,41 @@ function App() {
                 user ? (
                   <Dashboard user={user} />
                 ) : (
-                  <div className="app-auth-container">
-                    <div className="app-auth-wrapper">
-                      <div className="app-auth-section">
-                        <Login
-                          onLoginSuccess={(loggedInUser) => setUser(loggedInUser)}
-                        />
-                      </div>
-                    </div>
-                  </div>
+                  <LandingPage />
                 )
               }
             />
 
-            {/* --- (新增) 添加注册页面的路由 --- */}
+            {/* --- 登录页面路由 --- */}
+            <Route
+              path="/login"
+              element={
+                user ? (
+                  <Navigate to="/" />
+                ) : (
+                  <Login
+                    onLoginSuccess={(loggedInUser) => setUser(loggedInUser)}
+                  />
+                )
+              }
+            />
+
+            {/* --- 注册页面路由 --- */}
             <Route
               path="/register"
               element={
                 user ? (
                   <Navigate to="/" />
                 ) : (
-                  <div className="app-auth-container">
-                    <div className="app-auth-wrapper">
-                      <div className="app-auth-section">
-                        <Register />
-                      </div>
-                    </div>
-                  </div>
+                  <Register />
                 )
               }
             />
 
-            {/* --- (新增) 添加忘记密码页面的路由 --- */}
+            {/* --- 忘记密码页面路由 --- */}
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
-            {/* --- (新增) 添加重置密码页面的【动态路由】 --- */}
-            {/* ':token' 是一个占位符，可以匹配任何字符串 */}
+            {/* --- 重置密码页面路由 --- */}
             <Route
               path="/reset-password/:token"
               element={<ResetPasswordPage />}
@@ -148,19 +174,19 @@ function App() {
 
             <Route
               path="/documents/:documentId"
-              element={user ? <EditorPage user={user} /> : <Navigate to="/" />}
+              element={user ? <EditorPage user={user} /> : <Navigate to="/login" />}
             />
             <Route
-              path="/profile" // <-- 新增路由
+              path="/profile"
               element={
                 user ? (
                   <ProfilePage user={user} setUser={setUser} />
                 ) : (
-                  <Navigate to="/" />
+                  <Navigate to="/login" />
                 )
               }
             />
-            {/* --- (新增) 管理员专属路由 --- */}
+            {/* --- 管理员专属路由 --- */}
             <Route
               path="/admin"
               element={
@@ -178,7 +204,6 @@ function App() {
           </Routes>
         </main>
       </div>
-    </Router>
   );
 }
 

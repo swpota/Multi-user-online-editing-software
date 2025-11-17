@@ -1,0 +1,128 @@
+/**
+ * Anthropic 风格主题配色
+ * 基于温暖、简约、现代的设计理念
+ */
+
+:root {
+  /* ===== 主要背景�?===== */
+  --bg-primary: #FAFAF9;          /* 米白�?- 主背�?*/
+  --bg-secondary: #F5F5F4;        /* 浅米�?- 次级背景 */
+  --bg-tertiary: #E7E5E4;         /* 米色 - 三级背景 */
+  
+  /* ===== 卡片背景色（柔和色块�?===== */
+  --card-beige: #F0EBE3;          /* 米褐色卡�?*/
+  --card-peach: #FFE4D6;          /* 蜜桃色卡�?*/
+  --card-mint: #E8F4EA;           /* 薄荷绿卡�?*/
+  --card-lavender: #E8E4F3;       /* 淡紫色卡�?*/
+  --card-cream: #FFF9F0;          /* 奶油色卡�?*/
+  
+  /* ===== 文字颜色 ===== */
+  --text-primary: #1C1917;        /* 深棕�?- 主要文字 */
+  --text-secondary: #44403C;      /* 中棕�?- 次要文字 */
+  --text-tertiary: #78716C;       /* 浅棕�?- 辅助文字 */
+  --text-muted: #A8A29E;          /* 淡灰 - 禁用/占位�?*/
+  --text-inverse: #FFFFFF;        /* 白色 - 深色背景上的文字 */
+  
+  /* ===== 强调色（橙红系） ===== */
+  --accent-primary: #FF8A3D;      /* 珊瑚�?- 主强调色 */
+  --accent-hover: #FF6B35;        /* 深橙 - 悬停状�?*/
+  --accent-light: #FFEDD5;        /* 浅橙 - 浅色背景 */
+  --accent-red: #DC2626;          /* 红色 - 错误/警告 */
+  
+  /* ===== 按钮样式 ===== */
+  --btn-primary-bg: #FF8A3D;      /* 橙色按钮背景 */
+  --btn-primary-text: #FFFFFF;    /* 白色按钮文字 */
+  --btn-primary-hover: #FF6B35;   /* 深橙按钮悬停 */
+  
+  --btn-secondary-bg: transparent; /* 透明次级按钮 */
+  --btn-secondary-border: #FF8A3D; /* 橙色边框 */
+  --btn-secondary-text: #1C1917;   /* 深色文字 */
+  
+  /* ===== 边框和分割线 ===== */
+  --border-light: #E7E5E4;        /* 浅色边框 */
+  --border-medium: #D6D3D1;       /* 中性边�?*/
+  --border-dark: #A8A29E;         /* 深色边框 */
+  
+  /* ===== 阴影 ===== */
+  --shadow-sm: 0 1px 2px 0 rgba(28, 25, 23, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(28, 25, 23, 0.08), 0 2px 4px -1px rgba(28, 25, 23, 0.04);
+  --shadow-lg: 0 10px 15px -3px rgba(28, 25, 23, 0.08), 0 4px 6px -2px rgba(28, 25, 23, 0.04);
+  --shadow-xl: 0 20px 25px -5px rgba(28, 25, 23, 0.08), 0 10px 10px -5px rgba(28, 25, 23, 0.03);
+  
+  /* ===== 圆角 ===== */
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-2xl: 32px;
+  --radius-full: 9999px;
+  
+  /* ===== 间距 ===== */
+  --spacing-xs: 0.25rem;    /* 4px */
+  --spacing-sm: 0.5rem;     /* 8px */
+  --spacing-md: 1rem;       /* 16px */
+  --spacing-lg: 1.5rem;     /* 24px */
+  --spacing-xl: 2rem;       /* 32px */
+  --spacing-2xl: 3rem;      /* 48px */
+  --spacing-3xl: 4rem;      /* 64px */
+  --spacing-4xl: 6rem;      /* 96px */
+  
+  /* ===== 字体 ===== */
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "SF Mono", "Consolas", "Liberation Mono", "Menlo", monospace;
+  
+  /* ===== 字体大小 ===== */
+  --text-xs: 0.75rem;       /* 12px */
+  --text-sm: 0.875rem;      /* 14px */
+  --text-base: 1rem;        /* 16px */
+  --text-lg: 1.125rem;      /* 18px */
+  --text-xl: 1.25rem;       /* 20px */
+  --text-2xl: 1.5rem;       /* 24px */
+  --text-3xl: 1.875rem;     /* 30px */
+  --text-4xl: 2.25rem;      /* 36px */
+  --text-5xl: 3rem;         /* 48px */
+  --text-6xl: 3.75rem;      /* 60px */
+  
+  /* ===== 行高 ===== */
+  --leading-tight: 1.25;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.625;
+  --leading-loose: 2;
+  
+  /* ===== 字重 ===== */
+  --font-normal: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+  
+  /* ===== 过渡动画 ===== */
+  --transition-fast: 150ms ease-in-out;
+  --transition-base: 250ms ease-in-out;
+  --transition-slow: 350ms ease-in-out;
+  
+  /* ===== Z-index 层级 ===== */
+  --z-base: 1;
+  --z-dropdown: 1000;
+  --z-sticky: 1020;
+  --z-fixed: 1030;
+  --z-modal-backdrop: 1040;
+  --z-modal: 1050;
+  --z-popover: 1060;
+  --z-tooltip: 1070;
+}
+
+/* 深色模式（可选） */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-primary: #1C1917;
+    --bg-secondary: #292524;
+    --bg-tertiary: #44403C;
+    
+    --text-primary: #FAFAF9;
+    --text-secondary: #E7E5E4;
+    --text-tertiary: #D6D3D1;
+    
+    --border-light: #44403C;
+    --border-medium: #57534E;
+  }
+}

@@ -1,0 +1,160 @@
+/* Button 按钮样式 */
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  border: none;
+  border-radius: var(--radius-md);
+  font-family: inherit;
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: var(--transition-base);
+  white-space: nowrap;
+  user-select: none;
+}
+
+/* 尺寸 */
+.button-small {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  font-size: var(--font-size-xs);
+}
+
+.button-medium {
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: var(--font-size-sm);
+}
+
+.button-large {
+  padding: var(--spacing-md) var(--spacing-lg);
+  font-size: var(--font-size-base);
+}
+
+/* 主要按钮 */
+.button-primary {
+  background: linear-gradient(
+    135deg,
+    var(--color-primary) 0%,
+    var(--color-primary-dark) 100%
+  );
+  color: var(--color-text-inverse);
+  box-shadow: var(--shadow-primary);
+}
+
+.button-primary:hover:not(:disabled) {
+  background: linear-gradient(
+    135deg,
+    var(--color-primary-dark) 0%,
+    var(--color-primary-darker) 100%
+  );
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-primary-lg);
+}
+
+.button-primary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+/* 次要按钮 */
+.button-secondary {
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border-dark);
+  box-shadow: var(--shadow-xs);
+}
+
+.button-secondary:hover:not(:disabled) {
+  background: var(--color-bg-secondary);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  box-shadow: var(--shadow-sm);
+  transform: none;
+}
+
+/* 危险按钮 */
+.button-danger {
+  background: var(--color-error);
+  color: var(--color-text-inverse);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+}
+
+.button-danger:hover:not(:disabled) {
+  background: var(--color-error-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.35);
+}
+
+/* 幽灵按钮 */
+.button-ghost {
+  background: transparent;
+  color: var(--color-text-secondary);
+  box-shadow: none;
+}
+
+.button-ghost:hover:not(:disabled) {
+  background: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+  box-shadow: none;
+  transform: none;
+}
+
+/* 文本按钮 */
+.button-text {
+  background: transparent;
+  color: var(--color-primary);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  box-shadow: none;
+}
+
+.button-text:hover:not(:disabled) {
+  background: var(--color-primary-alpha-10);
+  box-shadow: none;
+  transform: none;
+}
+
+/* 禁用状态 */
+.button-disabled,
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.button-disabled:hover,
+.button:disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+/* 加载状态 */
+.button-loading {
+  position: relative;
+  cursor: wait;
+}
+
+.button-spinner {
+  display: inline-flex;
+  animation: spin var(--duration-slow) linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.button-icon,
+.button-spinner {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.button-text {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* 全宽按钮 */
+.button-block {
+  width: 100%;
+}

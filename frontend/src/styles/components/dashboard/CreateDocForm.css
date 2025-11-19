@@ -1,0 +1,197 @@
+/* CreateDocForm 新建文档表单样式 */
+
+.create-doc-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  padding: var(--spacing-md);
+}
+
+/* 模板选择提示 */
+.template-selected-info {
+  margin-bottom: 0;
+}
+
+.template-info-badge {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: linear-gradient(135deg, var(--color-primary-alpha-10) 0%, var(--color-primary-alpha-25) 100%);
+  border: 2px solid var(--color-primary);
+  border-radius: var(--radius-md);
+  color: var(--color-primary-dark);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.template-info-badge svg {
+  flex-shrink: 0;
+  stroke: var(--color-primary);
+}
+
+.template-clear-btn {
+  margin-left: auto;
+  background: var(--color-primary);
+  color: var(--color-text-inverse);
+  border: none;
+  border-radius: var(--radius-full);
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  transition: var(--transition-base);
+}
+
+.template-clear-btn:hover {
+  background: var(--color-primary-dark);
+  transform: scale(1.1);
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.form-group label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-xs);
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-family: inherit;
+  color: var(--color-text-primary);
+  background: var(--color-bg-surface);
+  transition: var(--transition-base);
+  outline: none;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  border-color: var(--color-primary);
+  box-shadow: var(--focus-ring);
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+  color: var(--color-text-tertiary);
+}
+
+.form-group select {
+  cursor: pointer;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-md);
+  padding-top: var(--spacing-md);
+  border-top: 1px solid var(--color-border-default);
+}
+
+.form-actions .btn-primary,
+.form-actions .btn-secondary {
+  padding: var(--spacing-sm) var(--spacing-xl);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: var(--transition-base);
+  border: none;
+}
+
+.form-actions .btn-primary {
+  background: linear-gradient(
+    135deg,
+    var(--color-primary) 0%,
+    var(--color-primary-dark) 100%
+  );
+  color: var(--color-text-inverse);
+  box-shadow: var(--shadow-primary);
+}
+
+.form-actions .btn-primary:hover {
+  background: linear-gradient(
+    135deg,
+    var(--color-primary-dark) 0%,
+    var(--color-primary-darker) 100%
+  );
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-primary-lg);
+}
+
+.form-actions .btn-secondary {
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border-dark);
+  box-shadow: var(--shadow-xs);
+}
+
+.form-actions .btn-secondary:hover {
+  background: var(--color-bg-secondary);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+/* 导入表单样式 */
+.import-doc-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  padding: var(--spacing-md);
+}
+
+.import-doc-form p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.import-doc-form input[type="file"] {
+  padding: var(--spacing-md);
+  border: 2px dashed var(--color-border-default);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-secondary);
+  cursor: pointer;
+  transition: var(--transition-base);
+}
+
+.import-doc-form input[type="file"]:hover {
+  border-color: var(--color-primary);
+  background: var(--color-primary-alpha-5);
+}
+
+.import-status {
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-md);
+  background: var(--color-info-bg);
+  color: var(--color-info-dark);
+  font-size: var(--font-size-sm);
+  text-align: center;
+}
+
+.import-status.success {
+  background: var(--color-success-bg);
+  color: var(--color-success-dark);
+}
+
+.import-status.error {
+  background: var(--color-error-bg);
+  color: var(--color-error-dark);
+}

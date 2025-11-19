@@ -1,19 +1,55 @@
-/* 空状态组件样式 */
+/* 空状态组件样式（增强版） */
 
 .empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 4rem 2rem;
+  padding: var(--spacing-8) var(--spacing-4);
   text-align: center;
+  min-height: 400px;
 }
 
+/* 尺寸变体 */
+.empty-state-small {
+  min-height: 250px;
+  padding: var(--spacing-6) var(--spacing-4);
+}
+
+.empty-state-medium {
+  min-height: 400px;
+  padding: var(--spacing-8) var(--spacing-4);
+}
+
+.empty-state-large {
+  min-height: 500px;
+  padding: var(--spacing-10) var(--spacing-4);
+}
+
+/* 图标和图片 */
 .empty-state-icon {
   font-size: 4rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: var(--spacing-4);
   opacity: 0.8;
+}
+
+.empty-state-animated .empty-state-icon {
   animation: emptyStateFloat 3s ease-in-out infinite;
+}
+
+.empty-state-image {
+  max-width: 300px;
+  margin-bottom: var(--spacing-4);
+}
+
+.empty-state-image img {
+  width: 100%;
+  height: auto;
+  opacity: 0.9;
+}
+
+.empty-state-animated .empty-state-image img {
+  animation: fadeInScale 0.6s ease-out;
 }
 
 @keyframes emptyStateFloat {
@@ -25,39 +61,132 @@
   }
 }
 
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 0.9;
+    transform: scale(1);
+  }
+}
+
+/* 文本内容 */
+.empty-state-content {
+  margin-bottom: var(--spacing-6);
+}
+
 .empty-state-title {
-  font-size: 1.5rem;
+  font-size: var(--font-size-2xl);
   font-weight: 600;
-  color: #1F2937;
-  margin-bottom: 0.75rem;
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-2);
+}
+
+.empty-state-small .empty-state-title {
+  font-size: var(--font-size-xl);
+}
+
+.empty-state-large .empty-state-title {
+  font-size: var(--font-size-3xl);
 }
 
 .empty-state-description {
-  font-size: 1rem;
-  color: #6B7280;
-  max-width: 400px;
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+  max-width: 500px;
   line-height: 1.6;
-  margin-bottom: 2rem;
+  margin: 0 auto;
+}
+
+.empty-state-small .empty-state-description {
+  font-size: var(--font-size-sm);
+  max-width: 400px;
+}
+
+/* 操作按钮 */
+.empty-state-actions {
+  display: flex;
+  gap: var(--spacing-3);
+  justify-content: center;
+  flex-wrap: wrap;
 }
 
 .empty-state-button {
-  padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
-  color: #FFFFFF;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3) var(--spacing-6);
+  background: var(--gradient-primary);
+  color: white;
   border: none;
-  border-radius: 8px;
-  font-size: 0.9375rem;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  transition: all var(--transition-normal);
+  box-shadow: var(--shadow-md);
 }
 
-.empty-state-button:hover {
+.empty-state-button:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+  box-shadow: var(--shadow-lg);
 }
 
-.empty-state-button:active {
+.empty-state-button:active:not(:disabled) {
   transform: translateY(0);
+}
+
+.empty-state-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.empty-state-button-secondary {
+  background: var(--color-gray-100);
+  color: var(--color-text-primary);
+  box-shadow: none;
+  border: 1px solid var(--color-border);
+}
+
+.empty-state-button-secondary:hover:not(:disabled) {
+  background: var(--color-gray-200);
+  box-shadow: var(--shadow-sm);
+}
+
+.button-icon {
+  display: inline-flex;
+  font-size: 1.2em;
+}
+
+/* 小尺寸按钮 */
+.empty-state-small .empty-state-button {
+  padding: var(--spacing-2) var(--spacing-4);
+  font-size: var(--font-size-sm);
+}
+
+/* 响应式 */
+@media (max-width: 640px) {
+  .empty-state {
+    padding: var(--spacing-6) var(--spacing-3);
+  }
+
+  .empty-state-icon {
+    font-size: 3rem;
+  }
+
+  .empty-state-image {
+    max-width: 200px;
+  }
+
+  .empty-state-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .empty-state-button {
+    width: 100%;
+    justify-content: center;
+  }
 }

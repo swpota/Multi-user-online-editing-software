@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, lazy, Suspense } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -9,17 +9,21 @@ import {
 import api from "./api";
 import logo from "./assets/logo.png";
 
-// 组件和页面
+// 小型组件和页面（直接导入）
 import Register from "./components/Register";
 import Login from "./components/Login";
-import Dashboard from "./components/DashBoard";
-import EditorPage from "./pages/EditorPage";
-import ProfilePage from "./pages/ProfilePage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
-import AdminDashboardPage from "./pages/AdminDashboardPage";
 import LandingPage from "./pages/LandingPage";
 import { ToastProvider } from "./components/ToastContainer";
+import LoadingSpinner from "./components/common/LoadingSpinner";
+import ErrorBoundary from "./components/common/ErrorBoundary";
+
+// 大型页面组件（懒加载）
+const Dashboard = lazy(() => import("./components/DashBoard"));
+const EditorPage = lazy(() => import("./pages/EditorPage"));
+const ProfilePage = lazy(() => import("./pages/ProfilePage"));
+const AdminDashboardPage = lazy(() => import("./pages/AdminDashboardPage"));
 
 import "./styles/App.css";
 
@@ -63,11 +67,13 @@ function App() {
   }
 
   return (
-    <ToastProvider>
-      <Router>
-        <AppContent user={user} setUser={setUser} handleLogout={handleLogout} />
-      </Router>
-    </ToastProvider>
+    <ErrorBoundary>
+      <ToastProvider>
+        <Router>
+          <AppContent user={user} setUser={setUser} handleLogout={handleLogout} />
+        </Router>
+      </ToastProvider>
+    </ErrorBoundary>
   );
 }
 
@@ -125,6 +131,7 @@ function AppContent({ user, setUser, handleLogout }) {
         </header>
       )}
       <main className="app-main">
+        <Suspense fallback={<LoadingSpinner size="large" text="页面加载中..." />}>
           <Routes>
             <Route
               path="/"
@@ -202,7 +209,8 @@ function AppContent({ user, setUser, handleLogout }) {
             {/* 如果访问任何其他不存在的页面，则重定向回主页 */}
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
-        </main>
+        </Suspense>
+      </main>
       </div>
   );
 }

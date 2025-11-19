@@ -3,15 +3,15 @@
 .comments-panel {
   position: fixed;
   right: 0;
-  top: 0;
+  top: 64px; /* 从导航栏下方开始 */
   width: 400px;
-  height: 100vh;
-  background-color: #fff;
-  border-left: 1px solid #e8e8e8;
+  height: calc(100vh - 64px); /* 减去导航栏高度 */
+  background-color: var(--color-bg-surface);
+  border-left: 1px solid var(--color-border-default);
   display: flex;
   flex-direction: column;
-  z-index: 1000;
-  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
+  z-index: var(--z-fixed); /* 使用固定层级，高于导航栏和工具栏 */
+  box-shadow: var(--shadow-lg);
 }
 
 .comments-panel-header {

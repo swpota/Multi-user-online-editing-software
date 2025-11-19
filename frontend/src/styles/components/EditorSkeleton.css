@@ -1,4 +1,55 @@
-/* 编辑器骨架屏样式 */
+/* EditorSkeleton.css - 编辑器骨架屏样式 */
+
+.editor-skeleton {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-bg-primary);
+}
+
+.editor-skeleton-header {
+  height: 64px;
+  background-color: var(--color-bg-surface);
+  border-bottom: 1px solid var(--color-border-default);
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.editor-skeleton-toolbar {
+  height: 48px;
+  background-color: var(--color-bg-surface);
+  border-bottom: 1px solid var(--color-border-default);
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.editor-skeleton-content {
+  flex: 1;
+  display: flex;
+  padding: 24px;
+  gap: 24px;
+}
+
+.editor-skeleton-main {
+  flex: 1;
+  background-color: var(--color-bg-surface);
+  border-radius: 8px;
+  padding: 24px;
+  border: 1px solid var(--color-border-default);
+}
+
+.editor-skeleton-sidebar {
+  width: 300px;
+  background-color: var(--color-bg-surface);
+  border-radius: 8px;
+  padding: 16px;
+  border: 1px solid var(--color-border-default);
+}
 
 @keyframes shimmer {
   0% {
@@ -9,108 +60,43 @@
   }
 }
 
-.editor-skeleton {
-  padding: 2rem;
-  background: #FFFFFF;
-  min-height: 100vh;
-}
-
-.editor-skeleton-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 1px solid #E5E7EB;
-}
-
-.editor-skeleton-title {
-  height: 32px;
-  width: 300px;
+.skeleton-box {
   background: linear-gradient(
     90deg,
-    #F3F4F6 0px,
-    #E5E7EB 40px,
-    #F3F4F6 80px
-  );
-  background-size: 468px 100%;
-  border-radius: 6px;
-  animation: shimmer 1.5s ease-in-out infinite;
-}
-
-.editor-skeleton-buttons {
-  display: flex;
-  gap: 0.75rem;
-}
-
-.editor-skeleton-button {
-  height: 36px;
-  width: 100px;
-  background: linear-gradient(
-    90deg,
-    #F3F4F6 0px,
-    #E5E7EB 40px,
-    #F3F4F6 80px
-  );
-  background-size: 468px 100%;
-  border-radius: 8px;
-  animation: shimmer 1.5s ease-in-out infinite;
-}
-
-.editor-skeleton-meta {
-  display: flex;
-  gap: 1.5rem;
-  margin-bottom: 1.5rem;
-}
-
-.editor-skeleton-meta-item {
-  height: 38px;
-  width: 200px;
-  background: linear-gradient(
-    90deg,
-    #F3F4F6 0px,
-    #E5E7EB 40px,
-    #F3F4F6 80px
-  );
-  background-size: 468px 100%;
-  border-radius: 6px;
-  animation: shimmer 1.5s ease-in-out infinite;
-}
-
-.editor-skeleton-toolbar {
-  height: 42px;
-  width: 100%;
-  margin-bottom: 1rem;
-  background: linear-gradient(
-    90deg,
-    #F3F4F6 0px,
-    #E5E7EB 40px,
-    #F3F4F6 80px
-  );
-  background-size: 468px 100%;
-  border-radius: 8px;
-  animation: shimmer 1.5s ease-in-out infinite;
-}
-
-.editor-skeleton-content {
-  padding: 1.5rem;
-  background: #FAFAFA;
-  border: 1px solid #E5E7EB;
-  border-radius: 8px;
-  min-height: 400px;
-}
-
-.editor-skeleton-line {
-  height: 16px;
-  width: 100%;
-  margin-bottom: 16px;
-  background: linear-gradient(
-    90deg,
-    #F3F4F6 0px,
-    #E5E7EB 40px,
-    #F3F4F6 80px
+    var(--color-bg-secondary) 0px,
+    var(--color-border-default) 40px,
+    var(--color-bg-secondary) 80px
   );
   background-size: 468px 100%;
   border-radius: 4px;
   animation: shimmer 1.5s ease-in-out infinite;
+}
+
+.skeleton-text {
+  height: 16px;
+  margin-bottom: 12px;
+}
+
+.skeleton-title {
+  height: 24px;
+  width: 40%;
+  margin-bottom: 16px;
+}
+
+.skeleton-button {
+  height: 36px;
+  width: 100px;
+  border-radius: 6px;
+}
+
+.skeleton-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+.skeleton-line-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }

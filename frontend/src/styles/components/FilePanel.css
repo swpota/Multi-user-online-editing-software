@@ -6,10 +6,10 @@
   right: 440px;
   width: 400px;
   max-height: 600px;
-  background-color: white;
-  border: 1px solid #ddd;
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border-default);
   border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-md);
   z-index: 1000;
   display: flex;
   flex-direction: column;
@@ -17,18 +17,18 @@
 
 .file-panel-header {
   padding: 12px 16px;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--color-border-light);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #fafafa;
+  background-color: var(--color-bg-primary);
 }
 
 .file-panel-title {
   margin: 0;
   font-size: 18px;
   font-weight: 600;
-  color: #333;
+  color: var(--color-text-primary);
 }
 
 .file-panel-header-actions {
@@ -38,10 +38,10 @@
 
 .file-panel-upload-btn {
   padding: 6px 16px;
-  border: 1px solid #d9d9d9;
+  border: 1px solid var(--color-border-dark);
   border-radius: 6px;
-  background-color: #FF8A3D;
-  color: #fff;
+  background-color: var(--color-primary);
+  color: var(--color-text-inverse);
   cursor: pointer;
   font-size: 14px;
   font-weight: 500;
@@ -49,18 +49,18 @@
 }
 
 .file-panel-upload-btn:hover:not(.file-panel-upload-btn-active) {
-  background-color: #FF6B35;
+  background-color: var(--color-primary-dark);
   transform: translateY(-1px);
 }
 
 .file-panel-upload-btn-active {
-  background-color: #fff;
-  color: #333;
+  background-color: var(--color-bg-surface);
+  color: var(--color-text-primary);
 }
 
 .file-panel-upload-btn-active:hover {
-  border-color: #FF8A3D;
-  color: #FF8A3D;
+  border-color: var(--color-primary);
+  color: var(--color-primary);
 }
 
 .file-panel-close-btn {
@@ -69,7 +69,7 @@
   background-color: transparent;
   cursor: pointer;
   font-size: 20px;
-  color: #666;
+  color: var(--color-text-secondary);
   border-radius: 4px;
   transition: all 0.2s;
   line-height: 1;
@@ -77,14 +77,14 @@
 }
 
 .file-panel-close-btn:hover {
-  background-color: #f5f5f5;
-  color: #ff4d4f;
+  background-color: var(--color-bg-secondary);
+  color: var(--color-error);
 }
 
 .file-panel-upload-form {
   padding: 12px;
-  border-bottom: 1px solid #eee;
-  background-color: #f9f9f9;
+  border-bottom: 1px solid var(--color-border-light);
+  background-color: var(--color-bg-primary);
 }
 
 .file-panel-upload-group {
@@ -94,7 +94,7 @@
 .file-panel-file-input {
   width: 100%;
   padding: 4px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--color-border-default);
   border-radius: 4px;
   font-size: 13px;
 }
@@ -102,7 +102,7 @@
 .file-panel-description-textarea {
   width: 100%;
   padding: 6px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--color-border-default);
   border-radius: 4px;
   resize: none;
   min-height: 60px;
@@ -111,7 +111,7 @@
 
 .file-panel-uploading {
   font-size: 12px;
-  color: #999;
+  color: var(--color-text-tertiary);
   text-align: center;
 }
 
@@ -123,22 +123,22 @@
 
 .file-panel-loading {
   text-align: center;
-  color: #999;
+  color: var(--color-text-tertiary);
   padding: 20px;
 }
 
 .file-panel-empty {
   text-align: center;
-  color: #999;
+  color: var(--color-text-tertiary);
   padding: 20px;
 }
 
 .file-panel-item {
   padding: 12px;
   margin-bottom: 8px;
-  border: 1px solid #eee;
+  border: 1px solid var(--color-border-light);
   border-radius: 6px;
-  background-color: white;
+  background-color: var(--color-bg-surface);
 }
 
 .file-panel-item-content {
@@ -166,13 +166,13 @@
 
 .file-panel-item-description {
   font-size: 12px;
-  color: #666;
+  color: var(--color-text-secondary);
   margin-bottom: 4px;
 }
 
 .file-panel-item-meta {
   font-size: 12px;
-  color: #999;
+  color: var(--color-text-tertiary);
   margin-bottom: 8px;
 }
 
@@ -183,32 +183,31 @@
 
 .file-panel-download-btn {
   padding: 4px 12px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--color-border-default);
   border-radius: 4px;
-  background-color: white;
+  background-color: var(--color-bg-surface);
   cursor: pointer;
   font-size: 13px;
   transition: all 0.2s;
 }
 
 .file-panel-download-btn:hover {
-  border-color: #FF8A3D;
-  color: #FF8A3D;
+  border-color: var(--color-primary);
+  color: var(--color-primary);
 }
 
 .file-panel-delete-btn {
   padding: 4px 12px;
-  border: 1px solid #ff4d4f;
+  border: 1px solid var(--color-error);
   border-radius: 4px;
-  background-color: white;
-  color: #ff4d4f;
+  background-color: var(--color-bg-surface);
+  color: var(--color-error);
   cursor: pointer;
   font-size: 13px;
   transition: all 0.2s;
 }
 
 .file-panel-delete-btn:hover {
-  background-color: #ff4d4f;
-  color: #fff;
+  background-color: var(--color-error);
+  color: var(--color-text-inverse);
 }
-

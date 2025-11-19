@@ -57,7 +57,7 @@
   justify-content: space-between;
   position: sticky;
   top: 0;
-  z-index: 1000;
+  z-index: 100; /* 降低导航栏层级，保证侧边栏和模态框可以覆盖 */
   backdrop-filter: blur(10px);
 }
 

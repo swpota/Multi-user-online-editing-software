@@ -1,0 +1,173 @@
+/**
+ * CSS 变量 - 设计系统基础
+ * 统一管理颜色、字体、间距等设计要素
+ */
+
+:root {
+  /* ==================== 品牌色 ==================== */
+  /* 主色调 - 橙色系 */
+  --color-primary: #ff8a3d;
+  --color-primary-dark: #ff6b35;
+  --color-primary-darker: #f85125;
+  --color-primary-light: #ffa05f;
+  --color-primary-lighter: #ffb57f;
+  --color-primary-alpha-10: rgba(255, 138, 61, 0.1);
+  --color-primary-alpha-25: rgba(255, 138, 61, 0.25);
+  --color-primary-alpha-35: rgba(255, 138, 61, 0.35);
+
+  /* ==================== 中性色 ==================== */
+  /* 文字颜色 */
+  --color-text-primary: #1f2937;
+  --color-text-secondary: #6b7280;
+  --color-text-tertiary: #9ca3af;
+  --color-text-quaternary: #d1d5db;
+  --color-text-inverse: #ffffff;
+
+  /* 背景颜色 */
+  --color-bg-primary: #fafaf9;
+  --color-bg-secondary: #f3f4f6;
+  --color-bg-tertiary: #e5e7eb;
+  --color-bg-surface: #ffffff;
+  --color-bg-overlay: rgba(0, 0, 0, 0.45);
+
+  /* 边框颜色 */
+  --color-border-light: #f3f4f6;
+  --color-border-default: #e5e7eb;
+  --color-border-dark: #d1d5db;
+  --color-border-darker: #9ca3af;
+
+  /* ==================== 状态色 ==================== */
+  --color-success: #10b981;
+  --color-success-light: #34d399;
+  --color-success-dark: #059669;
+  --color-success-bg: #d1fae5;
+
+  --color-warning: #f59e0b;
+  --color-warning-light: #fbbf24;
+  --color-warning-dark: #d97706;
+  --color-warning-bg: #fef3c7;
+
+  --color-error: #ef4444;
+  --color-error-light: #f87171;
+  --color-error-dark: #dc2626;
+  --color-error-bg: #fee2e2;
+
+  --color-info: #3b82f6;
+  --color-info-light: #60a5fa;
+  --color-info-dark: #2563eb;
+  --color-info-bg: #dbeafe;
+
+  /* ==================== 分类颜色 ==================== */
+  --color-category-work: #3b82f6;
+  --color-category-personal: #10b981;
+  --color-category-study: #f59e0b;
+  --color-category-other: #6b7280;
+
+  /* ==================== 字体系统 ==================== */
+  --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  --font-family-mono: "SF Mono", Monaco, "Cascadia Code", "Roboto Mono",
+    Consolas, "Courier New", monospace;
+
+  /* 字体大小 */
+  --font-size-xs: 0.75rem; /* 12px */
+  --font-size-sm: 0.875rem; /* 14px */
+  --font-size-base: 1rem; /* 16px */
+  --font-size-lg: 1.125rem; /* 18px */
+  --font-size-xl: 1.25rem; /* 20px */
+  --font-size-2xl: 1.5rem; /* 24px */
+  --font-size-3xl: 1.875rem; /* 30px */
+  --font-size-4xl: 2.25rem; /* 36px */
+  --font-size-5xl: 3rem; /* 48px */
+
+  /* 字重 */
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* 行高 */
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.75;
+
+  /* ==================== 间距系统 ==================== */
+  --spacing-xs: 0.25rem; /* 4px */
+  --spacing-sm: 0.5rem; /* 8px */
+  --spacing-md: 1rem; /* 16px */
+  --spacing-lg: 1.5rem; /* 24px */
+  --spacing-xl: 2rem; /* 32px */
+  --spacing-2xl: 3rem; /* 48px */
+  --spacing-3xl: 4rem; /* 64px */
+  --spacing-4xl: 6rem; /* 96px */
+
+  /* ==================== 圆角 ==================== */
+  --radius-sm: 0.25rem; /* 4px */
+  --radius-md: 0.5rem; /* 8px */
+  --radius-lg: 0.75rem; /* 12px */
+  --radius-xl: 1rem; /* 16px */
+  --radius-2xl: 1.5rem; /* 24px */
+  --radius-full: 9999px;
+
+  /* ==================== 阴影 ==================== */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.15), 0 10px 10px rgba(0, 0, 0, 0.04);
+  --shadow-2xl: 0 25px 50px rgba(0, 0, 0, 0.25);
+  --shadow-inner: inset 0 2px 4px rgba(0, 0, 0, 0.06);
+  --shadow-primary: 0 4px 12px var(--color-primary-alpha-25);
+  --shadow-primary-lg: 0 6px 20px var(--color-primary-alpha-35);
+
+  /* ==================== 动画时长 ==================== */
+  --duration-fast: 150ms;
+  --duration-normal: 300ms;
+  --duration-slow: 500ms;
+
+  /* 动画缓动函数 */
+  --ease-linear: linear;
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ==================== 断点（仅供参考）==================== */
+  /* 在 CSS 中无法直接使用，但统一定义供开发参考 */
+  /* --breakpoint-sm: 640px; */
+  /* --breakpoint-md: 768px; */
+  /* --breakpoint-lg: 1024px; */
+  /* --breakpoint-xl: 1280px; */
+  /* --breakpoint-2xl: 1536px; */
+
+  /* ==================== Z-index 层级 ==================== */
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-fixed: 300;
+  --z-modal-backdrop: 400;
+  --z-modal: 500;
+  --z-popover: 600;
+  --z-tooltip: 700;
+
+  /* ==================== 布局 ==================== */
+  --container-max-width: 1280px;
+  --container-padding: var(--spacing-lg);
+  --sidebar-width: 280px;
+  --header-height: 64px;
+
+  /* ==================== 其他 ==================== */
+  --transition-base: all var(--duration-normal) var(--ease-in-out);
+  --focus-ring: 0 0 0 3px var(--color-primary-alpha-10);
+  --blur-backdrop: blur(4px);
+}
+
+/* ==================== 深色模式（预留）==================== */
+/* 后续可以根据需求添加深色主题 */
+/*
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg-primary: #1f2937;
+    --color-text-primary: #f9fafb;
+    ...
+  }
+}
+*/

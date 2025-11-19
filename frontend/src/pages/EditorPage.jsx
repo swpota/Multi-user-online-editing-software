@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useRef, useMemo, lazy, Suspense } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
@@ -9,80 +9,49 @@ import DOMPurify from "dompurify";
 import { marked } from "marked";
 import EditorSkeleton from "../components/EditorSkeleton";
 import ShareModal from "../components/ShareModal";
-import CommentsPanel from "../components/CommentsPanel";
-import TasksPanel from "../components/TasksPanel";
-import ChatPanel from "../components/ChatPanel";
-import FilePanel from "../components/FilePanel";
-import NotificationsPanel from "../components/NotificationsPanel";
-import VideoConferencePanel from "../components/VideoConferencePanel";
+import LoadingSpinner from "../components/common/LoadingSpinner";
 
-const cloneDelta = (delta) => {
-  if (!delta || typeof delta !== "object") {
-    return { ops: [{ insert: "\n" }] };
-  }
-  try {
-    return JSON.parse(JSON.stringify(delta));
-  } catch (error) {
-    return { ops: [{ insert: "\n" }] };
-  }
-};
+// 懒加载面板组件（按需加载）
+const CommentsPanel = lazy(() => import("../components/CommentsPanel"));
+const TasksPanel = lazy(() => import("../components/TasksPanel"));
+const ChatPanel = lazy(() => import("../components/ChatPanel"));
+const FilePanel = lazy(() => import("../components/FilePanel"));
+const NotificationsPanel = lazy(() => import("../components/NotificationsPanel"));
+const VideoConferencePanel = lazy(() => import("../components/VideoConferencePanel"));
 
-const deltasEqual = (a, b) => {
-  try {
-    return JSON.stringify(a || {}) === JSON.stringify(b || {});
-  } catch (error) {
-    return false;
-  }
-};
+// 导入工具函数
+import { cloneDelta, deltasEqual } from "../utils/objectUtils";
+import { toArray, parseTagsInput } from "../utils/arrayUtils";
+import { stringToColor } from "../utils/stringUtils";
 
-const stringToColor = (str) => {
-  let hash = 0;
-  if (!str || str.length === 0) return "#000000";
-  for (let i = 0; i < str.length; i++) {
-    hash = str.charCodeAt(i) + ((hash << 5) - hash);
-    hash = hash & hash;
-  }
-  let color = "#";
-  for (let i = 0; i < 3; i++) {
-    const value = (hash >> (i * 8)) & 0xff;
-    color += ("00" + value.toString(16)).substr(-2);
-  }
-  return color;
-};
-
-const toArray = (value) => {
-  if (Array.isArray(value)) {
-    return value;
-  }
-  if (!value) {
-    return [];
-  }
-  if (typeof value === "string") {
-    try {
-      const parsed = JSON.parse(value);
-      if (Array.isArray(parsed)) {
-        return parsed;
-      }
-    } catch (error) {
-      return value
-        .split(",")
-        .map((item) => item.trim())
-        .filter(Boolean);
-    }
-  }
-  if (typeof value === "object") {
-    return Array.isArray(value) ? value : [];
-  }
-  return [];
-};
+// 导入编辑器子组件
+import { EditorToolbar, EditorStatusBar, EditorSidebar } from "../components/editor";
 
 const SAVE_INTERVAL_MS = 2000;
 
-const parseTagsInput = (input) =>
-  input
-    .split(",")
-    .map((tag) => tag.trim())
-    .filter(Boolean);
+// 预加载函数：在用户鼠标悬停时提前加载组件
+const preloadPanel = (panelName) => {
+  switch (panelName) {
+    case 'comments':
+      import("../components/CommentsPanel");
+      break;
+    case 'tasks':
+      import("../components/TasksPanel");
+      break;
+    case 'chat':
+      import("../components/ChatPanel");
+      break;
+    case 'files':
+      import("../components/FilePanel");
+      break;
+    case 'notifications':
+      import("../components/NotificationsPanel");
+      break;
+    case 'video':
+      import("../components/VideoConferencePanel");
+      break;
+  }
+};
 
 function EditorPage({ user }) {
   const { documentId } = useParams();
@@ -1534,6 +1503,7 @@ function EditorPage({ user }) {
                   fetchComments();
                 }
               }}
+              onMouseEnter={() => preloadPanel('comments')}
               className={`editor-btn ${showComments ? "editor-btn-active" : "editor-btn-secondary"}`}
             >
               💬 评论 {comments.length > 0 && `(${comments.length})`}
@@ -1553,6 +1523,7 @@ function EditorPage({ user }) {
                   fetchTasks();
                 }
               }}
+              onMouseEnter={() => preloadPanel('tasks')}
               className={`editor-btn ${showTasks ? "editor-btn-active" : "editor-btn-secondary"}`}
             >
               ✅ 任务 {tasks.length > 0 && `(${tasks.length})`}
@@ -1571,6 +1542,7 @@ function EditorPage({ user }) {
                   setShowChat(true);
                 }
               }}
+              onMouseEnter={() => preloadPanel('chat')}
               className={`editor-btn ${showChat ? "editor-btn-active" : "editor-btn-secondary"}`}
             >
               💬 聊天
@@ -1588,6 +1560,7 @@ function EditorPage({ user }) {
                 setShowFiles(true);
               }
             }}
+            onMouseEnter={() => preloadPanel('files')}
             className={`editor-btn ${showFiles ? "editor-btn-active" : "editor-btn-secondary"}`}
           >
             📁 文件
@@ -1597,6 +1570,7 @@ function EditorPage({ user }) {
               onClick={() => {
                 setShowNotifications(!showNotifications);
               }}
+              onMouseEnter={() => preloadPanel('notifications')}
               className={`editor-btn ${showNotifications ? "editor-btn-active" : "editor-btn-secondary"}`}
             >
               🔔 通知
@@ -1607,6 +1581,7 @@ function EditorPage({ user }) {
               onClick={() => {
                 setShowVideoConference(!showVideoConference);
               }}
+              onMouseEnter={() => preloadPanel('video')}
               className={`editor-btn ${showVideoConference ? "editor-btn-active" : "editor-btn-secondary"}`}
             >
               📹 视频会议
@@ -2032,7 +2007,8 @@ function EditorPage({ user }) {
 
       {/* 评论面板 */}
       {featureSettings.enable_comments && showComments && (
-        <CommentsPanel
+        <Suspense fallback={<LoadingSpinner size="medium" text="加载评论..." />}>
+          <CommentsPanel
             documentId={documentId}
             user={user}
             comments={comments}
@@ -2094,11 +2070,13 @@ function EditorPage({ user }) {
           onSelectText={setSelectedText}
           onClose={() => setShowComments(false)}
         />
+        </Suspense>
       )}
 
       {/* 任务面板 */}
       {featureSettings.enable_tasks && showTasks && (
-        <TasksPanel
+        <Suspense fallback={<LoadingSpinner size="medium" text="加载任务..." />}>
+          <TasksPanel
           documentId={documentId}
           user={user}
           tasks={tasks}
@@ -2117,45 +2095,54 @@ function EditorPage({ user }) {
           onlineUsers={onlineUsers}
           onClose={() => setShowTasks(false)}
         />
+        </Suspense>
       )}
 
       {/* 聊天面板 */}
       {featureSettings.enable_chat && showChat && (
-        <ChatPanel
+        <Suspense fallback={<LoadingSpinner size="medium" text="加载聊天..." />}>
+          <ChatPanel
           documentId={documentId}
           user={user}
           socket={socket}
           onlineUsers={onlineUsers}
           onClose={() => setShowChat(false)}
         />
+        </Suspense>
       )}
 
       {/* 文件面板 */}
       {showFiles && (
-        <FilePanel
+        <Suspense fallback={<LoadingSpinner size="medium" text="加载文件..." />}>
+          <FilePanel
           documentId={documentId}
           user={user}
           socket={socket}
           onClose={() => setShowFiles(false)}
         />
+        </Suspense>
       )}
 
       {/* 通知面板 */}
       {featureSettings.enable_notifications && showNotifications && (
-        <NotificationsPanel
+        <Suspense fallback={<LoadingSpinner size="medium" text="加载通知..." />}>
+          <NotificationsPanel
           user={user}
           socket={socket}
           onClose={() => setShowNotifications(false)}
         />
+        </Suspense>
       )}
 
       {/* 视频会议面板 */}
       {featureSettings.enable_video_conference && showVideoConference && (
-        <VideoConferencePanel
+        <Suspense fallback={<LoadingSpinner size="medium" text="加载视频会议..." />}>
+          <VideoConferencePanel
           documentId={documentId}
           user={user}
           onClose={() => setShowVideoConference(false)}
         />
+        </Suspense>
       )}
     </div>
   );

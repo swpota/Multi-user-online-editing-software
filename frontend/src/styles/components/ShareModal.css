@@ -11,7 +11,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000;
+  z-index: 9999; /* 最高层级，确保不被任何元素遮挡 */
 }
 
 .share-modal-container {

@@ -1,0 +1,113 @@
+/* BulkActions 批量操作样式 */
+.bulk-actions {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--color-bg-surface);
+  border-radius: 12px;
+  box-shadow: var(--shadow-lg);
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  z-index: 100;
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.bulk-actions-info {
+  font-size: 0.875rem;
+  color: var(--color-text-primary);
+}
+
+.bulk-actions-info strong {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.bulk-actions-buttons {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.bulk-btn {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+}
+
+.bulk-btn-export {
+  background: var(--gradient-primary);
+  color: var(--color-text-inverse);
+  box-shadow: var(--shadow-primary);
+}
+
+.bulk-btn-export:hover {
+  background: var(--gradient-primary-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-primary-lg);
+}
+
+.bulk-btn-delete {
+  background: var(--color-error);
+  color: var(--color-text-inverse);
+  box-shadow: var(--shadow-sm);
+}
+
+.bulk-btn-delete:hover {
+  background: var(--color-error-dark);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.bulk-btn-cancel {
+  background: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+  box-shadow: none;
+}
+
+.bulk-btn-cancel:hover {
+  background: var(--color-border-default);
+  transform: none;
+  box-shadow: none;
+}
+
+/* 响应式 */
+@media (max-width: 768px) {
+  .bulk-actions {
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1rem;
+    width: calc(100% - 2rem);
+    max-width: 400px;
+  }
+
+  .bulk-actions-buttons {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .bulk-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}

@@ -13,9 +13,9 @@
   height: 16px;
   background: linear-gradient(
     90deg,
-    #F3F4F6 0px,
-    #E5E7EB 40px,
-    #F3F4F6 80px
+    var(--color-bg-secondary) 0px,
+    var(--color-border-default) 40px,
+    var(--color-bg-secondary) 80px
   );
   background-size: 468px 100%;
   border-radius: 4px;
@@ -24,8 +24,8 @@
 }
 
 .skeleton-card {
-  background: #FFFFFF;
-  border: 1px solid #E5E7EB;
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-default);
   border-radius: 12px;
   padding: 1.5rem;
   margin-bottom: 1rem;

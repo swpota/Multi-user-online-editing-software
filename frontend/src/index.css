@@ -1,11 +1,14 @@
+/* 导入设计系统变量 */
+@import './styles/theme/variables.css';
+
 :root {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+  font-family: var(--font-family);
+  line-height: var(--line-height-normal);
+  font-weight: var(--font-weight-normal);
 
   color-scheme: light;
-  color: #1F2937;
-  background: #FAFAF9;
+  color: var(--color-text-primary);
+  background: var(--color-bg-primary);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -38,7 +41,7 @@ html, body {
   padding: 0 !important;
   min-width: 320px;
   min-height: 100vh;
-  background: #FAFAF9 !important;
+  background: var(--color-bg-primary) !important;
   overflow-x: hidden;
 }
 
@@ -51,7 +54,7 @@ body {
   margin: 0 !important;
   padding: 0 !important;
   min-height: 100vh;
-  background: #FAFAF9 !important;
+  background: var(--color-bg-primary) !important;
 }
 
 h1 {
@@ -60,23 +63,23 @@ h1 {
 }
 
 button {
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   border: none;
-  padding: 8px 16px;
-  font-size: 14px;
-  font-weight: 500;
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
   font-family: inherit;
-  background: linear-gradient(135deg, #FF8A3D 0%, #FF6B35 100%);
-  color: #fff;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  color: var(--color-text-inverse);
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 12px rgba(255, 138, 61, 0.25);
+  transition: var(--transition-base);
+  box-shadow: var(--shadow-primary);
 }
 
 button:hover {
-  background: linear-gradient(135deg, #FF6B35 0%, #F85125 100%);
+  background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary-darker) 100%);
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(255, 138, 61, 0.35);
+  box-shadow: var(--shadow-primary-lg);
 }
 
 button:active {
@@ -85,13 +88,13 @@ button:active {
 
 button:focus,
 button:focus-visible {
-  outline: 2px solid #FF8A3D;
+  outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
 
 button:disabled {
-  background-color: #d9d9d9;
-  color: #fff;
+  background-color: var(--color-border-dark);
+  color: var(--color-text-inverse);
   cursor: not-allowed;
   transform: none;
   box-shadow: none;

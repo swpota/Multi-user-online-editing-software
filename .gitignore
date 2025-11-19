@@ -83,6 +83,9 @@ coverage/
 # PowerShell 脚本（如果包含敏感信息）
 # *.ps1
 
+# AI 代理文档（不上传到 GitHub）
+.agentdocs/
+
 # 文档文件（可选，如果不想上传文档可以取消注释）
-# *.md
+ *.md
 # !README.md

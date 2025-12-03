@@ -90,8 +90,9 @@
 }
 
 .badge-locked {
-  background: var(--color-warning-bg);
-  color: var(--color-warning-dark);
+  background: rgba(16, 185, 129, 0.1);
+  color: #065f46;
+  border: 1px solid var(--color-primary);
 }
 
 .document-tags {

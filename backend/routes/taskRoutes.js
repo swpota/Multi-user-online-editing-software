@@ -1,16 +1,57 @@
+/**
+ * 任务管理路由模块
+ * 功能：提供文档任务的完整CRUD操作
+ * 特性：
+ * 1. 获取任务列表（智能排序：状态→优先级→截止日期）
+ * 2. 创建任务（支持分配给协作者）
+ * 3. 更新任务（标题、描述、状态、优先级、截止日期等）
+ * 4. 删除任务
+ * 5. 任务分配通知系统
+ * 6. 实时通知（Socket.IO）
+ */
+
+// 引入Express框架
 const express = require("express");
+// 引入JWT认证中间件
 const { protect } = require("../middleware/authMiddleware");
+// 引入数据库连接池
 const pool = require("../db");
+// 引入日志服务（旧版）
 const { logActivity } = require("../services/logService");
+// 引入活动日志服务
 const { logUserActivity, logSystemLog } = require("../services/activityService");
+// 引入通知服务，用于任务分配通知
 const { createNotification } = require("../services/notificationService");
+// 引入验证中间件
 const { validateDocumentId, validateTaskCreate } = require("../middleware/validators");
 
-// 创建任务路由函数，接收 io 实例用于实时通知
+/**
+ * createTaskRoutes - 创建任务路由
+ * @param {object} io - Socket.IO实例，用于实时推送任务更新
+ * @returns {Router} - Express路由器
+ */
 const createTaskRoutes = (io) => {
+  // 创建Express路由器实例
   const router = express.Router();
 
-  // 获取文档的所有任务
+  /**
+   * GET /api/documents/:documentId/tasks
+   * 获取文档的所有任务
+   * 
+   * 功能：获取指定文档的所有任务，包含创建者、分配者、完成者信息
+   * 权限：需要登录，且对文档有访问权限（owner/collaborator）或为管理员
+   * 
+   * 请求参数：
+   * - documentId (路径参数): 文档ID
+   * 
+   * 响应：任务数组，按状态→优先级→截止日期智能排序
+   * 
+   * 排序规则：
+   * 1. 状态优先级: pending > in_progress > completed > cancelled
+   * 2. 紧急程度: urgent > high > medium > low
+   * 3. 截止日期: 越近越靠前
+   * 4. 创建时间: 越新越靠前
+   */
   router.get("/documents/:documentId/tasks", protect, validateDocumentId, async (req, res) => {
     try {
       const documentId = parseInt(req.params.documentId, 10);
@@ -140,7 +181,31 @@ const createTaskRoutes = (io) => {
     }
   });
 
-  // 创建任务
+  /**
+   * POST /api/documents/:documentId/tasks
+   * 创建新任务
+   * 
+   * 功能：在指定文档中创建任务，支持分配给协作者
+   * 权限：需要登录，且对文档有访问权限（owner/collaborator）
+   * 
+   * 请求参数：
+   * - documentId (路径参数): 文档ID
+   * - title (必填): 任务标题
+   * - description (可选): 任务描述
+   * - assignedTo (可选): 被分配用户的ID
+   * - anchorText (可选): 锚点文本，任务关联的文档片段
+   * - anchorIndex (可选): 锚点位置索引
+   * - anchorLength (可选): 锚点文本长度
+   * - priority (可选): 优先级 (urgent/high/medium/low，默认medium)
+   * - dueDate (可选): 截止日期
+   * 
+   * 响应：创建的任务对象，包含创建者信息
+   * 
+   * 业务规则：
+   * - 只能分配给有权访问该文档的用户
+   * - 分配任务时会发送通知给被分配者
+   * - 通过Socket.IO实时推送给文档房间的所有在线用户
+   */
   router.post("/documents/:documentId/tasks", protect, validateDocumentId, validateTaskCreate, async (req, res) => {
     try {
       const documentId = parseInt(req.params.documentId, 10);
@@ -163,7 +228,8 @@ const createTaskRoutes = (io) => {
         return res.status(400).json({ message: "任务标题不能为空" });
       }
 
-      // 检查用户是否有权限在文档中创建任务
+      // 步骤1：验证用户是否有权限在该文档中创建任务
+      // 只有文档所有者或协作者才能创建任务
       const docCheck = await pool.query(
         `SELECT d.id, d.owner_id,
                 CASE 
@@ -191,8 +257,10 @@ const createTaskRoutes = (io) => {
         return res.status(403).json({ message: "无权在该文档中创建任务" });
       }
 
-      // 如果指定了分配对象，验证用户是否存在且有权访问文档
+      // 步骤2：如果指定了assignedTo，需要验证被分配用户
+      // 验证包括两点：1) 用户存在 2) 用户有权访问该文档
       if (assignedTo) {
+        // 2.1 检查被分配用户是否存在
         const assigneeCheck = await pool.query(
           `SELECT u.id
            FROM users u
@@ -204,7 +272,8 @@ const createTaskRoutes = (io) => {
           return res.status(400).json({ message: "被分配的用户不存在" });
         }
 
-        // 检查被分配的用户是否有权限访问文档
+        // 2.2 检查被分配用户是否有权访问该文档
+        // 只能分配给文档所有者或协作者
         const assigneeAccess = await pool.query(
           `SELECT 
               CASE 
@@ -227,7 +296,8 @@ const createTaskRoutes = (io) => {
         }
       }
 
-      // 创建任务
+      // 步骤3：插入任务到数据库
+      // 包含所有字段：标题、描述、创建者、分配者、锚点信息、优先级、截止日期
       const newTaskResult = await pool.query(
         `INSERT INTO document_tasks 
          (document_id, title, description, created_by, assigned_to, anchor_text, anchor_index, anchor_length, priority, due_date)
@@ -249,7 +319,8 @@ const createTaskRoutes = (io) => {
 
       const newTask = newTaskResult.rows[0];
 
-      // 获取完整的任务信息
+      // 步骤4：查询完整的任务信息
+      // JOIN用户表获取创建者和分配者的详细信息
       const fullTaskResult = await pool.query(
         `SELECT 
             t.id,
@@ -297,26 +368,27 @@ const createTaskRoutes = (io) => {
         completedBy: null,
       };
 
-      // 记录操作日志
+      // 步骤5：记录操作日志
       await logActivity(req.user.id, "CREATE_TASK", "document", documentId, {
         taskId: newTask.id,
         assignedTo: assignedTo || null,
       });
 
-      // 获取文档信息用于通知
+      // 步骤6：获取文档标题，用于通知消息
       const docInfo = await pool.query(
         "SELECT title FROM documents WHERE id = $1",
         [documentId]
       );
       const docTitle = docInfo.rows[0]?.title || "文档";
 
-      // 创建通知并发送 Socket.IO 实时通知
+      // 步骤7：发送实时通知
       if (io) {
+        // 向文档房间的所有在线用户广播新任务
         io.to(String(documentId)).emit("newTask", fullTask);
 
-        // 如果分配了任务，通知被分配的用户
+        // 如果指定了assignedTo，需要发送任务分配通知
         if (assignedTo) {
-          // 创建数据库通知
+          // 在数据库中创建持久化通知记录
           await createNotification(
             assignedTo,
             "task_assigned",
@@ -332,7 +404,7 @@ const createTaskRoutes = (io) => {
             }
           );
 
-          // 发送 Socket.IO 实时通知
+          // 通过Socket.IO向被分配用户的个人房间发送实时通知
           io.to(`user_${assignedTo}`).emit("taskAssigned", {
             task: fullTask,
             documentId,
@@ -381,7 +453,30 @@ const createTaskRoutes = (io) => {
     }
   });
 
-  // 更新任务
+  /**
+   * PUT /api/tasks/:taskId
+   * 更新任务
+   * 
+   * 功能：更新现有任务的各种属性
+   * 权限：任务创建者、被分配者或文档所有者可以更新
+   * 
+   * 请求参数：
+   * - taskId (路径参数): 任务ID
+   * - title (可选): 新的任务标题
+   * - description (可选): 新的任务描述
+   * - assignedTo (可选): 重新分配给其他用户
+   * - status (可选): 任务状态 (pending/in_progress/completed/cancelled)
+   * - priority (可选): 优先级 (urgent/high/medium/low)
+   * - dueDate (可选): 截止日期
+   * 
+   * 响应：更新后的完整任务对象
+   * 
+   * 特点：
+   * - 动态SQL构建：只更新提供的字段
+   * - 灵活的权限控制：创建者/被分配者/文档所有者都可以更新
+   * - 自动记录完成时间：状态变为completed时记录completed_at和completed_by
+   * - 重新分配通知：assignedTo变更时发送通知给新被分配者
+   */
   router.put("/tasks/:taskId", protect, async (req, res) => {
     try {
       const taskId = parseInt(req.params.taskId, 10);
@@ -761,7 +856,22 @@ const createTaskRoutes = (io) => {
     }
   });
 
-  // 删除任务
+  /**
+   * DELETE /api/tasks/:taskId
+   * 删除任务
+   * 
+   * 功能：删除指定任务
+   * 权限：只有任务创建者或文档所有者可以删除
+   * 
+   * 请求参数：
+   * - taskId (路径参数): 任务ID
+   * 
+   * 响应：删除成功消息
+   * 
+   * 注意：
+   * - 被分配者不能删除任务，只能更新状态
+   * - 通过Socket.IO实时通知文档房间的其他用户
+   */
   router.delete("/tasks/:taskId", protect, async (req, res) => {
     try {
       const taskId = parseInt(req.params.taskId, 10);

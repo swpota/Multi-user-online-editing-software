@@ -142,6 +142,16 @@ const createFileRoutes = (io) => {
           return res.status(403).json({ message: "无权在该文档中上传文件" });
         }
 
+        // 解码文件名（处理中文等特殊字符）
+        let originalName = req.file.originalname;
+        try {
+          // multer可能会错误地将UTF-8字节解释为Latin1，需要重新编码
+          originalName = Buffer.from(req.file.originalname, 'latin1').toString('utf8');
+        } catch (e) {
+          // 如果转换失败，使用原始文件名
+          console.warn('文件名编码转换失败，使用原始文件名:', e);
+        }
+
         // 创建文件记录
         const result = await pool.query(
           `INSERT INTO document_files (
@@ -153,10 +163,10 @@ const createFileRoutes = (io) => {
             documentId,
             req.user.id,
             req.file.filename,
-            req.file.originalname,
+            originalName,
             req.file.path,
             req.file.size,
-            path.extname(req.file.originalname),
+            path.extname(originalName),
             req.file.mimetype,
             req.body.description || null,
           ]
@@ -250,10 +260,18 @@ const createFileRoutes = (io) => {
         return res.status(404).json({ message: "文件不存在" });
       }
 
-      // 发送文件
-      res.download(file.file_path, file.original_name, (err) => {
+      // 设置正确的Content-Disposition header以支持中文文件名
+      const fileName = file.original_name || file.file_name || "file";
+      const encodedFileName = encodeURIComponent(fileName).replace(/['()]/g, escape).replace(/\*/g, '%2A');
+      res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${encodedFileName}`);
+      res.setHeader('Content-Type', 'application/octet-stream');
+      
+      // 发送文件（确保使用绝对路径）
+      const absolutePath = path.isAbsolute(file.file_path) ? file.file_path : path.resolve(file.file_path);
+      res.sendFile(absolutePath, (err) => {
         if (err) {
           console.error("下载文件失败:", err);
+          console.error("文件路径:", absolutePath);
           if (!res.headersSent) {
             res.status(500).json({ message: "下载文件失败" });
           }

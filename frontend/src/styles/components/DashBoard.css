@@ -1,5 +1,8 @@
 /* DashBoard.css - 仪表盘样式 */
 
+/* 导入响应式样式 */
+@import './dashboard/responsive.css';
+
 /* 模板相关样式 */
 .dashboard-template-controls {
   display: flex;
@@ -187,6 +190,7 @@
 .dashboard-list-view {
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden; /* 隐藏水平滚动条 */
   min-height: 0;
 }
 

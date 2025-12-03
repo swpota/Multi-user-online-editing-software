@@ -1,0 +1,294 @@
+/**
+ * DocumentCard - 现代简约风格
+ * 文档卡片组件样式
+ */
+
+/* ==================== 文档卡片 ==================== */
+.document-card {
+  background: white;
+  border-radius: var(--radius-2xl);
+  padding: var(--spacing-lg);
+  border: 2px solid var(--color-border-light);
+  transition: var(--transition-base);
+  cursor: pointer;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  height: 100%;
+}
+
+.document-card:hover {
+  border-color: var(--color-primary);
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-primary);
+}
+
+.document-card.selected {
+  border-color: var(--color-primary);
+  background: var(--color-bg-soft-green);
+  box-shadow: var(--shadow-primary);
+}
+
+/* ==================== 卡片头部 ==================== */
+.document-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+}
+
+.document-checkbox {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: var(--color-primary);
+  border-radius: var(--radius-sm);
+}
+
+.document-category {
+  padding: var(--spacing-xs) var(--spacing-md);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: white;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* ==================== 卡片链接区域 ==================== */
+.document-card-link {
+  text-decoration: none;
+  color: inherit;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.document-card-header-info {
+  flex: 1;
+}
+
+.document-title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin: 0;
+  line-height: var(--line-height-tight);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  transition: var(--transition-fast);
+}
+
+.document-card:hover .document-title {
+  color: var(--color-primary);
+}
+
+.document-badges {
+  display: flex;
+  gap: var(--spacing-xs);
+  margin-top: var(--spacing-sm);
+  flex-wrap: wrap;
+}
+
+.document-badge {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+}
+
+.badge-markdown {
+  background: var(--color-info-bg);
+  color: var(--color-info-dark);
+}
+
+.badge-locked {
+  background: rgba(16, 185, 129, 0.1);
+  color: #065f46;
+  border: 1px solid var(--color-primary);
+}
+
+/* ==================== 标签 ==================== */
+.document-tags {
+  display: flex;
+  gap: var(--spacing-xs);
+  flex-wrap: wrap;
+  margin-top: var(--spacing-sm);
+}
+
+.document-tag {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: var(--color-bg-tertiary);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-medium);
+}
+
+.document-tag-more {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: var(--gradient-primary-soft);
+  color: var(--color-primary);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* ==================== 卡片底部 ==================== */
+.document-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: var(--spacing-md);
+  border-top: 1px solid var(--color-border-light);
+  margin-top: auto;
+}
+
+.document-time {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-tertiary);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.document-time ion-icon {
+  font-size: 16px;
+}
+
+.document-actions {
+  display: flex;
+  gap: var(--spacing-xs);
+}
+
+.action-btn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+  transition: var(--transition-fast);
+  padding: 0;
+}
+
+.action-btn:hover {
+  background: var(--color-primary);
+  color: white;
+  transform: scale(1.1);
+}
+
+.action-btn.delete:hover {
+  background: var(--color-error);
+  color: white;
+}
+
+.action-btn svg {
+  width: 16px;
+  height: 16px;
+  stroke-width: 2;
+}
+
+/* ==================== 列表视图样式 ==================== */
+.document-list-item {
+  background: white;
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-lg);
+  border: 2px solid var(--color-border-light);
+  transition: var(--transition-base);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg);
+}
+
+.document-list-item:hover {
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-md);
+}
+
+.document-list-item.selected {
+  border-color: var(--color-primary);
+  background: var(--color-bg-soft-green);
+}
+
+.document-list-item .document-checkbox {
+  flex-shrink: 0;
+}
+
+.document-list-item .document-category {
+  flex-shrink: 0;
+}
+
+.document-list-item-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg);
+}
+
+.document-list-item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.document-list-item .document-title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  -webkit-line-clamp: unset;
+  line-clamp: unset;
+  -webkit-box-orient: unset;
+  display: block;
+}
+
+.document-list-item .document-tags {
+  margin-top: var(--spacing-xs);
+}
+
+.document-list-item-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xl);
+  flex-shrink: 0;
+}
+
+.document-list-item .document-actions {
+  flex-shrink: 0;
+}
+
+/* ==================== 响应式 ==================== */
+@media (max-width: 768px) {
+  .document-list-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-md);
+  }
+  
+  .document-list-item-content {
+    width: 100%;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .document-list-item-meta {
+    width: 100%;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+  }
+  
+  .document-list-item .document-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}

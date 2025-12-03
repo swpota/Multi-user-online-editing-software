@@ -1,17 +1,59 @@
+/**
+ * EditorPage - 多人在线协作编辑器主页面
+ * 
+ * 这是整个项目最核心的前端组件，实现了完整的文档编辑和实时协作功能。
+ * 
+ * 核心功能：
+ * 1. 富文本和 Markdown 双模式编辑（基于 Quill 编辑器）
+ * 2. 实时多人协作（基于 Socket.io 和 Operational Transformation）
+ * 3. 文档版本控制（保存、预览、恢复、对比）
+ * 4. 文档锁定机制（防止编辑冲突）
+ * 5. 协作功能（评论、任务、聊天、文件共享、视频会议）
+ * 6. 权限管理（查看者、编辑者、所有者、管理员）
+ * 7. 光标协作（显示其他用户的实时光标位置）
+ * 8. 自动保存（防抖机制）
+ * 
+ * 技术栈：
+ * - React Hooks（状态管理和副作用）
+ * - Quill（富文本编辑器）
+ * - Socket.io（WebSocket 实时通信）
+ * - DOMPurify（XSS 安全防护）
+ * - marked（Markdown 解析和渲染）
+ * 
+ * 性能优化：
+ * - 懒加载面板组件（代码分割）
+ * - useMemo 缓存计算结果
+ * - useCallback 避免不必要的重渲染
+ * - 预加载策略（鼠标悬停时提前加载组件）
+ */
+
 import React, { useState, useEffect, useCallback, useRef, useMemo, lazy, Suspense } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import ReactQuill from "react-quill";
-import "react-quill/dist/quill.snow.css";
+import ReactQuill from "react-quill"; // Quill 富文本编辑器的 React 封装
+import "react-quill/dist/quill.snow.css"; // Quill 默认主题样式
 import "../styles/pages/EditorPage.css";
-import api from "../api";
-import io from "socket.io-client";
-import DOMPurify from "dompurify";
-import { marked } from "marked";
-import EditorSkeleton from "../components/EditorSkeleton";
-import ShareModal from "../components/ShareModal";
-import LoadingSpinner from "../components/common/LoadingSpinner";
+import api from "../api"; // Axios 封装的 API 客户端
+import io from "socket.io-client"; // WebSocket 客户端库
+import DOMPurify from "dompurify"; // HTML 净化库，防止 XSS 攻击
+import { marked } from "marked"; // Markdown 解析器
+import EditorSkeleton from "../components/EditorSkeleton"; // 加载骨架屏
+import ShareModal from "../components/ShareModal"; // 分享模态框
+import LoadingSpinner from "../components/common/LoadingSpinner"; // 加载动画
 
-// 懒加载面板组件（按需加载）
+/**
+ * 懒加载面板组件（性能优化）
+ * 
+ * 使用 React.lazy() 实现代码分割，只在用户打开对应面板时才加载组件代码。
+ * 这样可以显著减少初始加载时间，提升首屏渲染速度。
+ * 
+ * 懒加载的组件：
+ * - CommentsPanel: 评论面板
+ * - TasksPanel: 任务面板
+ * - ChatPanel: 聊天面板
+ * - FilePanel: 文件面板
+ * - NotificationsPanel: 通知面板
+ * - VideoConferencePanel: 视频会议面板
+ */
 const CommentsPanel = lazy(() => import("../components/CommentsPanel"));
 const TasksPanel = lazy(() => import("../components/TasksPanel"));
 const ChatPanel = lazy(() => import("../components/ChatPanel"));
@@ -27,9 +69,19 @@ import { stringToColor } from "../utils/stringUtils";
 // 导入编辑器子组件
 import { EditorToolbar, EditorStatusBar, EditorSidebar } from "../components/editor";
 
+// 自动保存间隔时间（毫秒）- 用户停止输入2秒后触发保存
 const SAVE_INTERVAL_MS = 2000;
 
-// 预加载函数：在用户鼠标悬停时提前加载组件
+/**
+ * 预加载函数：在用户鼠标悬停时提前加载组件
+ * 
+ * 性能优化策略：
+ * - 当用户鼠标悬停在面板按钮上时，提前加载对应的组件代码
+ * - 这样当用户真正点击时，组件已经加载完成，可以立即显示
+ * - 平衡了初始加载速度和用户体验
+ * 
+ * @param {string} panelName - 面板名称（'comments'|'tasks'|'chat'|'files'|'notifications'|'video'）
+ */
 const preloadPanel = (panelName) => {
   switch (panelName) {
     case 'comments':
@@ -53,38 +105,68 @@ const preloadPanel = (panelName) => {
   }
 };
 
+/**
+ * EditorPage 组件
+ * 
+ * @param {Object} user - 当前登录用户对象
+ * @param {number} user.id - 用户ID
+ * @param {string} user.username - 用户名
+ * @param {string} user.email - 用户邮箱
+ * @param {string} user.role - 用户角色（'admin'|'user'）
+ */
 function EditorPage({ user }) {
+  // 从 URL 参数中获取文档ID
   const { documentId } = useParams();
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState({ ops: [{ insert: "\n" }] });
-  const [socket, setSocket] = useState(null);
-  const [saveStatus, setSaveStatus] = useState("连接中...");
-  const [onlineUsers, setOnlineUsers] = useState([]);
-  const [showShareModal, setShowShareModal] = useState(false);
-  const [isEditor, setIsEditor] = useState(false);
-  const [category, setCategory] = useState("");
-  const [tagsInput, setTagsInput] = useState("");
-  const [templateSaving, setTemplateSaving] = useState(false);
-  const [showVersionModal, setShowVersionModal] = useState(false);
-  const [versions, setVersions] = useState([]);
-  const [versionsLoading, setVersionsLoading] = useState(false);
-  const [versionError, setVersionError] = useState("");
-  const [previewVersion, setPreviewVersion] = useState(null);
-  const [previewContent, setPreviewContent] = useState(null);
-  const [previewMarkdown, setPreviewMarkdown] = useState("");
-  const quillRef = useRef(null);
-  const [contentFormat, setContentFormat] = useState("rich");
-  const [markdownValue, setMarkdownValue] = useState("");
-  const [showMarkdownPreview, setShowMarkdownPreview] = useState(false);
-  const [isLocked, setIsLocked] = useState(false);
-  const [lockedBy, setLockedBy] = useState(null);
-  const [documentLoading, setDocumentLoading] = useState(true);
-  const [lockProcessing, setLockProcessing] = useState(false);
 
-  // 计算字数
+  // ========== 文档基础状态 ==========
+  const [title, setTitle] = useState(""); // 文档标题
+  const [content, setContent] = useState({ ops: [{ insert: "\n" }] }); // 富文本内容（Quill Delta 格式）
+  const [category, setCategory] = useState(""); // 文档分类
+  const [tagsInput, setTagsInput] = useState(""); // 标签输入（逗号分隔）
+  const [contentFormat, setContentFormat] = useState("rich"); // 内容格式：'rich'（富文本）或 'markdown'
+  const [markdownValue, setMarkdownValue] = useState(""); // Markdown 内容
+  const [showMarkdownPreview, setShowMarkdownPreview] = useState(false); // 是否显示 Markdown 预览
+
+  // ========== 实时协作状态 ==========
+  const [socket, setSocket] = useState(null); // Socket.io 连接实例
+  const [onlineUsers, setOnlineUsers] = useState([]); // 在线用户列表
+
+  // ========== 权限和锁定状态 ==========
+  const [isEditor, setIsEditor] = useState(false); // 当前用户是否有编辑权限
+  const [isLocked, setIsLocked] = useState(false); // 文档是否被锁定
+  const [lockedBy, setLockedBy] = useState(null); // 锁定者信息
+  const [lockProcessing, setLockProcessing] = useState(false); // 锁定操作进行中
+
+  // ========== UI 状态 ==========
+  const [saveStatus, setSaveStatus] = useState("连接中..."); // 保存状态提示
+  const [documentLoading, setDocumentLoading] = useState(true); // 文档加载状态
+  const [showShareModal, setShowShareModal] = useState(false); // 分享模态框
+  const [showVersionModal, setShowVersionModal] = useState(false); // 版本历史模态框
+  const [templateSaving, setTemplateSaving] = useState(false); // 模板保存中
+
+  // ========== 版本控制状态 ==========
+  const [versions, setVersions] = useState([]); // 版本列表
+  const [versionsLoading, setVersionsLoading] = useState(false); // 版本加载状态
+  const [versionError, setVersionError] = useState(""); // 版本错误信息
+  const [previewVersion, setPreviewVersion] = useState(null); // 当前预览的版本
+  const [previewContent, setPreviewContent] = useState(null); // 预览内容（富文本）
+  const [previewMarkdown, setPreviewMarkdown] = useState(""); // 预览内容（Markdown）
+
+  // ========== Refs ==========
+  const quillRef = useRef(null); // Quill 编辑器实例引用
+
+  /**
+   * 计算文档字数（useMemo 缓存）
+   * 
+   * 根据不同的内容格式采用不同的统计方式：
+   * - Markdown 模式：移除 Markdown 标记符号后统计字符数
+   * - 富文本模式：遍历 Quill Delta ops，统计所有文本字符（排除换行符）
+   * 
+   * 使用 useMemo 缓存计算结果，避免每次渲染都重新计算
+   */
   const wordCount = useMemo(() => {
     if (contentFormat === "markdown") {
-      // Markdown模式：统计markdown文本的字数
+      // Markdown模式：移除标记符号后统计字数
       const text = markdownValue.replace(/[#*\-_`>\[\]()]/g, '').trim();
       return text.length;
     } else {
@@ -166,23 +248,45 @@ function EditorPage({ user }) {
     [socket, documentId]
   );
 
+  /**
+   * 加载文档数据
+   * 
+   * 功能：从服务器获取文档的完整信息并初始化编辑器
+   * 
+   * 处理流程：
+   * 1. 获取文档基础信息（标题、分类、标签）
+   * 2. 解析文档内容（支持 JSON 字符串和对象格式）
+   * 3. 设置内容格式（富文本/Markdown）
+   * 4. 检查编辑权限和锁定状态
+   * 5. 更新 UI 状态
+   * 
+   * 权限逻辑：
+   * - 基础权限：owner、editor 或 admin 角色
+   * - 锁定检查：被其他用户锁定时无法编辑（admin 除外）
+   * - 最终权限 = 基础权限 && !被他人锁定
+   * 
+   * 错误处理：
+   * - 404: 文档不存在，跳转到首页
+   * - 403: 无权访问
+   * - 其他: 显示错误提示
+   */
   const fetchDocument = useCallback(async () => {
     if (!user) return;
-      try {
-        const response = await api.get(`/documents/${documentId}`);
-        const doc = response.data;
-        setTitle(doc.title);
+    try {
+      const response = await api.get(`/documents/${documentId}`);
+      const doc = response.data;
+      setTitle(doc.title);
 
       let initialContent = { ops: [{ insert: "\n" }] };
-        if (doc.content) {
-          try {
-            if (typeof doc.content === "string") {
-              initialContent = JSON.parse(doc.content);
+      if (doc.content) {
+        try {
+          if (typeof doc.content === "string") {
+            initialContent = JSON.parse(doc.content);
           } else if (typeof doc.content === "object" && doc.content.ops) {
-              initialContent = doc.content;
-            }
-          } catch (e) {
-            console.error("解析文档内容失败:", e);
+            initialContent = doc.content;
+          }
+        } catch (e) {
+          console.error("解析文档内容失败:", e);
         }
       }
       const clonedContent = cloneDelta(initialContent);
@@ -203,16 +307,16 @@ function EditorPage({ user }) {
 
       // 检查编辑权限：使用后端返回的 canEdit 字段，或者检查 role 是否为 owner/editor
       // 管理员用户始终可以编辑（除非被其他用户锁定且不是管理员自己锁定的）
-      const canEdit = doc.canEdit !== undefined 
-        ? doc.canEdit 
+      const canEdit = doc.canEdit !== undefined
+        ? doc.canEdit
         : (doc.role === "owner" || doc.role === "editor" || user?.role === "admin");
-      
+
       const lockedByOther =
         locked &&
         doc.lockedBy &&
         doc.lockedBy.id !== user.id &&
         user.role !== "admin";
-      
+
       // 管理员即使文档被锁定也可以编辑（除非是自己锁定的，那就不算"被锁定"）
       const editable = canEdit && !lockedByOther;
       setIsEditor(editable);
@@ -228,32 +332,32 @@ function EditorPage({ user }) {
 
       // 确保内容始终被设置，即使文档被锁定
       // 内容同步到编辑器将在 useEffect 中处理
-      
+
       // 文档加载完成
       setDocumentLoading(false);
-      } catch (error) {
-        setDocumentLoading(false);
-        console.error("获取文档失败", error);
-        
-        // 区分不同的错误类型
-        if (error.response) {
-          if (error.response.status === 404) {
-            setSaveStatus("文档不存在");
-            alert("文档不存在，可能已被删除");
-            window.location.href = '/';
-            return;
-          } else if (error.response.status === 403) {
-            setSaveStatus("无权访问此文档");
-          } else {
-            setSaveStatus("加载失败");
-          }
+    } catch (error) {
+      setDocumentLoading(false);
+      console.error("获取文档失败", error);
+
+      // 区分不同的错误类型
+      if (error.response) {
+        if (error.response.status === 404) {
+          setSaveStatus("文档不存在");
+          alert("文档不存在，可能已被删除");
+          window.location.href = '/';
+          return;
+        } else if (error.response.status === 403) {
+          setSaveStatus("无权访问此文档");
         } else {
-          setSaveStatus("网络错误");
+          setSaveStatus("加载失败");
         }
-        
-        setIsEditor(false);
-        // 即使出错，也设置一个默认内容，确保编辑器可以显示
-        setContent({ ops: [{ insert: "\n" }] });
+      } else {
+        setSaveStatus("网络错误");
+      }
+
+      setIsEditor(false);
+      // 即使出错，也设置一个默认内容，确保编辑器可以显示
+      setContent({ ops: [{ insert: "\n" }] });
     }
   }, [documentId, user]);
 
@@ -320,17 +424,47 @@ function EditorPage({ user }) {
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
     document.documentElement.scrollTop = 0;
     document.body.scrollTop = 0;
-    
+
     // 延迟再次确保滚动到顶部（处理异步加载的情况）
     const timer = setTimeout(() => {
       window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
       document.documentElement.scrollTop = 0;
       document.body.scrollTop = 0;
     }, 100);
-    
+
     return () => clearTimeout(timer);
   }, [documentId]);
 
+  /**
+   * Effect 1: Socket.io 实时协作连接
+   * 
+   * 功能：建立 WebSocket 连接，实现实时多人协作
+   * 
+   * 主要职责：
+   * 1. 建立 Socket.io 连接
+   * 2. 加载文档数据和协作数据（评论、任务）
+   * 3. 加入文档房间（joinDocument）
+   * 4. 监听实时事件：
+   *    - receiveChange: 接收其他用户的内容变更
+   *    - updateUserList: 更新在线用户列表
+   *    - receiveCursor: 接收其他用户的光标位置
+   *    - newComment/commentUpdated/commentDeleted: 评论相关事件
+   *    - newTask/taskUpdated/taskDeleted: 任务相关事件
+   * 
+   * 实时同步机制：
+   * - 使用 Operational Transformation (OT) 算法
+   * - 通过 Quill Delta 格式传输变更
+   * - 使用 "silent" 模式应用远程变更，避免触发本地 change 事件
+   * 
+   * 依赖项说明：
+   * - documentId: 文档ID变化时重新连接
+   * - user?.id: 用户变化时重新连接
+   * - featureSettings: 功能开关变化时更新事件监听
+   * 
+   * 清理函数：
+   * - 移除所有事件监听器
+   * - 断开 Socket 连接
+   */
   // --- Effect 1: Socket 连接、加载数据、设置监听器 ---
   useEffect(() => {
     if (!user) return;
@@ -374,16 +508,16 @@ function EditorPage({ user }) {
         setIsLocked(locked);
         setLockedBy(doc.lockedBy || null);
 
-        const canEdit = doc.canEdit !== undefined 
-          ? doc.canEdit 
+        const canEdit = doc.canEdit !== undefined
+          ? doc.canEdit
           : (doc.role === "owner" || doc.role === "editor" || user?.role === "admin");
-        
+
         const lockedByOther =
           locked &&
           doc.lockedBy &&
           doc.lockedBy.id !== user.id &&
           user.role !== "admin";
-        
+
         const editable = canEdit && !lockedByOther;
         setIsEditor(editable);
         if (lockedByOther) {
@@ -400,7 +534,7 @@ function EditorPage({ user }) {
       } catch (error) {
         setDocumentLoading(false);
         console.error("获取文档失败", error);
-        
+
         // 区分不同的错误类型
         if (error.response) {
           if (error.response.status === 404) {
@@ -416,7 +550,7 @@ function EditorPage({ user }) {
         } else {
           setSaveStatus("网络错误");
         }
-        
+
         setIsEditor(false);
         setContent({ ops: [{ insert: "\n" }] });
       }
@@ -463,17 +597,17 @@ function EditorPage({ user }) {
       if (!cursorUser || cursorUser.id === user.id) {
         return; // 忽略自己的光标
       }
-      
+
       setRemoteCursors((prev) => {
         const newCursors = new Map(prev);
         if (range && range.index !== undefined) {
           // 确保 range 有有效的 index
-          newCursors.set(cursorUser.id, { 
+          newCursors.set(cursorUser.id, {
             range: {
               index: range.index,
               length: range.length || 0,
-            }, 
-            user: cursorUser 
+            },
+            user: cursorUser
           });
         } else {
           // 如果 range 为空或无效，移除该用户的光标
@@ -487,7 +621,7 @@ function EditorPage({ user }) {
     const newCommentHandler = (comment) => {
       // 确保 parentId 字段存在（处理可能的字段名不一致）
       const parentId = comment.parentId || comment.parent_id || null;
-      
+
       // 确保时间字段正确（处理可能的格式问题）
       const normalizedComment = {
         ...comment,
@@ -495,7 +629,7 @@ function EditorPage({ user }) {
         updatedAt: comment.updatedAt || comment.updated_at || comment.UpdatedAt || null,
         resolvedAt: comment.resolvedAt || comment.resolved_at || comment.ResolvedAt || null,
       };
-      
+
       setComments((prev) => {
         // 如果是回复（有 parentId）
         if (parentId) {
@@ -519,12 +653,12 @@ function EditorPage({ user }) {
             }
             return c;
           });
-          
+
           // 如果找到了父评论，返回更新后的列表
           if (found) {
             return updated;
           }
-          
+
           // 如果没有找到父评论（可能父评论还没加载），先作为根评论添加
           // 这种情况应该很少见，但为了健壮性还是处理一下
           if (prev.some((c) => c.id === normalizedComment.id)) {
@@ -537,7 +671,7 @@ function EditorPage({ user }) {
           };
           return [...prev, rootComment];
         }
-        
+
         // 如果是根评论（没有 parentId）
         // 检查根评论是否已存在（避免重复）
         if (prev.some((c) => c.id === normalizedComment.id)) {
@@ -707,7 +841,7 @@ function EditorPage({ user }) {
         const shouldRefresh =
           Object.prototype.hasOwnProperty.call(updates, "is_locked") ||
           Object.prototype.hasOwnProperty.call(updates, "lockedBy");
-        
+
         if (shouldRefresh) {
           fetchDocument();
         }
@@ -801,15 +935,15 @@ function EditorPage({ user }) {
         if (!quillRef.current) {
           return { container: null, editor: null };
         }
-        
+
         const editor = quillRef.current.getEditor();
         if (!editor) {
           return { container: null, editor: null };
         }
-        
+
         // editor.container 就是 ql-container 本身
         let container = editor.container;
-        
+
         // 如果 container 不存在，尝试从 DOM 查找
         if (!container) {
           const possibleContainer = document.querySelector('.quill-wrapper .ql-container');
@@ -817,7 +951,7 @@ function EditorPage({ user }) {
             container = possibleContainer;
           }
         }
-        
+
         return { container, editor };
       } catch (error) {
         return { container: null, editor: null };
@@ -832,7 +966,7 @@ function EditorPage({ user }) {
 
       try {
         const { container, editor } = getContainerAndEditor();
-        
+
         if (!container || !editor) {
           // 如果容器或编辑器还没准备好，延迟重试
           if (retryCount < maxRetries && isActive) {
@@ -843,7 +977,7 @@ function EditorPage({ user }) {
           }
           return;
         }
-        
+
         // 重置重试计数
         retryCount = 0;
 
@@ -876,13 +1010,13 @@ function EditorPage({ user }) {
               // 这种情况下，移除该用户的光标（可能内容已变化）
               return;
             }
-            
+
             // 获取编辑器的内容区域（ql-editor）
             const editorElement = container.querySelector('.ql-editor');
             if (!editorElement) {
               return;
             }
-            
+
             const color = stringToColor(
               cursorUser.email || cursorUser.full_name || `user${userId}`
             );
@@ -892,7 +1026,7 @@ function EditorPage({ user }) {
             const cursorMarker = document.createElement('div');
             cursorMarker.className = 'remote-cursor-marker';
             cursorMarker.setAttribute('data-user-id', userId);
-            
+
             if (range.length === 0) {
               // 光标位置（没有选择文本）- 显示为竖线
               cursorMarker.style.cssText = `
@@ -948,7 +1082,7 @@ function EditorPage({ user }) {
             if (containerStyle.position === 'static') {
               container.style.position = 'relative';
             }
-            
+
             // 移除该用户的旧光标（如果存在）
             const oldMarker = container.querySelector(`.remote-cursor-marker[data-user-id="${userId}"]`);
             const oldLabel = container.querySelector(`.remote-cursor-label[data-user-id="${userId}"]`);
@@ -960,7 +1094,7 @@ function EditorPage({ user }) {
             if (oldLabel) {
               oldLabel.remove();
             }
-            
+
             container.appendChild(cursorMarker);
             container.appendChild(label);
 
@@ -1078,7 +1212,7 @@ function EditorPage({ user }) {
   useEffect(() => {
     const handleBeforeUnload = (e) => {
       if (!isEditor || !content) return;
-      
+
       // 立即保存
       const sanitizedTags = parseTagsInput(tagsInput);
       const payload = {
@@ -1317,10 +1451,10 @@ function EditorPage({ user }) {
         lockedBy:
           endpoint === "/lock"
             ? {
-                id: user.id,
-                email: user.email,
-                full_name: user.full_name,
-              }
+              id: user.id,
+              email: user.email,
+              full_name: user.full_name,
+            }
             : null,
         forceRefresh: true,
       });
@@ -1637,138 +1771,138 @@ function EditorPage({ user }) {
         </div>
         <div className="editor-container">
           {isMarkdownMode ? (
-          <div className="editor-markdown-wrapper">
-            {/* 工具栏 */}
-            <div className="editor-markdown-toolbar">
-              <span className="editor-markdown-toolbar-label">
-                Markdown 编辑模式（自动保存）
-              </span>
-              <button
-                type="button"
-                onClick={() => setShowMarkdownPreview((prev) => !prev)}
-                className={`editor-markdown-preview-btn ${showMarkdownPreview ? "active" : ""}`}
-              >
-                {showMarkdownPreview ? "隐藏预览" : "预览 Markdown"}
-              </button>
-            </div>
-            
-            {/* 编辑器和预览区域 */}
-            <div className="editor-markdown-editor-area">
-              {/* 编辑器区域 */}
-              <div className={`editor-markdown-editor ${!showMarkdownPreview ? "no-preview" : ""}`}>
-                <textarea
-                  value={markdownValue}
-                  onChange={handleMarkdownChange}
-                  readOnly={!isEditor || (isLocked && lockedBy && lockedBy.id !== user?.id)}
-                  placeholder="# 标题\n\n支持使用 Markdown 语法进行排版：\n- **加粗文本**\n- *斜体文本*\n- [链接](https://example.com)\n- 列表项"
-                  className={`editor-markdown-textarea ${!isEditor || (isLocked && lockedBy && lockedBy.id !== user?.id) ? "readonly" : ""}`}
-                />
+            <div className="editor-markdown-wrapper">
+              {/* 工具栏 */}
+              <div className="editor-markdown-toolbar">
+                <span className="editor-markdown-toolbar-label">
+                  Markdown 编辑模式（自动保存）
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setShowMarkdownPreview((prev) => !prev)}
+                  className={`editor-markdown-preview-btn ${showMarkdownPreview ? "active" : ""}`}
+                >
+                  {showMarkdownPreview ? "隐藏预览" : "预览 Markdown"}
+                </button>
               </div>
-              
-              {/* 预览区域 */}
-              {showMarkdownPreview && (
-                <div className="editor-markdown-preview">
-                  <div className="editor-markdown-preview-header">
-                    预览
-                  </div>
-                  <div
-                    className="editor-markdown-preview-content"
-                    dangerouslySetInnerHTML={{ __html: markdownPreviewHtml }}
+
+              {/* 编辑器和预览区域 */}
+              <div className="editor-markdown-editor-area">
+                {/* 编辑器区域 */}
+                <div className={`editor-markdown-editor ${!showMarkdownPreview ? "no-preview" : ""}`}>
+                  <textarea
+                    value={markdownValue}
+                    onChange={handleMarkdownChange}
+                    readOnly={!isEditor || (isLocked && lockedBy && lockedBy.id !== user?.id)}
+                    placeholder="# 标题\n\n支持使用 Markdown 语法进行排版：\n- **加粗文本**\n- *斜体文本*\n- [链接](https://example.com)\n- 列表项"
+                    className={`editor-markdown-textarea ${!isEditor || (isLocked && lockedBy && lockedBy.id !== user?.id) ? "readonly" : ""}`}
                   />
                 </div>
-              )}
+
+                {/* 预览区域 */}
+                {showMarkdownPreview && (
+                  <div className="editor-markdown-preview">
+                    <div className="editor-markdown-preview-header">
+                      预览
+                    </div>
+                    <div
+                      className="editor-markdown-preview-content"
+                      dangerouslySetInnerHTML={{ __html: markdownPreviewHtml }}
+                    />
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        ) : (
-          <div 
-            className="editor-rich-wrapper"
-            data-testid="rich-text-editor-container"
-          >
-            {/* ReactQuill 编辑器容器 */}
-            <div 
-              className="editor-rich-container quill-wrapper"
+          ) : (
+            <div
+              className="editor-rich-wrapper"
+              data-testid="rich-text-editor-container"
             >
-          <ReactQuill
-                key={`quill-${documentId}-${isEditor}`}
-                ref={(el) => {
-                  if (el) {
-                    quillRef.current = el;
-                    // 延迟检查，确保编辑器完全初始化
-                    setTimeout(() => {
-                      try {
-                        if (el && el.getEditor) {
-                          const editor = el.getEditor();
-                          if (editor) {
-                            // 使用 querySelector 安全地查找 DOM 元素
-                            const quillContainer = el.querySelector ? el.querySelector('.ql-container') : null;
-                            const quillEditor = el.querySelector ? el.querySelector('.ql-editor') : null;
-                            const quillToolbar = el.querySelector ? el.querySelector('.ql-toolbar') : null;
-                            
-                            // 强制显示所有元素（如果存在）
-                            if (quillContainer) {
-                              quillContainer.style.display = "block";
-                              quillContainer.style.visibility = "visible";
-                              quillContainer.style.minHeight = "350px";
-                            }
-                            if (quillEditor) {
-                              quillEditor.style.display = "block";
-                              quillEditor.style.visibility = "visible";
-                              quillEditor.style.minHeight = "350px";
-                            }
-                            if (quillToolbar) {
-                              quillToolbar.style.display = isEditor ? "block" : "none";
-                              quillToolbar.style.visibility = "visible";
-                            }
+              {/* ReactQuill 编辑器容器 */}
+              <div
+                className="editor-rich-container quill-wrapper"
+              >
+                <ReactQuill
+                  key={`quill-${documentId}-${isEditor}`}
+                  ref={(el) => {
+                    if (el) {
+                      quillRef.current = el;
+                      // 延迟检查，确保编辑器完全初始化
+                      setTimeout(() => {
+                        try {
+                          if (el && el.getEditor) {
+                            const editor = el.getEditor();
+                            if (editor) {
+                              // 使用 querySelector 安全地查找 DOM 元素
+                              const quillContainer = el.querySelector ? el.querySelector('.ql-container') : null;
+                              const quillEditor = el.querySelector ? el.querySelector('.ql-editor') : null;
+                              const quillToolbar = el.querySelector ? el.querySelector('.ql-toolbar') : null;
 
-                            // 添加光标位置监听（仅富文本模式且可编辑时）
-                            if (contentFormat === "rich" && isEditor && socket) {
-                              // 统一处理 selection-change 事件
-                              const selectionChangeHandler = (range, oldRange, source) => {
-                                // 1. 发送光标位置（用于实时协作）
-                                handleQuillSelectionChange(range, oldRange, source);
-                                
-                                // 2. 检查是否有文本被选中（用于评论功能）
-                                if (range && range.length > 0) {
-                                  try {
-                                    const selectedTextValue = editor.getText(range.index, range.length);
-                                    if (selectedTextValue && selectedTextValue.trim()) {
-                                      const textData = {
-                                        text: selectedTextValue.trim(),
-                                        index: range.index,
-                                        length: range.length,
-                                      };
-                                      setSelectedText(textData);
+                              // 强制显示所有元素（如果存在）
+                              if (quillContainer) {
+                                quillContainer.style.display = "block";
+                                quillContainer.style.visibility = "visible";
+                                quillContainer.style.minHeight = "350px";
+                              }
+                              if (quillEditor) {
+                                quillEditor.style.display = "block";
+                                quillEditor.style.visibility = "visible";
+                                quillEditor.style.minHeight = "350px";
+                              }
+                              if (quillToolbar) {
+                                quillToolbar.style.display = isEditor ? "block" : "none";
+                                quillToolbar.style.visibility = "visible";
+                              }
+
+                              // 添加光标位置监听（仅富文本模式且可编辑时）
+                              if (contentFormat === "rich" && isEditor && socket) {
+                                // 统一处理 selection-change 事件
+                                const selectionChangeHandler = (range, oldRange, source) => {
+                                  // 1. 发送光标位置（用于实时协作）
+                                  handleQuillSelectionChange(range, oldRange, source);
+
+                                  // 2. 检查是否有文本被选中（用于评论功能）
+                                  if (range && range.length > 0) {
+                                    try {
+                                      const selectedTextValue = editor.getText(range.index, range.length);
+                                      if (selectedTextValue && selectedTextValue.trim()) {
+                                        const textData = {
+                                          text: selectedTextValue.trim(),
+                                          index: range.index,
+                                          length: range.length,
+                                        };
+                                        setSelectedText(textData);
+                                      }
+                                    } catch (error) {
+                                      // 忽略获取文本错误
                                     }
-                                  } catch (error) {
-                                    // 忽略获取文本错误
                                   }
-                                }
-                                // 注意：当 range.length === 0 时不清除 selectedText，保持之前的选择状态
-                                // 这样用户可以在选择文本后点击评论按钮，而不丢失选择
-                              };
+                                  // 注意：当 range.length === 0 时不清除 selectedText，保持之前的选择状态
+                                  // 这样用户可以在选择文本后点击评论按钮，而不丢失选择
+                                };
 
-                              editor.on("selection-change", selectionChangeHandler);
+                                editor.on("selection-change", selectionChangeHandler);
 
-                              // 存储清理函数（如果需要的话，可以在组件卸载时调用）
-                              // 注意：Quill 编辑器在组件卸载时会自动清理事件监听器
+                                // 存储清理函数（如果需要的话，可以在组件卸载时调用）
+                                // 注意：Quill 编辑器在组件卸载时会自动清理事件监听器
+                              }
                             }
                           }
+                        } catch (err) {
+                          // 静默处理错误，避免控制台噪音
+                          // 编辑器可能还在初始化中
                         }
-                      } catch (err) {
-                        // 静默处理错误，避免控制台噪音
-                        // 编辑器可能还在初始化中
-                      }
-                    }, 800);
-                  }
-                }}
-            theme="snow"
-                value={content && content.ops ? content : { ops: [{ insert: "\n" }] }}
-            onChange={handleQuillChange}
-            readOnly={!isEditor}
-                placeholder={isEditor ? "" : "您没有编辑权限"}
-                modules={
-                  isEditor
-                    ? {
+                      }, 800);
+                    }
+                  }}
+                  theme="snow"
+                  value={content && content.ops ? content : { ops: [{ insert: "\n" }] }}
+                  onChange={handleQuillChange}
+                  readOnly={!isEditor}
+                  placeholder={isEditor ? "" : "您没有编辑权限"}
+                  modules={
+                    isEditor
+                      ? {
                         toolbar: [
                           [{ header: [1, 2, 3, false] }],
                           ["bold", "italic", "underline", "strike"],
@@ -1778,26 +1912,26 @@ function EditorPage({ user }) {
                           ["clean"],
                         ],
                       }
-                    : { toolbar: false }
-                }
-                className="editor-quill"
-                formats={[
-                  "header",
-                  "bold",
-                  "italic",
-                  "underline",
-                  "strike",
-                  "list",
-                  "bullet",
-                  "color",
-                  "background",
-                  "link",
-                  "image",
-                ]}
-              />
+                      : { toolbar: false }
+                  }
+                  className="editor-quill"
+                  formats={[
+                    "header",
+                    "bold",
+                    "italic",
+                    "underline",
+                    "strike",
+                    "list",
+                    "bullet",
+                    "color",
+                    "background",
+                    "link",
+                    "image",
+                  ]}
+                />
+              </div>
             </div>
-          </div>
-        )}
+          )}
         </div>
       </div>
       {showShareModal && (
@@ -2017,59 +2151,59 @@ function EditorPage({ user }) {
               // Socket.IO 的 newCommentHandler 会处理实时更新
             }}
             onCommentUpdated={(comment) => {
-            setComments((prev) =>
-              prev.map((c) => {
-                if (c.id === comment.id) {
-                  return comment;
-                }
-                if (c.replies) {
-                  return {
+              setComments((prev) =>
+                prev.map((c) => {
+                  if (c.id === comment.id) {
+                    return comment;
+                  }
+                  if (c.replies) {
+                    return {
+                      ...c,
+                      replies: c.replies.map((r) =>
+                        r.id === comment.id ? comment : r
+                      ),
+                    };
+                  }
+                  return c;
+                })
+              );
+            }}
+            onCommentDeleted={(commentId) => {
+              setComments((prev) =>
+                prev
+                  .filter((c) => c.id !== commentId)
+                  .map((c) => ({
                     ...c,
-                    replies: c.replies.map((r) =>
-                      r.id === comment.id ? comment : r
-                    ),
-                  };
-                }
-                return c;
-              })
-            );
-          }}
-          onCommentDeleted={(commentId) => {
-            setComments((prev) =>
-              prev
-                .filter((c) => c.id !== commentId)
-                .map((c) => ({
-                  ...c,
-                  replies: (c.replies || []).filter((r) => r.id !== commentId),
-                }))
-            );
-          }}
-          onCommentResolved={(comment) => {
-            setComments((prev) =>
-              prev.map((c) => {
-                if (c.id === comment.id) {
-                  return { ...comment, replies: c.replies || [] };
-                }
-                if (c.replies && c.replies.some((r) => r.id === comment.id)) {
-                  return {
-                    ...c,
-                    replies: c.replies.map((r) =>
-                      r.id === comment.id ? comment : r
-                    ),
-                  };
-                }
-                return c;
-              })
-            );
-            // 延迟重新获取评论列表以确保数据同步
-            setTimeout(() => {
-              fetchComments();
-            }, 300);
-          }}
-          selectedText={selectedText}
-          onSelectText={setSelectedText}
-          onClose={() => setShowComments(false)}
-        />
+                    replies: (c.replies || []).filter((r) => r.id !== commentId),
+                  }))
+              );
+            }}
+            onCommentResolved={(comment) => {
+              setComments((prev) =>
+                prev.map((c) => {
+                  if (c.id === comment.id) {
+                    return { ...comment, replies: c.replies || [] };
+                  }
+                  if (c.replies && c.replies.some((r) => r.id === comment.id)) {
+                    return {
+                      ...c,
+                      replies: c.replies.map((r) =>
+                        r.id === comment.id ? comment : r
+                      ),
+                    };
+                  }
+                  return c;
+                })
+              );
+              // 延迟重新获取评论列表以确保数据同步
+              setTimeout(() => {
+                fetchComments();
+              }, 300);
+            }}
+            selectedText={selectedText}
+            onSelectText={setSelectedText}
+            onClose={() => setShowComments(false)}
+          />
         </Suspense>
       )}
 
@@ -2077,24 +2211,24 @@ function EditorPage({ user }) {
       {featureSettings.enable_tasks && showTasks && (
         <Suspense fallback={<LoadingSpinner size="medium" text="加载任务..." />}>
           <TasksPanel
-          documentId={documentId}
-          user={user}
-          tasks={tasks}
-          onTaskCreated={(task) => {
-            // 这个回调现在不会被调用，因为 TasksPanel 中已经移除了回调
-            // Socket.IO 的 newTaskHandler 会处理实时更新
-          }}
-          onTaskUpdated={(task) => {
-            setTasks((prev) => prev.map((t) => (t.id === task.id ? task : t)));
-          }}
-          onTaskDeleted={(taskId) => {
-            setTasks((prev) => prev.filter((t) => t.id !== taskId));
-          }}
-          selectedText={selectedText}
-          onSelectText={setSelectedText}
-          onlineUsers={onlineUsers}
-          onClose={() => setShowTasks(false)}
-        />
+            documentId={documentId}
+            user={user}
+            tasks={tasks}
+            onTaskCreated={(task) => {
+              // 这个回调现在不会被调用，因为 TasksPanel 中已经移除了回调
+              // Socket.IO 的 newTaskHandler 会处理实时更新
+            }}
+            onTaskUpdated={(task) => {
+              setTasks((prev) => prev.map((t) => (t.id === task.id ? task : t)));
+            }}
+            onTaskDeleted={(taskId) => {
+              setTasks((prev) => prev.filter((t) => t.id !== taskId));
+            }}
+            selectedText={selectedText}
+            onSelectText={setSelectedText}
+            onlineUsers={onlineUsers}
+            onClose={() => setShowTasks(false)}
+          />
         </Suspense>
       )}
 
@@ -2102,12 +2236,12 @@ function EditorPage({ user }) {
       {featureSettings.enable_chat && showChat && (
         <Suspense fallback={<LoadingSpinner size="medium" text="加载聊天..." />}>
           <ChatPanel
-          documentId={documentId}
-          user={user}
-          socket={socket}
-          onlineUsers={onlineUsers}
-          onClose={() => setShowChat(false)}
-        />
+            documentId={documentId}
+            user={user}
+            socket={socket}
+            onlineUsers={onlineUsers}
+            onClose={() => setShowChat(false)}
+          />
         </Suspense>
       )}
 
@@ -2115,11 +2249,11 @@ function EditorPage({ user }) {
       {showFiles && (
         <Suspense fallback={<LoadingSpinner size="medium" text="加载文件..." />}>
           <FilePanel
-          documentId={documentId}
-          user={user}
-          socket={socket}
-          onClose={() => setShowFiles(false)}
-        />
+            documentId={documentId}
+            user={user}
+            socket={socket}
+            onClose={() => setShowFiles(false)}
+          />
         </Suspense>
       )}
 
@@ -2127,10 +2261,10 @@ function EditorPage({ user }) {
       {featureSettings.enable_notifications && showNotifications && (
         <Suspense fallback={<LoadingSpinner size="medium" text="加载通知..." />}>
           <NotificationsPanel
-          user={user}
-          socket={socket}
-          onClose={() => setShowNotifications(false)}
-        />
+            user={user}
+            socket={socket}
+            onClose={() => setShowNotifications(false)}
+          />
         </Suspense>
       )}
 
@@ -2138,10 +2272,10 @@ function EditorPage({ user }) {
       {featureSettings.enable_video_conference && showVideoConference && (
         <Suspense fallback={<LoadingSpinner size="medium" text="加载视频会议..." />}>
           <VideoConferencePanel
-          documentId={documentId}
-          user={user}
-          onClose={() => setShowVideoConference(false)}
-        />
+            documentId={documentId}
+            user={user}
+            onClose={() => setShowVideoConference(false)}
+          />
         </Suspense>
       )}
     </div>

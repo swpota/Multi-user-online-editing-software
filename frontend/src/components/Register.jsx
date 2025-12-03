@@ -1,38 +1,85 @@
-import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import api from "../api";
-import "../styles/components/Register.css";
-import logo from "../assets/logo.png";
+/**
+ * 注册组件
+ * 功能：用户注册界面
+ * 特性：
+ * 1. 邮箱/手机号双重验证
+ * 2. 实时字段验证
+ * 3. 密码强度要求（可配置）
+ * 4. 密码显示/隐藏切换
+ * 5. 注册功能开关（可由管理员禁用）
+ * 6. 友好的错误提示
+ * 7. 现代化UI设计
+ */
 
+// 引入React和hooks
+import React, { useState, useEffect } from "react";
+// 引入路由相关组件
+import { Link, useNavigate } from "react-router-dom";
+// 引入API实例
+import api from "../api";
+// 引入认证页面样式
+import "../styles/components/Auth-modern.css";
+// 引入logo
+import logo from "../assets/logo.svg";
+
+/**
+ * Register组件
+ * 提供用户注册功能，包含完整的表单验证
+ */
 function Register() {
+  // 路由导航hook，用于注册成功后跳转
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [fullName, setFullName] = useState("");
-  const [contactEmail, setContactEmail] = useState("");
-  const [contactPhone, setContactPhone] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [message, setMessage] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [registrationEnabled, setRegistrationEnabled] = useState(true);
-  const [passwordMinLength, setPasswordMinLength] = useState(6);
-  const [settingsLoading, setSettingsLoading] = useState(true);
   
-  // 字段级错误状态
+  // ==================== 表单字段状态 ====================
+  
+  // 登录凭据（二选一，至少填写一个）
+  const [email, setEmail] = useState("");           // 登录邮箱
+  const [phone, setPhone] = useState("");           // 登录手机号
+  
+  // 用户基本信息
+  const [fullName, setFullName] = useState("");     // 姓名（必填）
+  
+  // 联系方式（可选）
+  const [contactEmail, setContactEmail] = useState("");  // 联系邮箱
+  const [contactPhone, setContactPhone] = useState("");  // 联系电话
+  
+  // 密码
+  const [password, setPassword] = useState("");           // 密码
+  const [confirmPassword, setConfirmPassword] = useState("");  // 确认密码
+  
+  // ==================== UI状态 ====================
+  
+  const [message, setMessage] = useState("");        // 提示消息
+  const [loading, setLoading] = useState(false);     // 加载状态
+  const [showPassword, setShowPassword] = useState(false);  // 显示密码
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);  // 显示确认密码
+  
+  // ==================== 系统配置状态 ====================
+  
+  const [registrationEnabled, setRegistrationEnabled] = useState(true);  // 注册功能是否启用
+  const [passwordMinLength, setPasswordMinLength] = useState(6);         // 密码最小长度
+  const [settingsLoading, setSettingsLoading] = useState(true);          // 配置加载状态
+
+  // ==================== 表单验证错误状态 ====================
+  // 为每个字段存储独立的错误消息，实现实时验证
   const [errors, setErrors] = useState({
-    email: "",
-    phone: "",
-    fullName: "",
-    password: "",
-    confirmPassword: "",
-    contactEmail: "",
-    contactPhone: "",
+    email: "",            // 邮箱错误
+    phone: "",            // 手机号错误
+    fullName: "",         // 姓名错误
+    password: "",         // 密码错误
+    confirmPassword: "",  // 确认密码错误
+    contactEmail: "",     // 联系邮箱错误
+    contactPhone: "",     // 联系电话错误
   });
 
-  // 获取系统设置
+  /**
+   * useEffect: 获取系统注册设置
+   * 
+   * 功能：
+   * 1. 从后端获取注册相关配置
+   * 2. 判断注册功能是否启用
+   * 3. 获取密码最小长度要求
+   */
   useEffect(() => {
     const fetchSettings = async () => {
       try {
@@ -83,7 +130,7 @@ function Register() {
   // 实时验证函数
   const validateField = (fieldName, value) => {
     let error = "";
-    
+
     switch (fieldName) {
       case "email":
         if (!value || !value.trim()) {
@@ -92,7 +139,7 @@ function Register() {
           error = "邮箱格式不正确";
         }
         break;
-      
+
       case "phone":
         if (!value || !value.trim()) {
           error = "请填写手机号";
@@ -100,7 +147,7 @@ function Register() {
           error = "手机号格式不正确（以13-19开头的11位数字）";
         }
         break;
-      
+
       case "fullName":
         if (!value || !value.trim()) {
           error = "请填写姓名";
@@ -108,7 +155,7 @@ function Register() {
           error = "姓名格式不正确（2-50个字符，不能全是数字）";
         }
         break;
-      
+
       case "password":
         if (!value || !value.trim()) {
           error = "请填写密码";
@@ -116,7 +163,7 @@ function Register() {
           error = `密码长度至少为${passwordMinLength}位`;
         }
         break;
-      
+
       case "confirmPassword":
         if (!value || !value.trim()) {
           error = "请确认密码";
@@ -124,23 +171,23 @@ function Register() {
           error = "两次输入的密码不一致";
         }
         break;
-      
+
       case "contactEmail":
         if (value && value.trim() && !validateEmail(value)) {
           error = "联系邮箱格式不正确";
         }
         break;
-      
+
       case "contactPhone":
         if (value && value.trim() && !validatePhone(value)) {
           error = "联系手机号格式不正确";
         }
         break;
-      
+
       default:
         break;
     }
-    
+
     setErrors(prev => ({ ...prev, [fieldName]: error }));
     return error === "";
   };
@@ -179,7 +226,7 @@ function Register() {
         password,
         fullName: fullName.trim(),
       };
-      
+
       // 只有当联系邮箱和联系手机号不为空时才添加到请求中
       if (contactEmail && contactEmail.trim()) {
         requestData.contactEmail = contactEmail.trim();
@@ -187,7 +234,7 @@ function Register() {
       if (contactPhone && contactPhone.trim()) {
         requestData.contactPhone = contactPhone.trim();
       }
-      
+
       const response = await api.post("/auth/register", requestData);
       setMessage(`注册成功! 用户ID: ${response.data.user.id}，正在跳转到登录页面...`);
       // 清空表单
@@ -206,11 +253,11 @@ function Register() {
       if (error.response) {
         const statusCode = error.response.status;
         const errorData = error.response.data;
-        
+
         // 处理 429 速率限制错误
         if (statusCode === 429) {
           let retryAfter = error.response.headers['retry-after'] || errorData?.retryAfter;
-          
+
           // 如果 retryAfter 是数字（秒数），转换为友好的格式
           if (typeof retryAfter === 'string' && /^\d+$/.test(retryAfter)) {
             const seconds = parseInt(retryAfter, 10);
@@ -230,7 +277,7 @@ function Register() {
           } else if (!retryAfter) {
             retryAfter = "15 分钟";
           }
-          
+
           setMessage(`注册请求过于频繁，请稍后再试（建议等待 ${retryAfter}）`);
         }
         // 处理 400 验证错误
@@ -268,10 +315,16 @@ function Register() {
   // 如果注册功能被禁用，显示提示信息
   if (settingsLoading) {
     return (
-      <div className="register-container">
-        <div className="register-loading">
-          <div className="register-loading-spinner" />
-          正在加载...
+      <div className="auth-page">
+        <div className="auth-background"></div>
+        <div className="auth-grid-pattern"></div>
+        <div className="auth-container">
+          <div className="auth-card">
+            <div style={{ textAlign: 'center', padding: '2rem' }}>
+              <div className="auth-spinner" style={{ margin: '0 auto 1rem' }}></div>
+              <p>正在加载...</p>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -279,256 +332,236 @@ function Register() {
 
   if (!registrationEnabled) {
     return (
-      <div className="register-container">
-        <div className="register-header">
-          <h2 className="register-title">
-            创建账户
-          </h2>
-          <p className="register-subtitle">
-            注册新账户以开始使用
-          </p>
+      <div className="auth-page">
+        <div className="auth-background"></div>
+        <div className="auth-grid-pattern"></div>
+        <div className="auth-container">
+        <div className="auth-card">
+          <div className="auth-header">
+            <Link to="/" className="auth-logo">
+              <img src={logo} alt="MindFlow" />
+              <span className="auth-logo-text">
+                <span className="auth-logo-text-m">M</span>ind
+                <span className="auth-logo-text-f">F</span>low
+              </span>
+            </Link>
+            <h2 className="auth-title">注册已关闭</h2>
+          </div>
+          <div style={{ textAlign: 'center', padding: '2rem' }}>
+            <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🚫</div>
+            <p style={{ color: 'var(--color-text-secondary)', marginBottom: '1rem' }}>
+              系统管理员已关闭用户注册功能。如需创建账户，请联系管理员。
+            </p>
+          </div>
+          <div className="auth-footer">
+            <Link to="/" className="auth-footer-link">
+              返回登录
+            </Link>
+          </div>
         </div>
-        <div className="register-disabled-message">
-          <div className="register-disabled-icon">🚫</div>
-          <h3>注册功能已关闭</h3>
-          <p>系统管理员已关闭用户注册功能。如需创建账户，请联系管理员。</p>
-        </div>
-        <div className="register-back-to-login">
-          <Link
-            to="/login"
-            className="register-back-to-login-link"
-          >
-            返回登录
-          </Link>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="register-page">
-      {/* 左侧品牌展示区 */}
-      <div className="register-brand-section">
-        <div className="register-brand-content">
-          <div className="register-brand-logo">
-            <img src={logo} alt="MindFlow Logo" />
-            <h1>MindFlow</h1>
-          </div>
-          <h2 className="register-brand-title">
-            加入 MindFlow，开启协作之旅
-          </h2>
-          <p className="register-brand-description">
-            与你的团队一起，实时协作，高效创作。
-          </p>
-          <div className="register-brand-features">
-            <div className="register-brand-feature">
-              <ion-icon name="rocket-outline"></ion-icon>
-              <span>快速上手</span>
-            </div>
-            <div className="register-brand-feature">
-              <ion-icon name="cloud-outline"></ion-icon>
-              <span>云端同步</span>
-            </div>
-            <div className="register-brand-feature">
-              <ion-icon name="lock-closed-outline"></ion-icon>
-              <span>安全加密</span>
-            </div>
-          </div>
-        </div>
+    <div className="auth-page">
+      <div className="auth-background"></div>
+      <div className="auth-grid-pattern"></div>
+      <div className="auth-sparkles">
+        <div className="auth-sparkle"></div>
+        <div className="auth-sparkle"></div>
+        <div className="auth-sparkle"></div>
+        <div className="auth-sparkle"></div>
+        <div className="auth-sparkle"></div>
       </div>
+      <div className="auth-container">
+        <div className="auth-card">
+        {/* Logo 和头部 */}
+        <div className="auth-header">
+          <Link to="/" className="auth-logo">
+            <img src={logo} alt="MindFlow" />
+            <span className="auth-logo-text">
+              <span className="auth-logo-text-m">M</span>ind
+              <span className="auth-logo-text-f">F</span>low
+            </span>
+          </Link>
+          <h2 className="auth-title">创建账户</h2>
+          <p className="auth-subtitle">加入 MindFlow，开启协作之旅</p>
+        </div>
 
-      {/* 右侧表单区域 */}
-      <div className="register-form-section">
-        <div className="register-container">
-          <div className="register-header">
-            <h2 className="register-title">
-              创建账户
-            </h2>
-            <p className="register-subtitle">
-              注册新账户以开始使用
-            </p>
-          </div>
-
-          <form onSubmit={handleSubmit} className="register-form">
-            <div className="register-form-group">
-              <label className="register-label">
-                <ion-icon name="mail-outline"></ion-icon>
-                邮箱 <span className="register-label-required">*</span>
-              </label>
-              <div className="register-input-wrapper">
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  onBlur={(e) => handleBlur("email", e.target.value)}
-                  placeholder="name@example.com"
-                  className={`register-input ${errors.email ? 'register-input-error' : ''}`}
-                  required
-                />
-                {errors.email && (
-                  <div className="register-field-error">
-                    <ion-icon name="alert-circle-outline"></ion-icon>
-                    {errors.email}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="register-form-group">
-              <label className="register-label">
-                <ion-icon name="call-outline"></ion-icon>
-                手机号 <span className="register-label-required">*</span>
-              </label>
-              <div className="register-input-wrapper">
-                <input
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  onBlur={(e) => handleBlur("phone", e.target.value)}
-                  placeholder="例如: 13800001234"
-                  className={`register-input ${errors.phone ? 'register-input-error' : ''}`}
-                  required
-                  maxLength={11}
-                />
-                {errors.phone && (
-                  <div className="register-field-error">
-                    <ion-icon name="alert-circle-outline"></ion-icon>
-                    {errors.phone}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="register-form-group">
-              <label className="register-label">
-                <ion-icon name="person-outline"></ion-icon>
-                姓名 <span className="register-label-required">*</span>
-              </label>
-              <div className="register-input-wrapper">
-                <input
-                  type="text"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  onBlur={(e) => handleBlur("fullName", e.target.value)}
-                  placeholder="团队成员姓名"
-                  className={`register-input ${errors.fullName ? 'register-input-error' : ''}`}
-                  required
-                  minLength={2}
-                  maxLength={50}
-                />
-                {errors.fullName && (
-                  <div className="register-field-error">
-                    <ion-icon name="alert-circle-outline"></ion-icon>
-                    {errors.fullName}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="register-form-group">
-              <label className="register-label">
-                <ion-icon name="lock-closed-outline"></ion-icon>
-                密码 <span className="register-label-required">*</span>
-              </label>
-              <div className="register-input-wrapper">
-                <div className="register-password-wrapper">
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    onBlur={(e) => handleBlur("password", e.target.value)}
-                    required
-                    minLength={passwordMinLength}
-                    placeholder={`至少${passwordMinLength}位字符`}
-                    className={`register-input register-input-password ${errors.password ? 'register-input-error' : ''}`}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="register-password-toggle"
-                    title={showPassword ? "隐藏密码" : "显示密码"}
-                  >
-                    <ion-icon name={showPassword ? "eye-off-outline" : "eye-outline"}></ion-icon>
-                  </button>
-                </div>
-                {errors.password && (
-                  <div className="register-field-error">
-                    <ion-icon name="alert-circle-outline"></ion-icon>
-                    {errors.password}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="register-form-group-password">
-              <label className="register-label">
-                <ion-icon name="lock-closed-outline"></ion-icon>
-                确认密码 <span className="register-label-required">*</span>
-              </label>
-              <div className="register-input-wrapper">
-                <div className="register-password-wrapper">
-                  <input
-                    type={showConfirmPassword ? "text" : "password"}
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    onBlur={(e) => handleBlur("confirmPassword", e.target.value)}
-                    required
-                    minLength={passwordMinLength}
-                    placeholder="再次输入密码"
-                    className={`register-input register-input-password ${errors.confirmPassword ? 'register-input-error' : ''}`}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="register-password-toggle"
-                    title={showConfirmPassword ? "隐藏密码" : "显示密码"}
-                  >
-                    <ion-icon name={showConfirmPassword ? "eye-off-outline" : "eye-outline"}></ion-icon>
-                  </button>
-                </div>
-                {errors.confirmPassword && (
-                  <div className="register-field-error">
-                    <ion-icon name="alert-circle-outline"></ion-icon>
-                    {errors.confirmPassword}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className={`register-submit-btn ${loading ? 'register-submit-btn-loading' : ''}`}
-            >
-              {loading ? (
-                <>
-                  <span className="register-btn-spinner"></span>
-                  注册中...
-                </>
-              ) : (
-                <>
-                  <span>注册</span>
-                  <ion-icon name="arrow-forward-outline"></ion-icon>
-                </>
-              )}
-            </button>
-          </form>
-
+        {/* 表单 */}
+        <form onSubmit={handleSubmit} className="auth-form">
+          {/* 消息提示 */}
           {message && (
-            <div
-              className={`register-message ${
-                message.includes("成功") ? "register-message-success" : "register-message-error"
-              }`}
-            >
+            <div className={`auth-message ${message.includes("成功") ? "success" : "error"}`}>
               {message}
             </div>
           )}
 
-          <div className="register-back-to-login">
-            <Link to="/login" className="register-back-to-login-link">
-              已有账户？立即登录
-            </Link>
+          {/* 邮箱 */}
+          <div className="auth-form-group">
+            <label className="auth-label">邮箱 *</label>
+            <div className="auth-input-wrapper">
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                onBlur={(e) => handleBlur("email", e.target.value)}
+                placeholder="name@example.com"
+                className="auth-input"
+                required
+                disabled={loading}
+              />
+              <ion-icon name="mail-outline" className="auth-input-icon"></ion-icon>
+            </div>
+            {errors.email && (
+              <div style={{ color: 'var(--color-error)', fontSize: 'var(--font-size-sm)', marginTop: 'var(--spacing-xs)' }}>
+                {errors.email}
+              </div>
+            )}
           </div>
+
+          {/* 手机号 */}
+          <div className="auth-form-group">
+            <label className="auth-label">手机号 *</label>
+            <div className="auth-input-wrapper">
+              <input
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                onBlur={(e) => handleBlur("phone", e.target.value)}
+                placeholder="13800001234"
+                className="auth-input"
+                required
+                maxLength={11}
+                disabled={loading}
+              />
+              <ion-icon name="call-outline" className="auth-input-icon"></ion-icon>
+            </div>
+            {errors.phone && (
+              <div style={{ color: 'var(--color-error)', fontSize: 'var(--font-size-sm)', marginTop: 'var(--spacing-xs)' }}>
+                {errors.phone}
+              </div>
+            )}
+          </div>
+
+          {/* 姓名 */}
+          <div className="auth-form-group">
+            <label className="auth-label">姓名 *</label>
+            <div className="auth-input-wrapper">
+              <input
+                type="text"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                onBlur={(e) => handleBlur("fullName", e.target.value)}
+                placeholder="您的姓名"
+                className="auth-input"
+                required
+                minLength={2}
+                maxLength={50}
+                disabled={loading}
+              />
+              <ion-icon name="person-outline" className="auth-input-icon"></ion-icon>
+            </div>
+            {errors.fullName && (
+              <div style={{ color: 'var(--color-error)', fontSize: 'var(--font-size-sm)', marginTop: 'var(--spacing-xs)' }}>
+                {errors.fullName}
+              </div>
+            )}
+          </div>
+
+          {/* 密码 */}
+          <div className="auth-form-group">
+            <label className="auth-label">密码 *</label>
+            <div className="auth-input-wrapper">
+              <input
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                onBlur={(e) => handleBlur("password", e.target.value)}
+                placeholder={`至少${passwordMinLength}位字符`}
+                className="auth-input"
+                required
+                minLength={passwordMinLength}
+                disabled={loading}
+              />
+              <ion-icon name="lock-closed-outline" className="auth-input-icon"></ion-icon>
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="auth-password-toggle"
+                title={showPassword ? "隐藏密码" : "显示密码"}
+              >
+                <ion-icon name={showPassword ? "eye-off-outline" : "eye-outline"}></ion-icon>
+              </button>
+            </div>
+            {errors.password && (
+              <div style={{ color: 'var(--color-error)', fontSize: 'var(--font-size-sm)', marginTop: 'var(--spacing-xs)' }}>
+                {errors.password}
+              </div>
+            )}
+          </div>
+
+          {/* 确认密码 */}
+          <div className="auth-form-group">
+            <label className="auth-label">确认密码 *</label>
+            <div className="auth-input-wrapper">
+              <input
+                type={showConfirmPassword ? "text" : "password"}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                onBlur={(e) => handleBlur("confirmPassword", e.target.value)}
+                placeholder="再次输入密码"
+                className="auth-input"
+                required
+                minLength={passwordMinLength}
+                disabled={loading}
+              />
+              <ion-icon name="lock-closed-outline" className="auth-input-icon"></ion-icon>
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="auth-password-toggle"
+                title={showConfirmPassword ? "隐藏密码" : "显示密码"}
+              >
+                <ion-icon name={showConfirmPassword ? "eye-off-outline" : "eye-outline"}></ion-icon>
+              </button>
+            </div>
+            {errors.confirmPassword && (
+              <div style={{ color: 'var(--color-error)', fontSize: 'var(--font-size-sm)', marginTop: 'var(--spacing-xs)' }}>
+                {errors.confirmPassword}
+              </div>
+            )}
+          </div>
+
+          {/* 注册按钮 */}
+          <button
+            type="submit"
+            disabled={loading}
+            className={`auth-button ${loading ? 'loading' : ''}`}
+          >
+            {loading ? (
+              <>
+                <div className="auth-spinner"></div>
+                <span>注册中...</span>
+              </>
+            ) : (
+              <>
+                <span>注册</span>
+                <ion-icon name="arrow-forward-outline"></ion-icon>
+              </>
+            )}
+          </button>
+        </form>
+
+        {/* 页脚链接 */}
+        <div className="auth-footer">
+          已有账户？{' '}
+          <Link to="/login" className="auth-footer-link">
+            立即登录
+          </Link>
+        </div>
         </div>
       </div>
     </div>

@@ -40,7 +40,7 @@
 
 .sidebar-tab.active {
   background: var(--color-primary);
-  color: var(--color-text-inverse);
+  color: white !important;
   box-shadow: var(--shadow-sm);
 }
 

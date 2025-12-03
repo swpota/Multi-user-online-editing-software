@@ -5,6 +5,7 @@
   margin-bottom: 0.75rem;
   transition: all 0.2s;
   border: 2px solid transparent;
+  overflow: hidden; /* 防止内容溢出显示滚动条 */
 }
 
 .document-list-item:hover {
@@ -77,8 +78,9 @@
 }
 
 .badge-locked {
-  background: var(--color-warning-bg);
-  color: var(--color-warning-dark);
+  background: rgba(16, 185, 129, 0.1);
+  color: #065f46;
+  border: 1px solid var(--color-primary);
 }
 
 .document-list-meta {

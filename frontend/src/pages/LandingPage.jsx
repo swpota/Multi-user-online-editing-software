@@ -1,7 +1,10 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import "../styles/pages/LandingPage.css";
-import logo from "../assets/logo.png";
+import LazyImage from "../components/common/LazyImage";
+import "../styles/pages/LandingPage-modern.css";
+import "../styles/pages/LandingPage-sections.css";
+import "../styles/pages/LandingPage-animations-modern.css";
+import logo from "../assets/logo.svg";
 
 // 导入插图
 import heroCollaboration from "../assets/images/hero-collaboration.svg";
@@ -13,11 +16,74 @@ import workflowTimeline from "../assets/images/workflow-timeline.svg";
 import comments from "../assets/images/comments.svg";
 
 // 导入装饰元素
-import lineArtRose from "../assets/images/decorations/line-art-rose.png";
-import lineArtPortrait from "../assets/images/decorations/line-art-portrait.png";
+// import lineArtRose from "../assets/images/decorations/line-art-rose.png";
+// import lineArtPortrait from "../assets/images/decorations/line-art-portrait.png";
 
 function LandingPage() {
   const navigate = useNavigate();
+  const statsRef = useRef(null);
+  const hasAnimated = useRef(false);
+
+  // 滚动显现动画
+  useEffect(() => {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('revealed');
+        }
+      });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.scroll-reveal').forEach(el => observer.observe(el));
+
+    return () => observer.disconnect();
+  }, []);
+
+  // 数字滚动动画
+  useEffect(() => {
+    const animateNumbers = () => {
+      const numbers = document.querySelectorAll('.stat-number[data-target]');
+
+      numbers.forEach(number => {
+        const target = parseInt(number.getAttribute('data-target'));
+        const duration = 2000; // 2秒
+        const increment = target / (duration / 16); // 60fps
+        let current = 0;
+
+        const updateNumber = () => {
+          current += increment;
+          if (current < target) {
+            number.textContent = Math.floor(current);
+            requestAnimationFrame(updateNumber);
+          } else {
+            number.textContent = target;
+          }
+        };
+
+        updateNumber();
+      });
+    };
+
+    // 滚动到统计区域时触发动画
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting && !hasAnimated.current) {
+          hasAnimated.current = true;
+          animateNumbers();
+        }
+      });
+    }, { threshold: 0.3 });
+
+    if (statsRef.current) {
+      observer.observe(statsRef.current);
+    }
+
+    return () => {
+      if (statsRef.current) {
+        observer.unobserve(statsRef.current);
+      }
+    };
+  }, []);
 
   const features = [
     {
@@ -64,10 +130,31 @@ function LandingPage() {
     }
   ];
 
+  // 渲染粒子背景
+  const renderParticles = () => {
+    return (
+      <div className="particles-bg">
+        {[...Array(15)].map((_, i) => (
+          <div
+            key={i}
+            className="particle"
+            style={{
+              left: `${Math.random() * 100}%`,
+              animationDelay: `${Math.random() * 20}s`,
+              width: `${Math.random() * 10 + 5}px`,
+              height: `${Math.random() * 10 + 5}px`,
+              opacity: Math.random() * 0.3 + 0.1
+            }}
+          />
+        ))}
+      </div>
+    );
+  };
+
   return (
     <div className="landing-page">
       {/* 导航栏 */}
-      <header className="landing-header">
+      <header className="landing-header glass-effect">
         <div className="landing-header-content">
           <div className="landing-logo">
             <img src={logo} alt="MindFlow" />
@@ -77,19 +164,20 @@ function LandingPage() {
             </span>
           </div>
           <nav className="landing-nav">
-            <a href="#features">功能</a>
-            <a href="#about">关于</a>
-            <a href="#pricing">价格</a>
+            <a href="#features" className="hover-glow">功能</a>
+            <a href="#community" className="hover-glow">社区</a>
+            <a href="#tech" className="hover-glow">技术</a>
+            <a href="#about" className="hover-glow">关于</a>
           </nav>
           <div className="landing-auth-buttons">
-            <button 
-              className="landing-btn landing-btn-ghost"
+            <button
+              className="landing-btn landing-btn-ghost hover-lift"
               onClick={() => navigate("/login")}
             >
               登录
             </button>
-            <button 
-              className="landing-btn landing-btn-primary"
+            <button
+              className="landing-btn landing-btn-primary hover-lift ripple-effect"
               onClick={() => navigate("/register")}
             >
               免费注册
@@ -100,50 +188,44 @@ function LandingPage() {
 
       {/* 英雄区域 */}
       <section className="landing-hero">
+        {renderParticles()}
         <div className="landing-hero-background">
           <div className="landing-gradient-orb orb-1"></div>
           <div className="landing-gradient-orb orb-2"></div>
           <div className="landing-gradient-orb orb-3"></div>
         </div>
-        
+
         <div className="landing-hero-content">
-          <h1 className="landing-hero-title">
+          <h1 className="landing-hero-title scroll-reveal">
             协作文档平台
             <br />
-            <span className="landing-hero-highlight">让思想流动起来</span>
+            <span className="landing-hero-highlight text-gradient">让思想流动起来</span>
           </h1>
-          <p className="landing-hero-subtitle">
+          <p className="landing-hero-subtitle scroll-reveal" style={{ transitionDelay: '0.2s' }}>
             为现代团队打造的智能文档工具，实时协作、版本管理、安全可靠
           </p>
-          <div className="landing-hero-cta">
-            <button 
-              className="landing-btn landing-btn-large landing-btn-primary"
+          {/* 快速特性标签 */}
+          <div className="landing-hero-tags scroll-reveal" style={{ transitionDelay: '0.4s' }}>
+            <span className="hero-tag">🚀 实时协作</span>
+            <span className="hero-tag">📝 双模式编辑</span>
+            <span className="hero-tag">🎥 视频会议</span>
+            <span className="hero-tag">📊 版本管理</span>
+          </div>
+
+          <div className="landing-hero-cta scroll-reveal" style={{ transitionDelay: '0.6s' }}>
+            <button
+              className="landing-btn landing-btn-large landing-btn-primary hover-lift shimmer-effect"
               onClick={() => navigate("/register")}
             >
               免费开始使用
               <ion-icon name="arrow-forward-outline"></ion-icon>
             </button>
-            <button 
-              className="landing-btn landing-btn-large landing-btn-secondary"
+            <button
+              className="landing-btn landing-btn-large landing-btn-secondary hover-lift"
               onClick={() => navigate("/login")}
             >
               登录账户
             </button>
-          </div>
-
-          {/* 主插图 */}
-          <div className="landing-hero-image">
-            <img 
-              src={heroCollaboration} 
-              alt="团队协作" 
-              className="hero-illustration"
-            />
-            {/* 装饰元素 */}
-            <img 
-              src={lineArtRose} 
-              alt="" 
-              className="decoration-rose"
-            />
           </div>
         </div>
       </section>
@@ -151,19 +233,22 @@ function LandingPage() {
       {/* 特性区域 */}
       <section id="features" className="landing-features">
         <div className="landing-features-content">
-          <h2 className="landing-section-title">
-            为<span className="landing-highlight-text">团队协作</span>而生
+          <h2 className="landing-section-title scroll-reveal">
+            为<span className="landing-highlight-text text-gradient">团队协作</span>而生
           </h2>
-          <p className="landing-section-subtitle">
+          <p className="landing-section-subtitle scroll-reveal" style={{ transitionDelay: '0.2s' }}>
             我们专注于构建最好用的文档协作工具，让团队的思想自由流动
           </p>
-          
+
           <div className="landing-features-grid">
             {features.map((feature, index) => (
-              <div 
-                key={index} 
-                className="landing-feature-card"
-                style={{ backgroundColor: feature.bgColor }}
+              <div
+                key={index}
+                className="landing-feature-card hover-lift scroll-reveal"
+                style={{
+                  backgroundColor: feature.bgColor,
+                  transitionDelay: `${0.1 * index}s`
+                }}
               >
                 <div className="feature-content">
                   <div className="feature-icon">
@@ -173,10 +258,10 @@ function LandingPage() {
                   <p className="feature-description">{feature.description}</p>
                 </div>
                 <div className="feature-illustration">
-                  <img 
-                    src={feature.illustration} 
+                  <LazyImage
+                    src={feature.illustration}
                     alt={feature.title}
-                    loading="lazy"
+                    placeholder="/placeholder.svg"
                   />
                 </div>
               </div>
@@ -185,91 +270,159 @@ function LandingPage() {
         </div>
       </section>
 
-      {/* 价格方案 */}
-      <section id="pricing" className="landing-pricing">
-        <div className="landing-pricing-content">
-          <h2 className="landing-section-title">
-            选择适合你的<span className="landing-highlight-text">方案</span>
+      {/* 开源与贡献 */}
+      <section id="community" className="landing-community">
+        <div className="landing-community-content">
+          <h2 className="landing-section-title scroll-reveal">
+            开放<span className="landing-highlight-text text-gradient">源代码</span>
           </h2>
-          <p className="landing-section-subtitle">
-            无论个人还是团队，我们都有适合你的方案
+          <p className="landing-section-subtitle scroll-reveal">
+            MindFlow 是一个开源项目，我们期待你的参与和贡献
           </p>
-          
-          <div className="landing-pricing-grid">
-            <div className="landing-pricing-card">
-              <div className="pricing-card-header">
-                <h3 className="pricing-card-title">免费版</h3>
-                <p className="pricing-card-description">适合个人用户和小团队</p>
+
+          {/* 贡献方式 */}
+          <div className="contribute-ways">
+            <div className="contribute-card hover-lift scroll-reveal" style={{ transitionDelay: '0.1s' }}>
+              <div className="contribute-icon">💻</div>
+              <h3>代码贡献</h3>
+              <p>提交 PR，帮助改进功能和修复 Bug</p>
+            </div>
+            <div className="contribute-card hover-lift scroll-reveal" style={{ transitionDelay: '0.2s' }}>
+              <div className="contribute-icon">📖</div>
+              <h3>文档完善</h3>
+              <p>编写和改进项目文档，帮助更多人使用</p>
+            </div>
+            <div className="contribute-card hover-lift scroll-reveal" style={{ transitionDelay: '0.3s' }}>
+              <div className="contribute-icon">🎨</div>
+              <h3>设计建议</h3>
+              <p>提供 UI/UX 设计建议，提升用户体验</p>
+            </div>
+            <div className="contribute-card hover-lift scroll-reveal" style={{ transitionDelay: '0.4s' }}>
+              <div className="contribute-icon">🐛</div>
+              <h3>问题反馈</h3>
+              <p>报告 Bug 和提出功能需求</p>
+            </div>
+          </div>
+
+          <div className="community-cta scroll-reveal">
+            <a
+              href="https://github.com/swpota"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="github-btn hover-lift ripple-effect"
+            >
+              <ion-icon name="logo-github"></ion-icon>
+              在 GitHub 上查看
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* 技术栈展示 */}
+      <section id="tech" className="landing-tech">
+        <div className="landing-tech-content">
+          <h2 className="landing-section-title scroll-reveal">
+            现代化的<span className="landing-highlight-text text-gradient">技术栈</span>
+          </h2>
+          <p className="landing-section-subtitle scroll-reveal">
+            使用最新的技术构建，性能强劲，易于扩展
+          </p>
+
+          <div className="tech-categories">
+            <div className="tech-category scroll-reveal" style={{ transitionDelay: '0.1s' }}>
+              <h3 className="tech-category-title">前端技术</h3>
+              <div className="tech-items">
+                <div className="tech-item hover-lift">
+                  <div className="tech-icon" style={{ background: 'linear-gradient(135deg, #61DAFB 0%, #0088CC 100%)' }}>
+                    <span>⚛️</span>
+                  </div>
+                  <span>React 18</span>
+                </div>
+                <div className="tech-item hover-lift">
+                  <div className="tech-icon" style={{ background: 'linear-gradient(135deg, #646CFF 0%, #535FCF 100%)' }}>
+                    <span>⚡</span>
+                  </div>
+                  <span>Vite</span>
+                </div>
+                <div className="tech-item hover-lift">
+                  <div className="tech-icon" style={{ background: 'linear-gradient(135deg, #FF6B6B 0%, #EE5A6F 100%)' }}>
+                    <span>🎨</span>
+                  </div>
+                  <span>CSS3</span>
+                </div>
               </div>
-              <div className="pricing-card-price">
-                <span className="price-currency">¥</span>
-                <span className="price-amount">0</span>
-                <span className="price-period">/月</span>
-              </div>
-              <ul className="pricing-card-features">
-                <li><ion-icon name="checkmark-circle"></ion-icon> 5个协作文档</li>
-                <li><ion-icon name="checkmark-circle"></ion-icon> 3位团队成员</li>
-                <li><ion-icon name="checkmark-circle"></ion-icon> 基础版本历史</li>
-                <li><ion-icon name="checkmark-circle"></ion-icon> 富文本 & Markdown</li>
-                <li><ion-icon name="checkmark-circle"></ion-icon> 实时评论</li>
-              </ul>
-              <button 
-                className="pricing-card-btn"
-                onClick={() => navigate("/register")}
-              >
-                开始使用
-              </button>
             </div>
 
-            <div className="landing-pricing-card featured">
-              <div className="pricing-card-badge">推荐</div>
-              <div className="pricing-card-header">
-                <h3 className="pricing-card-title">专业版</h3>
-                <p className="pricing-card-description">适合成长中的团队</p>
+            <div className="tech-category scroll-reveal" style={{ transitionDelay: '0.2s' }}>
+              <h3 className="tech-category-title">后端技术</h3>
+              <div className="tech-items">
+                <div className="tech-item hover-lift">
+                  <div className="tech-icon" style={{ background: 'linear-gradient(135deg, #339933 0%, #66CC33 100%)' }}>
+                    <span>🐢</span>
+                  </div>
+                  <span>Node.js</span>
+                </div>
+                <div className="tech-item hover-lift">
+                  <div className="tech-icon" style={{ background: 'linear-gradient(135deg, #000000 0%, #404040 100%)' }}>
+                    <span>⚡</span>
+                  </div>
+                  <span>Express 5</span>
+                </div>
+                <div className="tech-item hover-lift">
+                  <div className="tech-icon" style={{ background: 'linear-gradient(135deg, #336791 0%, #2E5F8E 100%)' }}>
+                    <span>🐘</span>
+                  </div>
+                  <span>PostgreSQL</span>
+                </div>
               </div>
-              <div className="pricing-card-price">
-                <span className="price-currency">¥</span>
-                <span className="price-amount">29</span>
-                <span className="price-period">/月/人</span>
-              </div>
-              <ul className="pricing-card-features">
-                <li><ion-icon name="checkmark-circle"></ion-icon> 无限协作文档</li>
-                <li><ion-icon name="checkmark-circle"></ion-icon> 无限团队成员</li>
-                <li><ion-icon name="checkmark-circle"></ion-icon> 完整版本历史</li>
-                <li><ion-icon name="checkmark-circle"></ion-icon> 高级权限管理</li>
-                <li><ion-icon name="checkmark-circle"></ion-icon> 视频会议集成</li>
-                <li><ion-icon name="checkmark-circle"></ion-icon> 优先技术支持</li>
-              </ul>
-              <button 
-                className="pricing-card-btn primary"
-                onClick={() => navigate("/register")}
-              >
-                立即升级
-              </button>
             </div>
 
-            <div className="landing-pricing-card">
-              <div className="pricing-card-header">
-                <h3 className="pricing-card-title">企业版</h3>
-                <p className="pricing-card-description">适合大型组织</p>
+            <div className="tech-category scroll-reveal" style={{ transitionDelay: '0.3s' }}>
+              <h3 className="tech-category-title">实时通信</h3>
+              <div className="tech-items">
+                <div className="tech-item hover-lift">
+                  <div className="tech-icon" style={{ background: 'linear-gradient(135deg, #010101 0%, #3E3E3E 100%)' }}>
+                    <span>🔌</span>
+                  </div>
+                  <span>WebSocket</span>
+                </div>
+                <div className="tech-item hover-lift">
+                  <div className="tech-icon" style={{ background: 'linear-gradient(135deg, #25C2A0 0%, #1DA87F 100%)' }}>
+                    <span>💬</span>
+                  </div>
+                  <span>Socket.IO</span>
+                </div>
+                <div className="tech-item hover-lift">
+                  <div className="tech-icon" style={{ background: 'linear-gradient(135deg, #DC382D 0%, #B52E24 100%)' }}>
+                    <span>🚀</span>
+                  </div>
+                  <span>Redis</span>
+                </div>
               </div>
-              <div className="pricing-card-price">
-                <span className="price-custom">定制方案</span>
-              </div>
-              <ul className="pricing-card-features">
-                <li><ion-icon name="checkmark-circle"></ion-icon> 专业版所有功能</li>
-                <li><ion-icon name="checkmark-circle"></ion-icon> 单点登录 (SSO)</li>
-                <li><ion-icon name="checkmark-circle"></ion-icon> 高级安全控制</li>
-                <li><ion-icon name="checkmark-circle"></ion-icon> 专属客户经理</li>
-                <li><ion-icon name="checkmark-circle"></ion-icon> SLA 保障</li>
-                <li><ion-icon name="checkmark-circle"></ion-icon> 定制化开发</li>
-              </ul>
-              <button 
-                className="pricing-card-btn"
-                onClick={() => window.location.href = "mailto:1452682204@qq.com"}
-              >
-                联系我们
-              </button>
+            </div>
+          </div>
+
+          {/* 特性高亮 */}
+          <div className="tech-highlights">
+            <div className="tech-highlight-card hover-lift scroll-reveal" style={{ transitionDelay: '0.1s' }}>
+              <div className="highlight-badge">⚡ 性能</div>
+              <h4>极速响应</h4>
+              <p>Vite 构建 + 代码分割，秒开应用</p>
+            </div>
+            <div className="tech-highlight-card hover-lift scroll-reveal" style={{ transitionDelay: '0.2s' }}>
+              <div className="highlight-badge">🔒 安全</div>
+              <h4>企业级安全</h4>
+              <p>JWT 认证 + HTTPS + SQL 注入防护</p>
+            </div>
+            <div className="tech-highlight-card hover-lift scroll-reveal" style={{ transitionDelay: '0.3s' }}>
+              <div className="highlight-badge">📱 响应式</div>
+              <h4>全平台支持</h4>
+              <p>完美适配桌面、平板、手机</p>
+            </div>
+            <div className="tech-highlight-card hover-lift scroll-reveal" style={{ transitionDelay: '0.4s' }}>
+              <div className="highlight-badge">🌐 PWA</div>
+              <h4>渐进式 Web 应用</h4>
+              <p>支持离线使用，可安装到桌面</p>
             </div>
           </div>
         </div>
@@ -278,18 +431,18 @@ function LandingPage() {
       {/* 关于我们 */}
       <section id="about" className="landing-about">
         <div className="landing-about-content">
-          <h2 className="landing-section-title">
-            关于<span className="landing-highlight-text">MindFlow</span>
+          <h2 className="landing-section-title scroll-reveal">
+            关于<span className="landing-highlight-text text-gradient">MindFlow</span>
           </h2>
-          
+
           <div className="landing-about-grid">
-            <div className="about-text">
+            <div className="about-text scroll-reveal">
               <h3>我们的愿景</h3>
               <p>
                 MindFlow 致力于打造最好用的文档协作平台，让团队的思想自由流动。
                 我们相信，好的工具应该让协作变得简单、高效、愉快。
               </p>
-              
+
               <h3>我们的使命</h3>
               <p>
                 通过现代化的技术和优雅的设计，帮助团队打破信息壁垒，
@@ -303,22 +456,22 @@ function LandingPage() {
               </p>
             </div>
 
-            <div className="about-stats">
-              <div className="stat-card">
-                <div className="stat-number">1000+</div>
-                <div className="stat-label">活跃用户</div>
+            <div className="about-stats scroll-reveal" style={{ transitionDelay: '0.2s' }}>
+              <div className="stat-card hover-lift">
+                <div className="stat-number">🚀</div>
+                <div className="stat-label">快速部署</div>
               </div>
-              <div className="stat-card">
-                <div className="stat-number">5000+</div>
-                <div className="stat-label">协作文档</div>
+              <div className="stat-card hover-lift">
+                <div className="stat-number">💎</div>
+                <div className="stat-label">完全免费</div>
               </div>
-              <div className="stat-card">
-                <div className="stat-number">99.9%</div>
-                <div className="stat-label">服务可用性</div>
+              <div className="stat-card hover-lift">
+                <div className="stat-number">🔓</div>
+                <div className="stat-label">开源透明</div>
               </div>
-              <div className="stat-card">
-                <div className="stat-number">24/7</div>
-                <div className="stat-label">技术支持</div>
+              <div className="stat-card hover-lift">
+                <div className="stat-number">🌱</div>
+                <div className="stat-label">持续进化</div>
               </div>
             </div>
           </div>
@@ -327,17 +480,11 @@ function LandingPage() {
 
       {/* CTA区域 */}
       <section className="landing-cta">
-        {/* 装饰元素 */}
-        <img 
-          src={lineArtPortrait} 
-          alt="" 
-          className="decoration-portrait"
-        />
-        <div className="landing-cta-content">
+        <div className="landing-cta-content scroll-reveal">
           <h2 className="landing-cta-title">开始你的协作之旅</h2>
-          <p className="landing-cta-subtitle">加入数千个团队，体验更高效的文档协作</p>
-          <button 
-            className="landing-btn landing-btn-large landing-btn-primary"
+          <p className="landing-cta-subtitle">立即注册，开始你的高效协作体验</p>
+          <button
+            className="landing-btn landing-btn-large landing-btn-primary hover-lift shimmer-effect"
             onClick={() => navigate("/register")}
           >
             免费注册
@@ -355,53 +502,53 @@ function LandingPage() {
               <span className="landing-logo-text-f">F</span>low
             </span>
           </div>
-          
+
           <div className="landing-footer-links">
             <div className="landing-footer-section">
               <h4 className="landing-footer-section-title">产品</h4>
-              <a href="#features">功能特性</a>
-              <a href="#pricing">定价方案</a>
-              <a href="#updates">更新日志</a>
-              <a href="#roadmap">产品路线图</a>
+              <a href="#features" className="hover-glow">功能特性</a>
+              <a href="#community" className="hover-glow">开源社区</a>
+              <a href="#tech" className="hover-glow">技术栈</a>
+              <a href="#about" className="hover-glow">关于我们</a>
             </div>
-            
+
             <div className="landing-footer-section">
               <h4 className="landing-footer-section-title">资源</h4>
-              <a href="#docs">文档中心</a>
-              <a href="#tutorials">使用教程</a>
-              <a href="#api">API 参考</a>
-              <a href="#community">社区论坛</a>
+              <a href="#docs" className="hover-glow">文档中心</a>
+              <a href="#tutorials" className="hover-glow">使用教程</a>
+              <a href="#api" className="hover-glow">API 参考</a>
+              <a href="#community" className="hover-glow">社区论坛</a>
             </div>
-            
+
             <div className="landing-footer-section">
               <h4 className="landing-footer-section-title">公司</h4>
-              <a href="#about">关于我们</a>
-              <a href="mailto:1452682204@qq.com">QQ邮箱</a>
-              <a href="mailto:1452682204se@gmail.com">Google邮箱</a>
-              <a href="https://github.com/swpota" target="_blank" rel="noopener noreferrer">GitHub</a>
+              <a href="#about" className="hover-glow">关于我们</a>
+              <a href="mailto:1452682204@qq.com" className="hover-glow">QQ邮箱</a>
+              <a href="mailto:1452682204se@gmail.com" className="hover-glow">Google邮箱</a>
+              <a href="https://github.com/swpota" target="_blank" rel="noopener noreferrer" className="hover-glow">GitHub</a>
             </div>
-            
+
             <div className="landing-footer-section">
               <h4 className="landing-footer-section-title">法律</h4>
-              <a href="#privacy">隐私政策</a>
-              <a href="#terms">服务条款</a>
-              <a href="#security">安全说明</a>
-              <a href="#compliance">合规性</a>
+              <a href="#privacy" className="hover-glow">隐私政策</a>
+              <a href="#terms" className="hover-glow">服务条款</a>
+              <a href="#security" className="hover-glow">安全说明</a>
+              <a href="#compliance" className="hover-glow">合规性</a>
             </div>
           </div>
-          
+
           <div className="landing-footer-bottom">
             <p className="landing-footer-copyright">
               © 2025 MindFlow. All rights reserved.
             </p>
             <div className="landing-footer-social">
-              <a href="https://github.com/swpota" target="_blank" rel="noopener noreferrer" className="landing-footer-social-link" aria-label="GitHub">
+              <a href="https://github.com/swpota" target="_blank" rel="noopener noreferrer" className="landing-footer-social-link hover-lift" aria-label="GitHub">
                 <ion-icon name="logo-github"></ion-icon>
               </a>
-              <a href="mailto:1452682204@qq.com" className="landing-footer-social-link" aria-label="QQ Email">
+              <a href="mailto:1452682204@qq.com" className="landing-footer-social-link hover-lift" aria-label="QQ Email">
                 <ion-icon name="mail-outline"></ion-icon>
               </a>
-              <a href="mailto:1452682204se@gmail.com" className="landing-footer-social-link" aria-label="Gmail">
+              <a href="mailto:1452682204se@gmail.com" className="landing-footer-social-link hover-lift" aria-label="Gmail">
                 <ion-icon name="logo-google"></ion-icon>
               </a>
             </div>

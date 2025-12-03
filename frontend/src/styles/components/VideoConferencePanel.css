@@ -262,6 +262,204 @@
   color: var(--color-text-tertiary);
 }
 
+/* 视频会议内容区域 */
+.video-conference-content {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  background-color: #202124;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Jitsi容器 */
+.video-conference-jitsi-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+/* 加载覆盖层 */
+.video-conference-loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.video-conference-loading-content {
+  text-align: center;
+  color: white;
+}
+
+.video-conference-loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid rgba(255, 255, 255, 0.2);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 16px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.video-conference-loading-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 8px;
+}
+
+.video-conference-loading-subtitle {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0;
+}
+
+/* 错误显示 */
+.video-conference-error {
+  padding: 40px;
+  text-align: center;
+  color: var(--color-text-primary);
+}
+
+.video-conference-error-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.video-conference-error-title {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0 0 8px;
+}
+
+.video-conference-error-message {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  margin: 0 0 24px;
+}
+
+.video-conference-error-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.video-conference-retry-btn,
+.video-conference-close-btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.video-conference-retry-btn {
+  background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+  color: white;
+}
+
+.video-conference-retry-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.video-conference-close-btn {
+  background: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+}
+
+.video-conference-close-btn:hover {
+  background: var(--color-bg-tertiary);
+}
+
+/* 状态栏 */
+.video-conference-status-bar {
+  padding: 12px 20px;
+  background: var(--color-bg-surface);
+  border-top: 1px solid var(--color-border-light);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.video-conference-status-bar-left {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.video-conference-status-bar-item {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.video-conference-help-btn {
+  padding: 6px 12px;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-default);
+  border-radius: 6px;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.video-conference-help-btn:hover {
+  background: var(--color-primary-lighter);
+  border-color: var(--color-primary);
+  color: var(--color-primary-dark);
+}
+
+/* 帮助内容 */
+.video-conference-help-content {
+  padding: 16px 20px;
+  background: var(--color-bg-secondary);
+  border-top: 1px solid var(--color-border-light);
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.video-conference-help-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: 12px;
+}
+
+.video-conference-help-item {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+  margin-bottom: 8px;
+}
+
+.video-conference-help-item:last-child {
+  margin-bottom: 0;
+}
+
+.video-conference-help-item strong {
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
+
 .video-conference-controls {
   padding: 16px;
   background-color: var(--color-bg-surface);

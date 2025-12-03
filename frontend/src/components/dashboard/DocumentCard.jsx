@@ -7,7 +7,7 @@ import React, { memo } from "react";
 import { Link } from "react-router-dom";
 import { formatRelativeTime } from "../../utils/timeUtils";
 import { toArray } from "../../utils";
-import "../../styles/components/dashboard/DocumentCard.css";
+import "../../styles/components/dashboard/DocumentCard-modern.css";
 
 // 分类颜色映射（组件外定义，避免重复创建）
 const CATEGORY_COLORS = {
@@ -22,7 +22,7 @@ function DocumentCard({ doc, isSelected, onSelect, onDelete, onExport }) {
   const categoryColor = CATEGORY_COLORS[doc.category] || "#6b7280";
 
   return (
-    <div className={`document-card ${isSelected ? "selected" : ""}`}>
+    <div className={`document-card hover-lift ${isSelected ? "selected" : ""}`}>
       <div className="document-card-header">
         <input
           type="checkbox"

@@ -1,16 +1,72 @@
 /**
- * Dashboard 仪表盘组件（重构版）
- * 功能：文档列表、创建、搜索、筛选、批量操作
+ * Dashboard - 文档管理仪表盘组件（重构版）
+ * 
+ * 功能概述：
+ * 这是应用的主要工作界面，提供完整的文档管理功能
+ * 
+ * 核心功能：
+ * 1. 文档列表展示（支持网格/列表视图切换）
+ * 2. 文档创建（支持从模板创建、富文本/Markdown格式）
+ * 3. 文档搜索和筛选（多条件组合筛选）
+ * 4. 批量操作（批量删除、批量导出）
+ * 5. 文档导入导出（支持JSON/Markdown/PDF/Word格式）
+ * 6. 模板管理（模板选择器面板）
+ * 7. 分页和排序
+ * 8. 文档分享（通过ShareModal）
+ * 
+ * 状态管理：
+ * - 文档列表和加载状态
+ * - 模板列表和加载状态
+ * - 搜索词、分类、标签筛选
+ * - 高级筛选（创建/更新时间范围、所有者、锁定状态）
+ * - 排序方式（按更新时间/创建时间/标题）
+ * - 视图模式（网格/列表）
+ * - 分页状态
+ * - 选中的文档列表（用于批量操作）
+ * - 各种模态框显示状态
+ * - 新建文档表单数据
+ * - 导入导出状态
+ * 
+ * 子组件：
+ * - FilterBar: 顶部筛选栏（搜索、分类、标签、排序、视图切换）
+ * - BulkActions: 批量操作工具栏
+ * - TemplateSelector: 模板选择器面板
+ * - DocumentCard: 网格视图下的文档卡片
+ * - DocumentListItem: 列表视图下的文档列表项
+ * - Modal: 通用模态框（创建文档、导入文档）
+ * - ShareModal: 分享文档模态框
+ * - EmptyState: 空状态提示
+ * - SkeletonScreen: 骨架屏加载动画
+ * 
+ * 持久化存储：
+ * - selectedDocs: 选中的文档ID列表（localStorage）
+ * - dashboardViewMode: 视图模式（localStorage）
+ * - documentExportFormats: 每个文档的导出格式偏好（localStorage）
+ * 
+ * 性能优化：
+ * - 使用useMemo缓存计算结果（分类列表、标签列表、分页数据）
+ * - 使用useCallback缓存回调函数，避免子组件不必要的重新渲染
+ * - 防抖搜索（避免频繁请求）
+ * 
+ * 权限管理：
+ * - 管理员：可以查看所有用户的文档，可以按所有者筛选
+ * - 普通用户：只能查看自己的文档和被分享的文档
+ * 
+ * @param {Object} props - 组件属性
+ * @param {Object} props.user - 当前登录用户对象
+ * @param {string} props.user.id - 用户ID
+ * @param {string} props.user.role - 用户角色（admin/user）
+ * @param {string} props.user.email - 用户邮箱
+ * @param {string} props.user.full_name - 用户全名
  */
 import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { Link } from "react-router-dom";
 import api from "../api";
-import "../styles/components/DashBoard.css";
+import "../styles/components/DashBoard-modern.css";
 import "../styles/components/dashboard/CreateDocForm.css";
+import "../styles/components/dashboard/VirtualizedDocumentList.css";
 
 // 导入子组件
-import DocumentCard from "./dashboard/DocumentCard";
-import DocumentListItem from "./dashboard/DocumentListItem";
 import FilterBar from "./dashboard/FilterBar";
 import BulkActions from "./dashboard/BulkActions";
 import TemplateSelector from "./dashboard/TemplateSelector";
@@ -19,6 +75,8 @@ import ShareModal from "./ShareModal";
 import EmptyState from "./EmptyState";
 import { useToast } from "./ToastContainer";
 import SkeletonScreen from "./common/SkeletonScreen";
+import DocumentCard from "./dashboard/DocumentCard";
+import DocumentListItem from "./dashboard/DocumentListItem";
 
 // 导入工具函数
 import { toArray, dedupe } from "../utils";
@@ -105,6 +163,32 @@ function Dashboard({ user }) {
   });
 
   // ==================== 数据加载 ====================
+  /**
+   * 加载文档列表
+   * 
+   * 功能：从后端API获取文档列表，支持多条件筛选和排序
+   * 
+   * @param {Object} filters - 筛选条件对象
+   * @param {string} [filters.q] - 搜索关键词（搜索标题、分类、标签）
+   * @param {string} [filters.category] - 分类筛选
+   * @param {string} [filters.tag] - 标签筛选
+   * @param {string} [filters.sort='updated_at'] - 排序字段（updated_at/created_at/title）
+   * @param {string} [filters.order='desc'] - 排序方向（asc/desc）
+   * @param {string} [filters.createdFrom] - 创建时间起始
+   * @param {string} [filters.createdTo] - 创建时间结束
+   * @param {string} [filters.updatedFrom] - 更新时间起始
+   * @param {string} [filters.updatedTo] - 更新时间结束
+   * @param {string} [filters.locked] - 锁定状态筛选（true/false）
+   * @param {string} [filters.owner] - 所有者筛选（仅管理员可用）
+   * 
+   * 副作用：
+   * - 更新documents状态
+   * - 更新loading状态
+   * - 更新error状态
+   * - 保存activeFilters用于刷新列表
+   * - 重置当前页码为1
+   * - 如果是管理员，还会更新ownerOptions（所有者选项列表）
+   */
   const loadDocuments = useCallback(
     async (filters = {}) => {
       const normalizedFilters = {
@@ -165,6 +249,22 @@ function Dashboard({ user }) {
     [isAdmin]
   );
 
+  /**
+   * 加载文档模板列表
+   * 
+   * 功能：从后端API获取所有可用的文档模板
+   * 
+   * 模板用途：
+   * - 用户创建新文档时可以选择模板
+   * - 模板包含预定义的内容、分类、标签和格式
+   * - 支持公开模板和私有模板
+   * 
+   * 副作用：
+   * - 更新templates状态
+   * - 更新templatesLoading状态
+   * - 更新templateError状态
+   * - 标准化模板的tags字段为数组格式
+   */
   const loadTemplates = useCallback(async () => {
     try {
       setTemplatesLoading(true);
@@ -214,13 +314,17 @@ function Dashboard({ user }) {
     const delay = searchTerm ? 800 : 200;
     const timer = setTimeout(() => {
       setCurrentPage(1);
-      const [field, order] = sortBy.split("_");
+      // 修复：正确解析排序字段和顺序（例如 "updated_at_desc" -> field: "updated_at", order: "desc"）
+      const lastUnderscoreIndex = sortBy.lastIndexOf("_");
+      const field = sortBy.substring(0, lastUnderscoreIndex) || "updated_at";
+      const order = sortBy.substring(lastUnderscoreIndex + 1) || "desc";
+      
       loadDocuments({
         q: searchTerm,
         category: selectedCategory,
         tag: selectedTag,
-        sort: field || "updated_at",
-        order: order || "desc",
+        sort: field,
+        order: order,
         createdFrom,
         createdTo,
         updatedFrom,
@@ -278,13 +382,17 @@ function Dashboard({ user }) {
 
   // ==================== 事件处理 ====================
   const handleSearch = useCallback(() => {
-    const [field, order] = sortBy.split("_");
+    // 修复：正确解析排序字段和顺序
+    const lastUnderscoreIndex = sortBy.lastIndexOf("_");
+    const field = sortBy.substring(0, lastUnderscoreIndex) || "updated_at";
+    const order = sortBy.substring(lastUnderscoreIndex + 1) || "desc";
+    
     loadDocuments({
       q: searchTerm,
       category: selectedCategory,
       tag: selectedTag,
-      sort: field || "updated_at",
-      order: order || "desc",
+      sort: field,
+      order: order,
       createdFrom,
       createdTo,
       updatedFrom,
@@ -395,7 +503,7 @@ function Dashboard({ user }) {
         { documentIds: selectedDocs, format: bulkExportFormat },
         { responseType: "blob" }
       );
-      
+
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
       link.href = url;
@@ -403,7 +511,7 @@ function Dashboard({ user }) {
       document.body.appendChild(link);
       link.click();
       link.remove();
-      
+
       toast.success(`成功导出 ${selectedDocs.length} 个文档`);
       setBulkExportMessage("");
     } catch (err) {
@@ -440,14 +548,14 @@ function Dashboard({ user }) {
       const response = await api.post("/documents", payload);
       toast.success("文档创建成功");
       setShowCreateModal(false);
-      
+
       // 重置表单
       setNewDocTitle("");
       setNewDocCategory("");
       setNewDocTags("");
       setSelectedTemplateId("");
       setNewDocMarkdown("");
-      
+
       loadDocuments(activeFilters);
     } catch (err) {
       console.error("创建文档失败:", err);
@@ -503,11 +611,11 @@ function Dashboard({ user }) {
   }
 
   return (
-    <div className="dashboard-container">
+    <div className="dashboard-container fade-in-up">
       {/* 头部操作栏 */}
       <div className="dashboard-header">
         <div className="dashboard-header-left">
-          <h1 className="dashboard-title">我的文档</h1>
+          <h1 className="dashboard-title text-gradient">我的文档</h1>
           <p className="dashboard-subtitle">共 {documents.length} 个文档</p>
         </div>
         <div className="dashboard-header-right">
@@ -519,7 +627,7 @@ function Dashboard({ user }) {
             </svg>
             导入
           </button>
-          <button className="dashboard-btn-primary" onClick={() => setShowCreateModal(true)}>
+          <button className="dashboard-btn-primary shimmer-effect" onClick={() => setShowCreateModal(true)}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <line x1="12" y1="5" x2="12" y2="19" />
               <line x1="5" y1="12" x2="19" y2="12" />
@@ -557,35 +665,31 @@ function Dashboard({ user }) {
           } : null}
         />
       ) : (
-        <>
-          {viewMode === "grid" ? (
-            <div className="dashboard-grid-view">
-              {paginatedDocuments.map((doc) => (
-                <DocumentCard
-                  key={doc.id}
-                  doc={doc}
-                  isSelected={selectedDocs.includes(doc.id)}
-                  onSelect={handleSelectDoc}
-                  onDelete={handleDeleteDoc}
-                  onExport={handleExportDoc}
-                />
-              ))}
-            </div>
+        <div className={viewMode === 'grid' ? 'dashboard-grid-view' : 'dashboard-list-view'}>
+          {viewMode === 'grid' ? (
+            paginatedDocuments.map((doc) => (
+              <DocumentCard
+                key={doc.id}
+                doc={doc}
+                isSelected={selectedDocs.includes(doc.id)}
+                onSelect={handleSelectDoc}
+                onDelete={handleDeleteDoc}
+                onExport={handleExportDoc}
+              />
+            ))
           ) : (
-            <div className="dashboard-list-view">
-              {paginatedDocuments.map((doc) => (
-                <DocumentListItem
-                  key={doc.id}
-                  doc={doc}
-                  isSelected={selectedDocs.includes(doc.id)}
-                  onSelect={handleSelectDoc}
-                  onDelete={handleDeleteDoc}
-                  onExport={handleExportDoc}
-                />
-              ))}
-            </div>
+            paginatedDocuments.map((doc) => (
+              <DocumentListItem
+                key={doc.id}
+                doc={doc}
+                isSelected={selectedDocs.includes(doc.id)}
+                onSelect={handleSelectDoc}
+                onDelete={handleDeleteDoc}
+                onExport={handleExportDoc}
+              />
+            ))
           )}
-        </>
+        </div>
       )}
 
       {/* 分页 */}
@@ -646,7 +750,7 @@ function Dashboard({ user }) {
                     <polyline points="14 2 14 8 20 8" />
                   </svg>
                   已选择模板：{newDocTitle || "未命名"}
-                  <button 
+                  <button
                     type="button"
                     className="template-clear-btn"
                     onClick={() => {
@@ -662,7 +766,7 @@ function Dashboard({ user }) {
                 </div>
               </div>
             )}
-            
+
             <div className="form-group">
               <label>文档标题 *</label>
               <input

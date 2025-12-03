@@ -1,0 +1,229 @@
+/**
+ * PWA 安装提示组件样式
+ */
+
+.pwa-install-prompt {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  right: 20px;
+  max-width: 450px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  z-index: 9999;
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.pwa-install-content {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.pwa-install-icon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--primary-color, #FF8A3D) 0%, var(--primary-color-dark, #FF6B35) 100%);
+  border-radius: 12px;
+  color: white;
+}
+
+.pwa-install-icon svg {
+  width: 28px;
+  height: 28px;
+}
+
+.pwa-install-text {
+  flex: 1;
+}
+
+.pwa-install-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary, #1a202c);
+  margin: 0 0 8px 0;
+}
+
+.pwa-install-description {
+  font-size: 14px;
+  color: var(--text-secondary, #4a5568);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.pwa-install-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.pwa-install-button {
+  flex: 1;
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pwa-install-button-primary {
+  background: linear-gradient(135deg, var(--primary-color, #FF8A3D) 0%, var(--primary-color-dark, #FF6B35) 100%);
+  color: white;
+}
+
+.pwa-install-button-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 138, 61, 0.4);
+}
+
+.pwa-install-button-secondary {
+  background: var(--background-secondary, #f7fafc);
+  color: var(--text-secondary, #4a5568);
+  border: 1px solid var(--border-color, #e2e8f0);
+}
+
+.pwa-install-button-secondary:hover {
+  background: var(--background-tertiary, #edf2f7);
+}
+
+/* iOS 安装指引 */
+.pwa-ios-guide {
+  padding: 16px 20px;
+  background: var(--background-secondary, #f7fafc);
+  border-top: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 0 0 16px 16px;
+}
+
+.pwa-ios-guide-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary, #2d3748);
+  margin: 0 0 12px 0;
+}
+
+.pwa-ios-guide-steps {
+  margin: 0;
+  padding-left: 20px;
+  font-size: 13px;
+  color: var(--text-secondary, #4a5568);
+  line-height: 1.8;
+}
+
+.pwa-ios-guide-steps li {
+  margin-bottom: 4px;
+}
+
+.pwa-ios-guide-steps strong {
+  color: var(--primary-color, #FF8A3D);
+  font-weight: 600;
+}
+
+/* 移动端优化 */
+@media (max-width: 767px) {
+  .pwa-install-prompt {
+    bottom: 0;
+    left: 0;
+    right: 0;
+    max-width: 100%;
+    border-radius: 16px 16px 0 0;
+  }
+
+  .pwa-install-content {
+    padding: 16px;
+  }
+
+  .pwa-install-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .pwa-install-title {
+    font-size: 16px;
+  }
+
+  .pwa-install-description {
+    font-size: 13px;
+  }
+
+  .pwa-install-actions {
+    flex-direction: column;
+  }
+
+  .pwa-install-button {
+    width: 100%;
+  }
+}
+
+/* 横屏优化 */
+@media (max-width: 767px) and (orientation: landscape) {
+  .pwa-install-prompt {
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+}
+
+/* 深色模式支持（预留） */
+@media (prefers-color-scheme: dark) {
+  .pwa-install-prompt {
+    background: #1a202c;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+  }
+
+  .pwa-install-title {
+    color: #f7fafc;
+  }
+
+  .pwa-install-description {
+    color: #cbd5e0;
+  }
+
+  .pwa-install-button-secondary {
+    background: #2d3748;
+    color: #e2e8f0;
+    border-color: #4a5568;
+  }
+
+  .pwa-install-button-secondary:hover {
+    background: #4a5568;
+  }
+
+  .pwa-ios-guide {
+    background: #2d3748;
+    border-top-color: #4a5568;
+  }
+
+  .pwa-ios-guide-title {
+    color: #f7fafc;
+  }
+
+  .pwa-ios-guide-steps {
+    color: #cbd5e0;
+  }
+}
+
+/* 安全区域适配 */
+@supports (padding: max(0px)) {
+  @media (max-width: 767px) {
+    .pwa-install-prompt {
+      bottom: 0;
+      padding-bottom: max(0px, env(safe-area-inset-bottom));
+    }
+  }
+}

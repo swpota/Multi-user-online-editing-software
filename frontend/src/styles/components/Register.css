@@ -1,5 +1,5 @@
 /**
- * Register.css - Anthropic 风格注册页面
+ * Login.css - Anthropic 风格登录页面
  * 左右分栏布局，现代化设计
  */
 
@@ -33,6 +33,7 @@
   overflow: hidden;
 }
 
+/* 添加装饰性图�?- 柔和的渐变圆�?*/
 /* 装饰性几何图�?*/
 .register-brand-section::before {
   content: '';
@@ -60,6 +61,7 @@
   z-index: 0;
 }
 
+/* 添加装饰性小圆点 */
 .register-brand-content::before {
   content: '';
   position: absolute;
@@ -223,15 +225,18 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg,
+  background: linear-gradient(
+    135deg,
     #FAFAF9 0%,
     #FFF9F0 50%,
-    #FFEDD5 100%);
+    #FFEDD5 100%
+  );
   padding: var(--spacing-2xl);
   overflow-y: auto;
   position: relative;
 }
 
+/* 添加装饰性圆�?*/
 .register-form-section::before {
   content: '';
   position: absolute;
@@ -259,7 +264,7 @@
 }
 
 .register-container {
-  max-width: 500px;
+  max-width: 460px;
   width: 100%;
   animation: fadeInRight 0.8s ease-out;
   padding: var(--spacing-3xl) var(--spacing-2xl);
@@ -274,6 +279,7 @@
   overflow: hidden;
 }
 
+/* 添加边框高光效果 */
 .register-container::before {
   content: '';
   position: absolute;
@@ -281,10 +287,12 @@
   left: 0;
   right: 0;
   height: 3px;
-  background: linear-gradient(90deg,
+  background: linear-gradient(
+    90deg,
     transparent 0%,
     var(--accent-primary) 50%,
-    transparent 100%);
+    transparent 100%
+  );
   z-index: 2;
 }
 
@@ -301,7 +309,7 @@
 
 /* 头部样式 */
 .register-header {
-  margin-bottom: var(--spacing-2xl);
+  margin-bottom: var(--spacing-3xl);
   text-align: left;
 }
 
@@ -322,20 +330,34 @@
 
 .register-form {
   width: 100%;
+  margin-top: var(--spacing-2xl);
 }
 
 .register-form-group {
-  margin-bottom: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+  animation: formSlideIn 0.6s ease-out 0.2s both;
 }
 
 .register-form-group-password {
-  margin-bottom: var(--spacing-lg);
+  margin-bottom: var(--spacing-xl);
+  animation: formSlideIn 0.6s ease-out 0.3s both;
+}
+
+@keyframes formSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 .register-label {
   display: flex;
   align-items: center;
-  margin-bottom: var(--spacing-xs);
+  margin-bottom: var(--spacing-sm);
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
   color: var(--text-primary);
@@ -347,9 +369,8 @@
   color: var(--accent-primary);
 }
 
-.register-label-required {
-  color: var(--accent-red);
-  font-weight: var(--font-bold);
+.register-label-icon {
+  font-size: 16px;
 }
 
 /* 输入框容�?*/
@@ -389,41 +410,6 @@
   color: var(--text-muted);
 }
 
-.register-input.register-input-error {
-  border-color: var(--accent-red);
-  background-color: rgba(239, 68, 68, 0.05);
-}
-
-.register-input.register-input-error:focus {
-  border-color: var(--accent-red);
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
-}
-
-.register-field-error {
-  color: var(--accent-red);
-  font-size: var(--text-xs);
-  margin-top: var(--spacing-xs);
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  animation: errorSlideIn 0.3s ease-out;
-}
-
-.register-field-error ion-icon {
-  font-size: 1.1em;
-}
-
-@keyframes errorSlideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-5px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 .register-input-password {
   padding-right: 45px;
 }
@@ -461,7 +447,7 @@
   transform: translateY(-50%) scale(0.95);
 }
 
-/* 提交按钮 - 橙色渐变 */
+/* 提交按钮 - Anthropic 黑色主按�?*/
 .register-submit-btn {
   width: 100%;
   padding: 15px var(--spacing-lg);
@@ -473,7 +459,6 @@
   border-radius: var(--radius-md);
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  margin-bottom: var(--spacing-md);
   margin-top: var(--spacing-xl);
   display: flex;
   align-items: center;
@@ -536,6 +521,17 @@
   cursor: wait;
 }
 
+/* 按钮箭头动画 */
+.register-btn-arrow {
+  display: inline-block;
+  transition: transform 0.3s;
+  font-size: 18px;
+}
+
+.register-submit-btn:hover:not(:disabled) .register-btn-arrow {
+  transform: translateX(4px);
+}
+
 /* 加载动画 */
 .register-btn-spinner {
   width: 16px;
@@ -588,13 +584,29 @@
   border-left-width: 3px;
 }
 
-/* 返回登录链接 */
-.register-back-to-login {
+/* 忘记密码链接 */
+.register-forgot-password {
   text-align: center;
-  margin-top: var(--spacing-lg);
+  margin-top: var(--spacing-xl);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-md);
+  animation: linkSlideIn 0.6s ease-out 0.5s both;
+  position: relative;
+  z-index: 1;
 }
 
-.register-back-to-login-link {
+@keyframes linkSlideIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.register-forgot-password-link {
   color: var(--accent-primary);
   text-decoration: none;
   font-size: var(--text-sm);
@@ -603,7 +615,7 @@
   position: relative;
 }
 
-.register-back-to-login-link::after {
+.register-forgot-password-link::after {
   content: '';
   position: absolute;
   bottom: -2px;
@@ -614,52 +626,17 @@
   transition: width 0.3s ease;
 }
 
-.register-back-to-login-link:hover {
+.register-forgot-password-link:hover {
   color: var(--accent-hover);
 }
 
-.register-back-to-login-link:hover::after {
+.register-forgot-password-link:hover::after {
   width: 100%;
 }
 
-/* 注册功能禁用提示 */
-.register-disabled-message {
-  text-align: center;
-  padding: var(--spacing-3xl) var(--spacing-lg);
-  color: var(--text-secondary);
-}
-
-.register-disabled-icon {
-  font-size: 64px;
-  margin-bottom: var(--spacing-lg);
-}
-
-.register-disabled-message h3 {
-  margin: 0 0 var(--spacing-md) 0;
-  font-size: var(--text-xl);
-  color: var(--text-primary);
-}
-
-.register-disabled-message p {
-  margin: 0;
-  line-height: 1.6;
-}
-
-/* 加载状�?*/
-.register-loading {
-  text-align: center;
-  padding: var(--spacing-3xl);
-  color: var(--text-secondary);
-}
-
-.register-loading-spinner {
-  width: 40px;
-  height: 40px;
-  margin: 0 auto var(--spacing-md);
-  border: 3px solid var(--border-light);
-  border-top-color: var(--accent-primary);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
+.register-link-separator {
+  color: var(--border-medium);
+  font-size: var(--text-sm);
 }
 
 /* ====================
@@ -688,7 +665,7 @@
   }
   
   .register-brand-section {
-    min-height: 35vh;
+    min-height: 40vh;
     padding: var(--spacing-xl) var(--spacing-lg);
   }
   
@@ -702,7 +679,6 @@
   
   .register-brand-description {
     font-size: var(--text-base);
-    margin-bottom: var(--spacing-2xl);
   }
   
   .register-brand-features {
@@ -716,7 +692,7 @@
   }
   
   .register-form-section {
-    min-height: 65vh;
+    min-height: 60vh;
     padding: var(--spacing-xl) var(--spacing-lg);
   }
   
@@ -727,16 +703,12 @@
   .register-title {
     font-size: var(--text-3xl);
   }
-  
-  .register-form-group {
-    margin-bottom: var(--spacing-sm);
-  }
 }
 
 /* 小屏幕手�?*/
 @media (max-width: 480px) {
   .register-brand-section {
-    min-height: 25vh;
+    min-height: 30vh;
   }
   
   .register-brand-logo h1 {
@@ -763,3 +735,4 @@
     font-size: var(--text-sm);
   }
 }
+

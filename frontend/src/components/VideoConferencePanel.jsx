@@ -186,7 +186,7 @@ const VideoConferencePanel = ({ documentId, user, onClose }) => {
   const handleApiReady = (api) => {
     apiRef.current = api;
     setIsLoading(false);
-    setConnectionStatus("connected");
+    setConnectionStatus("joined"); // 改为joined，与显示逻辑一致
     console.log("Jitsi API 已就绪");
 
     // Jitsi Meet会自动请求媒体权限
@@ -294,6 +294,11 @@ const VideoConferencePanel = ({ documentId, user, onClose }) => {
     // 监听设备错误
     api.addEventListener("deviceListChanged", (devices) => {
       console.log("设备列表变更:", devices);
+      // 检查devices是否是数组
+      if (!Array.isArray(devices)) {
+        console.warn("设备列表格式异常:", devices);
+        return;
+      }
       // 检查是否有可用的音频输出设备
       const audioOutputs = devices.filter(device => device.kind === "audiooutput");
       if (audioOutputs.length === 0) {

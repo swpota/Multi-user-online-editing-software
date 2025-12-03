@@ -10,6 +10,26 @@ const ChatPanel = ({ documentId, user, socket, onlineUsers = [], onClose }) => {
   const [replyingTo, setReplyingTo] = useState(null);
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
+  
+  // 拖动相关状态
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [dragging, setDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [initialized, setInitialized] = useState(false);
+  const panelRef = useRef(null);
+
+  // 初始化位置为右下角
+  useEffect(() => {
+    if (!initialized && panelRef.current) {
+      const panelWidth = panelRef.current.offsetWidth;
+      const panelHeight = panelRef.current.offsetHeight;
+      setPosition({
+        x: window.innerWidth - panelWidth - 20,
+        y: window.innerHeight - panelHeight - 20
+      });
+      setInitialized(true);
+    }
+  }, [initialized]);
 
   // 滚动到底部
   const scrollToBottom = () => {
@@ -90,6 +110,35 @@ const ChatPanel = ({ documentId, user, socket, onlineUsers = [], onClose }) => {
     } catch (error) {
       console.error("删除消息失败", error);
       alert(error.response?.data?.message || "删除消息失败");
+    }
+  };
+
+  // 下载聊天文件
+  const downloadChatFile = async (messageId, fileName) => {
+    try {
+      const token = localStorage.getItem('authToken');
+      const response = await fetch(`/api/chat-messages/${messageId}/download`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error('下载失败');
+      }
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName || 'file';
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('下载文件失败', error);
+      alert('下载文件失败');
     }
   };
 
@@ -178,8 +227,65 @@ const ChatPanel = ({ documentId, user, socket, onlineUsers = [], onClose }) => {
     }
   };
 
+  // 拖动开始
+  const handleMouseDown = (e) => {
+    // 只在头部区域才能拖动
+    if (!e.target.closest('.chat-panel-header')) return;
+    if (e.target.closest('.chat-panel-close-btn')) return; // 不在关闭按钮上拖动
+    
+    setDragging(true);
+    setDragStart({
+      x: e.clientX - position.x,
+      y: e.clientY - position.y
+    });
+  };
+
+  // 拖动中
+  const handleMouseMove = (e) => {
+    if (!dragging) return;
+    
+    const newX = e.clientX - dragStart.x;
+    const newY = e.clientY - dragStart.y;
+    
+    // 限制拖动范围 - 允许在全屏幕范围内拖动
+    const panelWidth = panelRef.current?.offsetWidth || 420;
+    const panelHeight = panelRef.current?.offsetHeight || 550;
+    const maxX = window.innerWidth - panelWidth;
+    const maxY = window.innerHeight - panelHeight;
+    
+    setPosition({
+      x: Math.max(0, Math.min(newX, maxX)),
+      y: Math.max(0, Math.min(newY, maxY))
+    });
+  };
+
+  // 拖动结束
+  const handleMouseUp = () => {
+    setDragging(false);
+  };
+
+  // 添加全局事件监听
+  useEffect(() => {
+    if (dragging) {
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
+      return () => {
+        window.removeEventListener('mousemove', handleMouseMove);
+        window.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [dragging, dragStart, position]);
+
   return (
-    <div className="chat-panel">
+    <div 
+      ref={panelRef}
+      className={`chat-panel ${dragging ? 'dragging' : ''}`}
+      style={{
+        transform: `translate(${position.x}px, ${position.y}px)`,
+        transition: dragging ? 'none' : 'transform 0.2s'
+      }}
+      onMouseDown={handleMouseDown}
+    >
       {/* 头部 */}
       <div className="chat-panel-header">
         <div className="chat-panel-header-info">
@@ -217,7 +323,7 @@ const ChatPanel = ({ documentId, user, socket, onlineUsers = [], onClose }) => {
                 className={`chat-panel-message ${isOwn ? "chat-panel-message-own" : "chat-panel-message-other"}`}
               >
                 {/* 回复的消息预览 */}
-                {message.reply_to_message && (
+                {message.reply_to_message && message.reply_to_message.user && (
                   <div className="chat-panel-message-reply">
                     回复 {getUserDisplayName(message.reply_to_message.user)}:{" "}
                     {message.reply_to_message.message?.substring(0, 50)}
@@ -229,13 +335,19 @@ const ChatPanel = ({ documentId, user, socket, onlineUsers = [], onClose }) => {
                   className={`chat-panel-message-content-wrapper ${isOwn ? "chat-panel-message-content-wrapper-own" : "chat-panel-message-content-wrapper-other"}`}
                 >
                   {/* 用户头像 */}
-                  <div
-                    className="chat-panel-message-avatar"
-                    style={{ backgroundColor: getUserColor(message.user.id) }}
-                  >
-                    {getUserDisplayName(message.user)
-                      .substring(0, 1)
-                      .toUpperCase()}
+                  <div className="chat-panel-message-avatar">
+                    {message.user.avatar ? (
+                      <img src={message.user.avatar} alt="" className="chat-panel-avatar-img" />
+                    ) : (
+                      <div
+                        className="chat-panel-avatar-placeholder"
+                        style={{ backgroundColor: getUserColor(message.user.id) }}
+                      >
+                        {getUserDisplayName(message.user)
+                          .substring(0, 1)
+                          .toUpperCase()}
+                      </div>
+                    )}
                   </div>
 
                   {/* 消息内容 */}
@@ -260,7 +372,7 @@ const ChatPanel = ({ documentId, user, socket, onlineUsers = [], onClose }) => {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              window.open(`/api/chat-messages/${message.id}/download`, "_blank");
+                              downloadChatFile(message.id, message.file_name);
                             }}
                             className="chat-panel-message-download-btn"
                           >
@@ -310,39 +422,31 @@ const ChatPanel = ({ documentId, user, socket, onlineUsers = [], onClose }) => {
       )}
 
       {/* 输入区域 */}
-      <div className="chat-panel-input-area">
-        <div className="chat-panel-input-actions">
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            className="chat-panel-file-btn"
-            disabled={sending}
-          >
-            📎 文件
-          </button>
-          <input
-            ref={fileInputRef}
-            type="file"
-            className="chat-panel-file-input"
-            onChange={handleFileUpload}
-          />
-        </div>
-        <div className="chat-panel-input-wrapper">
+      <div className="chat-panel-input">
+        <form onSubmit={(e) => { e.preventDefault(); sendMessage(); }} className="chat-panel-input-form">
           <textarea
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder="输入消息..."
+            placeholder="输入消息... (Shift+Enter换行)"
             disabled={sending}
             className="chat-panel-textarea"
+            rows={1}
           />
           <button
-            onClick={sendMessage}
+            type="submit"
             disabled={!newMessage.trim() || sending}
             className="chat-panel-send-btn"
           >
-            {sending ? "发送中..." : "发送"}
+            {sending ? "..." : "发送"}
           </button>
-        </div>
+        </form>
+        <input
+          ref={fileInputRef}
+          type="file"
+          style={{ display: 'none' }}
+          onChange={handleFileUpload}
+        />
       </div>
     </div>
   );

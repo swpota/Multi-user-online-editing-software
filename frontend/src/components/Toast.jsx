@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import "../styles/components/Toast.css";
+import "../styles/components/Toast-modern.css";
 
 /**
  * Toast 提示组件

@@ -1,0 +1,211 @@
+/**
+ * Toast - 现代简约风格
+ * 提示消息组件样式
+ */
+
+/* ==================== Toast 容器 ==================== */
+.toast-container {
+  position: fixed;
+  top: var(--spacing-xl);
+  right: var(--spacing-xl);
+  z-index: 9999; /* 确保Toast显示在所有元素之上，包括模态框 */
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  pointer-events: none;
+}
+
+/* ==================== Toast 单个项 ==================== */
+.toast {
+  background: white;
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-md) var(--spacing-lg);
+  box-shadow: var(--shadow-xl);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  min-width: 300px;
+  max-width: 500px;
+  pointer-events: auto;
+  animation: toastSlideIn 0.3s ease;
+  border: 2px solid transparent;
+  position: relative;
+  overflow: hidden;
+}
+
+@keyframes toastSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.toast::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+}
+
+/* ==================== Toast 图标 ==================== */
+.toast-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  flex-shrink: 0;
+}
+
+/* ==================== Toast 消息 ==================== */
+.toast-message {
+  flex: 1;
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-normal);
+}
+
+/* ==================== Toast 关闭按钮 ==================== */
+.toast-close {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-full);
+  border: none;
+  background: rgba(0, 0, 0, 0.05);
+  color: rgba(0, 0, 0, 0.45);
+  font-size: 16px;
+  font-weight: bold;
+  line-height: 1;
+  cursor: pointer;
+  transition: var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.toast-close:hover {
+  background: rgba(0, 0, 0, 0.1);
+  color: rgba(0, 0, 0, 0.7);
+  transform: scale(1.1);
+}
+
+/* ==================== Toast 类型样式 ==================== */
+/* 成功 */
+.toast-success::before {
+  background: var(--color-success);
+}
+
+.toast-success .toast-icon {
+  background: white;
+  color: var(--color-success-dark);
+  font-weight: 600;
+}
+
+/* 错误 */
+.toast-error::before {
+  background: var(--color-error);
+}
+
+.toast-error .toast-icon {
+  background: white;
+  color: var(--color-error-dark);
+  font-weight: 600;
+}
+
+/* 警告 */
+.toast-warning::before {
+  background: var(--color-warning);
+}
+
+.toast-warning .toast-icon {
+  background: white;
+  color: var(--color-warning-dark);
+  font-weight: 600;
+}
+
+/* 信息 */
+.toast-info::before {
+  background: var(--color-info);
+}
+
+.toast-info .toast-icon {
+  background: white;
+  color: var(--color-info-dark);
+  font-weight: 600;
+}
+
+/* ==================== Toast 退出动画 ==================== */
+.toast.toast-exit {
+  animation: toastSlideOut 0.3s ease forwards;
+}
+
+@keyframes toastSlideOut {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+}
+
+/* ==================== 响应式 ==================== */
+@media (max-width: 768px) {
+  .toast-container {
+    top: var(--spacing-md);
+    right: var(--spacing-md);
+    left: var(--spacing-md);
+  }
+  
+  .toast {
+    min-width: auto;
+    max-width: 100%;
+  }
+}
+
+/* ==================== 进度条（可选）==================== */
+.toast-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background: currentColor;
+  opacity: 0.3;
+  animation: toastProgress 3s linear forwards;
+}
+
+@keyframes toastProgress {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}
+
+.toast-success .toast-progress {
+  color: var(--color-success);
+}
+
+.toast-error .toast-progress {
+  color: var(--color-error);
+}
+
+.toast-warning .toast-progress {
+  color: var(--color-warning);
+}
+
+.toast-info .toast-progress {
+  color: var(--color-info);
+}

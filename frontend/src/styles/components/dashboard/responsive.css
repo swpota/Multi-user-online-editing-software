@@ -1,0 +1,355 @@
+/**
+ * Dashboard 响应式样式
+ */
+
+/* ==================== 移动端优化 (< 768px) ==================== */
+
+@media (max-width: 767px) {
+  /* Dashboard 容器 */
+  .dashboard-container {
+    padding: 12px;
+  }
+
+  /* Dashboard 头部 */
+  .dashboard-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .dashboard-title {
+    font-size: 24px;
+  }
+
+  .dashboard-header-actions {
+    width: 100%;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .dashboard-header-actions button {
+    width: 100%;
+  }
+
+  /* FilterBar 移动端 */
+  .filter-bar {
+    flex-direction: column;
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .filter-bar-left,
+  .filter-bar-right {
+    width: 100%;
+  }
+
+  .search-box {
+    width: 100%;
+  }
+
+  .filter-select {
+    width: 100%;
+  }
+
+  /* 视图切换按钮 */
+  .view-mode-toggle {
+    justify-content: center;
+  }
+
+  /* 批量操作栏 */
+  .bulk-actions {
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px;
+  }
+
+  .bulk-actions-info {
+    width: 100%;
+    text-align: center;
+  }
+
+  .bulk-actions-buttons {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .bulk-actions-buttons button {
+    width: 100%;
+  }
+
+  /* 文档网格视图 - 移动端单列 */
+  .dashboard-grid-view {
+    grid-template-columns: 1fr !important;
+    gap: 12px;
+  }
+
+  /* 文档卡片 */
+  .document-card {
+    padding: 16px;
+  }
+
+  .document-card-title {
+    font-size: 16px;
+  }
+
+  .document-card-description {
+    font-size: 13px;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2; /* 移动端只显示2行 */
+    line-clamp: 2; /* 标准属性 */
+    overflow: hidden;
+  }
+
+  .document-card-actions {
+    flex-wrap: wrap;
+  }
+
+  .document-card-action {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+
+  /* 文档列表视图 */
+  .dashboard-list-view {
+    gap: 8px;
+  }
+
+  .document-list-item {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 12px;
+    gap: 8px;
+  }
+
+  .document-list-item-left {
+    width: 100%;
+  }
+
+  .document-list-item-info {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .document-list-item-meta {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .document-list-item-actions {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  /* 分页 */
+  .dashboard-pagination {
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px 12px;
+  }
+
+  .dashboard-pagination button {
+    width: 100%;
+    padding: 12px;
+  }
+
+  .dashboard-pagination-info {
+    order: -1; /* 移到最前面 */
+  }
+
+  /* 模态框 */
+  .create-doc-form,
+  .share-modal {
+    padding: 16px;
+  }
+
+  .create-doc-form-header,
+  .share-modal-header {
+    padding: 12px;
+  }
+
+  .create-doc-form-body,
+  .share-modal-body {
+    padding: 16px;
+  }
+
+  .create-doc-form-footer,
+  .share-modal-footer {
+    flex-direction: column-reverse;
+    gap: 8px;
+    padding: 12px;
+  }
+
+  .create-doc-form-footer button,
+  .share-modal-footer button {
+    width: 100%;
+  }
+
+  /* 模板选择器 */
+  .template-selector-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px;
+  }
+
+  .template-card {
+    padding: 12px;
+  }
+
+  /* 空状态 */
+  .empty-state {
+    padding: 32px 16px;
+  }
+
+  .empty-state-icon {
+    font-size: 48px;
+  }
+
+  .empty-state-title {
+    font-size: 20px;
+  }
+
+  .empty-state-description {
+    font-size: 14px;
+  }
+}
+
+/* ==================== 平板优化 (768px - 1023px) ==================== */
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  /* Dashboard 容器 */
+  .dashboard-container {
+    padding: 20px;
+  }
+
+  /* 文档网格视图 - 平板两列 */
+  .dashboard-grid-view {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 16px;
+  }
+
+  /* FilterBar */
+  .filter-bar {
+    flex-wrap: wrap;
+  }
+
+  .filter-bar-right {
+    flex-wrap: wrap;
+  }
+
+  /* 批量操作 */
+  .bulk-actions {
+    flex-wrap: wrap;
+  }
+
+  /* 模板选择器 */
+  .template-selector-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+/* ==================== 触摸优化 ==================== */
+
+@media (hover: none) and (pointer: coarse) {
+  /* 触摸设备增大点击区域 */
+  .document-card-action,
+  .document-list-item-action {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 12px;
+  }
+
+  .filter-select,
+  .search-box input {
+    min-height: 44px;
+  }
+
+  /* 移除hover效果 */
+  .document-card:hover,
+  .document-list-item:hover {
+    transform: none;
+  }
+
+  /* 使用active效果 */
+  .document-card:active,
+  .document-list-item:active {
+    transform: scale(0.98);
+  }
+
+  /* 复选框增大 */
+  input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+/* ==================== 横屏优化 ==================== */
+
+@media (max-width: 767px) and (orientation: landscape) {
+  /* 横屏时优化高度利用 */
+  .dashboard-container {
+    padding: 8px;
+  }
+
+  .dashboard-header {
+    margin-bottom: 8px;
+  }
+
+  .filter-bar {
+    padding: 8px;
+  }
+
+  /* 减小间距 */
+  .dashboard-grid-view,
+  .dashboard-list-view {
+    gap: 8px;
+  }
+
+  .document-card,
+  .document-list-item {
+    padding: 8px;
+  }
+}
+
+/* ==================== 小屏幕优化 (< 375px) ==================== */
+
+@media (max-width: 374px) {
+  .dashboard-title {
+    font-size: 20px;
+  }
+
+  .document-card-title {
+    font-size: 14px;
+  }
+
+  .document-card-meta,
+  .document-list-item-meta {
+    font-size: 11px;
+  }
+
+  /* 进一步减小间距 */
+  .dashboard-container {
+    padding: 8px;
+  }
+
+  .document-card,
+  .document-list-item {
+    padding: 10px;
+  }
+}
+
+/* ==================== 大屏幕优化 (> 1440px) ==================== */
+
+@media (min-width: 1440px) {
+  /* 文档网格视图 - 大屏四列 */
+  .dashboard-grid-view {
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 24px;
+  }
+
+  .dashboard-container {
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+}

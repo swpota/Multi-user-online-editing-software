@@ -59,9 +59,10 @@ const getDocumentAccess = async (documentId, user) => {
   const document = docResult.rows[0];
   document.tags = normalizeArray(document.tags);
   document.content_format = document.content_format || "rich";
-  if (document.content_format !== "markdown") {
-    document.markdown_content = null;
-  }
+  // 注释掉这行：不应该在返回时清空markdown_content，这会导致数据丢失
+  // if (document.content_format !== "markdown") {
+  //   document.markdown_content = null;
+  // }
   let role = "none";
 
   if (document.owner_id === user.id || user.role === "admin") {

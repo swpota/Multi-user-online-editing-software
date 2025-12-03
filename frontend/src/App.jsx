@@ -7,7 +7,8 @@ import {
   useLocation,
 } from "react-router-dom";
 import api from "./api";
-import logo from "./assets/logo.png";
+import logo from "./assets/logo.svg";
+import LazyImage from "./components/common/LazyImage";
 
 // 小型组件和页面（直接导入）
 import Register from "./components/Register";
@@ -18,6 +19,8 @@ import LandingPage from "./pages/LandingPage";
 import { ToastProvider } from "./components/ToastContainer";
 import LoadingSpinner from "./components/common/LoadingSpinner";
 import ErrorBoundary from "./components/common/ErrorBoundary";
+import PWAInstallPrompt from "./components/common/PWAInstallPrompt";
+import PerformancePanel from "./components/common/PerformancePanel";
 
 // 大型页面组件（懒加载）
 const Dashboard = lazy(() => import("./components/DashBoard"));
@@ -25,7 +28,9 @@ const EditorPage = lazy(() => import("./pages/EditorPage"));
 const ProfilePage = lazy(() => import("./pages/ProfilePage"));
 const AdminDashboardPage = lazy(() => import("./pages/AdminDashboardPage"));
 
+// import "./styles/theme/Animations.css";  // 已移除，动画在各页面单独引入
 import "./styles/App.css";
+import "./styles/App-modern.css";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -72,6 +77,10 @@ function App() {
         <Router>
           <AppContent user={user} setUser={setUser} handleLogout={handleLogout} />
         </Router>
+        {/* PWA 安装提示 */}
+        <PWAInstallPrompt />
+        {/* 性能监控面板（仅开发环境）*/}
+        <PerformancePanel />
       </ToastProvider>
     </ErrorBoundary>
   );
@@ -81,7 +90,7 @@ function AppContent({ user, setUser, handleLogout }) {
   const location = useLocation();
   // 认证相关页面不显示header（包括landing、登录、注册、忘记密码等）
   const authPages = ["/", "/login", "/register", "/forgot-password", "/reset-password"];
-  const isAuthPage = authPages.some(page => 
+  const isAuthPage = authPages.some(page =>
     location.pathname === page || location.pathname.startsWith(page + "/")
   ) && !user;
   const isLandingPage = location.pathname === "/" && !user;
@@ -110,10 +119,13 @@ function AppContent({ user, setUser, handleLogout }) {
                 </a>
               )}
               <a href="/profile" className="app-header-profile-link">
-                <img
+                <LazyImage
                   src={user.avatar_url || "/default-avatar.png"}
                   alt={user.full_name || user.email}
                   className="app-header-avatar"
+                  placeholder="/placeholder.svg"
+                  width="36px"
+                  height="36px"
                 />
                 <span>{user.full_name || user.email}</span>
               </a>
@@ -211,7 +223,7 @@ function AppContent({ user, setUser, handleLogout }) {
           </Routes>
         </Suspense>
       </main>
-      </div>
+    </div>
   );
 }
 

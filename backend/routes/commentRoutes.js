@@ -1,16 +1,56 @@
+/**
+ * 评论功能路由模块
+ * 功能：提供文档评论的完整CRUD操作
+ * 特性：
+ * 1. 获取评论列表（树形结构，包含回复）
+ * 2. 创建评论（支持@提及用户）
+ * 3. 更新评论
+ * 4. 删除评论（级联删除回复）
+ * 5. 解决/取消解决评论
+ * 6. 实时通知（Socket.IO）
+ */
+
+// 引入Express框架
 const express = require("express");
+// 引入JWT认证中间件
 const { protect } = require("../middleware/authMiddleware");
+// 引入数据库连接池
 const pool = require("../db");
+// 引入日志服务（旧版，待废弃）
 const { logActivity } = require("../services/logService");
+// 引入活动日志服务
 const { logUserActivity, logSystemLog } = require("../services/activityService");
+// 引入通知服务，用于创建@提及通知和回复通知
 const { createNotification } = require("../services/notificationService");
+// 引入验证中间件
 const { validateDocumentId, validateCommentCreate } = require("../middleware/validators");
 
-// 创建评论路由函数，接收 io 实例用于实时通知
+/**
+ * createCommentRoutes - 创建评论路由
+ * @param {object} io - Socket.IO实例，用于实时推送评论更新
+ * @returns {Router} - Express路由器
+ */
 const createCommentRoutes = (io) => {
+  // 创建Express路由器实例
   const router = express.Router();
 
-  // 获取文档的所有评论（包括回复）
+  /**
+   * GET /api/documents/:documentId/comments
+   * 获取文档的所有评论（包括回复）
+   * 
+   * 功能：获取指定文档的所有评论，并构建为树形结构
+   * 权限：需要登录，且对文档有访问权限（owner/collaborator）
+   * 
+   * 请求参数：
+   * - documentId (路径参数): 文档ID
+   * 
+   * 响应：树形结构的评论数组，每个评论包含replies数组
+   * 
+   * 数据结构：
+   * - 父评论: parentId为null的评论
+   * - 回复: parentId指向父评论ID的评论
+   * - 树形构建: 自动将回复嵌套到父评论的replies数组中
+   */
   router.get("/documents/:documentId/comments", protect, validateDocumentId, async (req, res) => {
     try {
       const documentId = parseInt(req.params.documentId, 10);
@@ -135,7 +175,30 @@ const createCommentRoutes = (io) => {
     }
   });
 
-  // 创建评论
+  /**
+   * POST /api/documents/:documentId/comments
+   * 创建新评论或回复
+   * 
+   * 功能：在指定文档中创建评论，支持@提及用户和回复其他评论
+   * 权限：需要登录，且对文档有访问权限（owner/collaborator）
+   * 
+   * 请求参数：
+   * - documentId (路径参数): 文档ID
+   * - content (必填): 评论内容
+   * - parentId (可选): 父评论ID，用于创建回复
+   * - anchorText (可选): 锚点文本，评论针对的文档片段
+   * - anchorIndex (可选): 锚点位置索引
+   * - anchorLength (可选): 锚点文本长度
+   * - selectionRange (可选): 选中文本的范围对象
+   * - mentionedUserIds (可选): 被@提及的用户ID数组
+   * 
+   * 响应：创建的评论对象，包含作者信息
+   * 
+   * 实时通知：
+   * - 通过Socket.IO向文档房间推送新评论
+   * - 向被@提及的用户发送通知
+   * - 如果是回复，向父评论作者发送通知
+   */
   router.post("/documents/:documentId/comments", protect, validateDocumentId, validateCommentCreate, async (req, res) => {
     try {
       const documentId = parseInt(req.params.documentId, 10);
@@ -157,7 +220,9 @@ const createCommentRoutes = (io) => {
         return res.status(400).json({ message: "评论内容不能为空" });
       }
 
-      // 检查用户是否有权限在文档中评论
+      // 步骤1：检查用户是否有权限在文档中评论
+      // 查询用户在该文档中的角色（owner/editor/viewer）
+      // 只有owner或collaborator才能添加评论
       const docCheck = await pool.query(
         `SELECT d.id, d.owner_id,
                 CASE 
@@ -185,7 +250,8 @@ const createCommentRoutes = (io) => {
         return res.status(403).json({ message: "无权在该文档中评论" });
       }
 
-      // 如果 parentId 存在，验证父评论是否存在且属于同一文档
+      // 步骤2：如果是回复（parentId存在），验证父评论的有效性
+      // 防止回复不存在的评论，或跨文档回复
       if (parentId) {
         const parentCheck = await pool.query(
           "SELECT id, document_id FROM document_comments WHERE id = $1",
@@ -199,7 +265,8 @@ const createCommentRoutes = (io) => {
         }
       }
 
-      // 验证提及的用户是否存在
+      // 步骤3：验证所有被@提及的用户是否存在
+      // 防止@不存在的用户，确保通知能正确发送
       if (mentionedUserIds && mentionedUserIds.length > 0) {
         const mentionedUsers = await pool.query(
           `SELECT id FROM users WHERE id = ANY($1::INTEGER[])`,
@@ -210,7 +277,8 @@ const createCommentRoutes = (io) => {
         }
       }
 
-      // 创建评论
+      // 步骤4：插入评论到数据库
+      // 包含所有字段：内容、锚点信息、提及用户等
       const newCommentResult = await pool.query(
         `INSERT INTO document_comments 
          (document_id, parent_id, content, author_id, anchor_text, anchor_index, anchor_length, selection_range, mentioned_user_ids)
@@ -243,7 +311,9 @@ const createCommentRoutes = (io) => {
 
       const newComment = newCommentResult.rows[0];
 
-      // 获取完整的评论信息（包括作者信息）
+      // 步骤5：查询完整的评论信息
+      // JOIN用户表获取作者的详细信息（姓名、头像等）
+      // 这些信息用于前端显示和实时推送
       const fullCommentResult = await pool.query(
         `SELECT 
             c.id,
@@ -315,27 +385,33 @@ const createCommentRoutes = (io) => {
         replies: [], // 回复列表为空，因为这是新创建的评论
       };
       
-      // 记录操作日志
+      // 步骤6：记录用户操作日志
+      // 用于审计和活动追踪
       await logActivity(req.user.id, "CREATE_COMMENT", "document", documentId, {
         commentId: newComment.id,
         parentId: parentId || null,
       });
 
-      // 获取文档信息用于通知
+      // 步骤7：获取文档标题，用于通知消息
       const docInfo = await pool.query(
         "SELECT title FROM documents WHERE id = $1",
         [documentId]
       );
       const docTitle = docInfo.rows[0]?.title || "文档";
 
-      // 创建通知并发送 Socket.IO 实时通知
+      // 步骤8：发送实时通知
+      // 通知系统采用双重机制：
+      // 1. Socket.IO实时推送（在线用户立即收到）
+      // 2. 数据库通知记录（离线用户登录后可查看）
       if (io) {
+        // 向文档房间的所有在线用户广播新评论
         io.to(String(documentId)).emit("newComment", fullComment);
 
-        // 如果有提及的用户，发送通知
+        // 步骤8.1：处理@提及通知
+        // 遍历所有被@的用户，为每个用户创建通知
         if (mentionedUserIds && mentionedUserIds.length > 0) {
           for (const userId of mentionedUserIds) {
-            // 创建数据库通知
+            // 在数据库中创建持久化通知记录
             await createNotification(
               userId,
               "mention",
@@ -351,7 +427,7 @@ const createCommentRoutes = (io) => {
               }
             );
 
-            // 发送 Socket.IO 实时通知
+            // 通过Socket.IO向被@用户的个人房间发送实时通知
             io.to(`user_${userId}`).emit("commentMention", {
               comment: fullComment,
               documentId,
@@ -362,7 +438,7 @@ const createCommentRoutes = (io) => {
               },
             });
 
-            // 发送新通知事件
+            // 触发通知铃铛的红点提示
             io.to(`user_${userId}`).emit("newNotification", {
               type: "mention",
               title: `${req.user.full_name || req.user.email} 在 "${docTitle}" 中提到了您`,
@@ -370,7 +446,8 @@ const createCommentRoutes = (io) => {
           }
         }
 
-        // 如果是回复，通知父评论的作者
+        // 步骤8.2：处理回复通知
+        // 如果这是一个回复，通知父评论的作者（但不通知自己回复自己）
         if (parentId) {
           const parentComment = await pool.query(
             "SELECT author_id FROM document_comments WHERE id = $1",
@@ -382,7 +459,7 @@ const createCommentRoutes = (io) => {
           ) {
             const parentAuthorId = parentComment.rows[0].author_id;
 
-            // 创建数据库通知
+            // 在数据库中创建回复通知记录
             await createNotification(
               parentAuthorId,
               "comment_reply",
@@ -399,7 +476,7 @@ const createCommentRoutes = (io) => {
               }
             );
 
-            // 发送 Socket.IO 实时通知
+            // 通过Socket.IO向父评论作者的个人房间发送实时通知
             io.to(`user_${parentAuthorId}`).emit("commentReply", {
               comment: fullComment,
               documentId,
@@ -410,7 +487,7 @@ const createCommentRoutes = (io) => {
               },
             });
 
-            // 发送新通知事件
+            // 触发通知铃铛的红点提示
             io.to(`user_${parentAuthorId}`).emit("newNotification", {
               type: "comment_reply",
               title: `${req.user.full_name || req.user.email} 回复了您的评论`,
@@ -449,7 +526,25 @@ const createCommentRoutes = (io) => {
     }
   });
 
-  // 更新评论
+  /**
+   * PUT /api/comments/:commentId
+   * 更新评论
+   * 
+   * 功能：更新现有评论的内容或提及用户列表
+   * 权限：需要登录，且只有评论作者本人可以更新
+   * 
+   * 请求参数：
+   * - commentId (路径参数): 评论ID
+   * - content (可选): 新的评论内容
+   * - mentionedUserIds (可选): 新的被@提及用户ID数组
+   * 
+   * 响应：更新后的完整评论对象
+   * 
+   * 特点：
+   * - 动态SQL构建：只更新提供的字段
+   * - 权限验证：只有作者可以编辑
+   * - 实时推送：通过Socket.IO通知其他用户
+   */
   router.put("/comments/:commentId", protect, async (req, res) => {
     try {
       const commentId = parseInt(req.params.commentId, 10);
@@ -473,16 +568,19 @@ const createCommentRoutes = (io) => {
 
       const comment = commentResult.rows[0];
 
-      // 检查权限：只有作者可以编辑自己的评论
+      // 步骤2：权限验证
+      // 只有评论的原作者才能编辑，其他人（包括管理员）不能修改
       if (comment.author_id !== req.user.id) {
         return res.status(403).json({ message: "无权编辑该评论" });
       }
 
-      // 更新评论
-      const updateFields = [];
-      const updateValues = [];
-      let paramIndex = 1;
+      // 步骤3：构建动态SQL更新语句
+      // 只更新请求中提供的字段，避免覆盖其他数据
+      const updateFields = [];  // 存储 "field = $1" 格式的字段名
+      const updateValues = [];  // 存储对应的值
+      let paramIndex = 1;        // 参数索引计数器
 
+      // 如果提供了content字段，添加到更新列表
       if (content !== undefined) {
         if (!content || !content.trim()) {
           return res.status(400).json({ message: "评论内容不能为空" });
@@ -491,6 +589,7 @@ const createCommentRoutes = (io) => {
         updateValues.push(content.trim());
       }
 
+      // 如果提供了mentionedUserIds字段，添加到更新列表
       if (mentionedUserIds !== undefined) {
         updateFields.push(`mentioned_user_ids = $${paramIndex++}`);
         updateValues.push(
@@ -498,12 +597,16 @@ const createCommentRoutes = (io) => {
         );
       }
 
+      // 验证至少有一个字段需要更新
       if (updateFields.length === 0) {
         return res.status(400).json({ message: "没有要更新的字段" });
       }
 
+      // 添加WHERE条件参数（commentId）
       updateValues.push(commentId);
 
+      // 执行动态构建的UPDATE语句
+      // 例如：UPDATE document_comments SET content = $1, updated_at = NOW() WHERE id = $2
       const updateResult = await pool.query(
         `UPDATE document_comments 
          SET ${updateFields.join(", ")}, updated_at = NOW()
@@ -573,7 +676,22 @@ const createCommentRoutes = (io) => {
     }
   });
 
-  // 删除评论
+  /**
+   * DELETE /api/comments/:commentId
+   * 删除评论
+   * 
+   * 功能：删除指定评论，会级联删除所有回复
+   * 权限：需要登录，且只有评论作者本人可以删除
+   * 
+   * 请求参数：
+   * - commentId (路径参数): 评论ID
+   * 
+   * 响应：删除成功消息
+   * 
+   * 注意：
+   * - 删除父评论时，所有回复也会被级联删除（数据库外键约束）
+   * - 通过Socket.IO实时通知文档房间的其他用户
+   */
   router.delete("/comments/:commentId", protect, async (req, res) => {
     try {
       const commentId = parseInt(req.params.commentId, 10);
@@ -581,7 +699,7 @@ const createCommentRoutes = (io) => {
         return res.status(400).json({ message: "无效的评论 ID" });
       }
 
-      // 获取评论信息
+      // 步骤1：查询评论信息，验证评论是否存在
       const commentResult = await pool.query(
         `SELECT c.id, c.document_id, c.author_id
          FROM document_comments c
@@ -595,17 +713,18 @@ const createCommentRoutes = (io) => {
 
       const comment = commentResult.rows[0];
 
-      // 检查权限：只有作者可以删除自己的评论
+      // 步骤2：权限验证 - 只有评论作者本人可以删除
       if (comment.author_id !== req.user.id) {
         return res.status(403).json({ message: "无权删除该评论" });
       }
 
-      // 删除评论（级联删除会同时删除所有回复）
+      // 步骤3：删除评论
+      // 数据库外键配置了ON DELETE CASCADE，会自动级联删除所有子回复
       await pool.query("DELETE FROM document_comments WHERE id = $1", [
         commentId,
       ]);
 
-      // 记录操作日志
+      // 步骤4：记录删除操作日志
       await logActivity(
         req.user.id,
         "DELETE_COMMENT",
@@ -614,7 +733,8 @@ const createCommentRoutes = (io) => {
         { commentId }
       );
 
-      // 通过 Socket.IO 实时通知
+      // 步骤5：通过Socket.IO实时通知文档房间的所有在线用户
+      // 前端收到通知后会从界面移除该评论及其所有回复
       if (io) {
         io.to(String(comment.document_id)).emit("commentDeleted", {
           commentId,
@@ -629,7 +749,23 @@ const createCommentRoutes = (io) => {
     }
   });
 
-  // 解决/取消解决评论
+  /**
+   * POST /api/comments/:commentId/resolve
+   * 解决或取消解决评论
+   * 
+   * 功能：将评论标记为已解决或取消已解决状态
+   * 权限：评论作者或文档所有者可以操作
+   * 
+   * 请求参数：
+   * - commentId (路径参数): 评论ID
+   * - resolved (布尔值): true=标记为已解决，false=取消已解决
+   * 
+   * 响应：更新后的评论对象
+   * 
+   * 应用场景：
+   * - 代码审查：标记已修复的问题
+   * - 文档协作：标记已处理的建议
+   */
   router.post("/comments/:commentId/resolve", protect, async (req, res) => {
     try {
       const commentId = parseInt(req.params.commentId, 10);
@@ -639,7 +775,7 @@ const createCommentRoutes = (io) => {
 
       const { resolved } = req.body; // true = 解决, false = 取消解决
 
-      // 获取评论信息
+      // 步骤1：获取评论信息和当前解决状态
       const commentResult = await pool.query(
         `SELECT c.id, c.document_id, c.author_id, c.is_resolved
          FROM document_comments c
@@ -653,7 +789,9 @@ const createCommentRoutes = (io) => {
 
       const comment = commentResult.rows[0];
 
-      // 检查权限：作者或文档所有者可以解决/取消解决评论
+      // 步骤2：权限检查 - 分两种情况
+      // 1. 评论作者：可以解决自己的评论
+      // 2. 文档所有者：可以解决任何人的评论
       const docCheck = await pool.query(
         `SELECT owner_id FROM documents WHERE id = $1`,
         [comment.document_id]
@@ -666,7 +804,9 @@ const createCommentRoutes = (io) => {
         return res.status(403).json({ message: "无权解决/取消解决该评论" });
       }
 
-      // 更新解决状态
+      // 步骤3：更新解决状态
+      // 如果resolved=true：设置resolved_by为当前用户，记录resolved_at时间
+      // 如果resolved=false：清空resolved_by和resolved_at
       const updateResult = await pool.query(
         `UPDATE document_comments 
          SET is_resolved = $1,

@@ -7,7 +7,7 @@ import React, { memo } from "react";
 import { Link } from "react-router-dom";
 import { formatRelativeTime } from "../../utils/timeUtils";
 import { toArray } from "../../utils";
-import "../../styles/components/dashboard/DocumentListItem.css";
+import "../../styles/components/dashboard/DocumentListItem-modern.css";
 
 function DocumentListItem({ doc, isSelected, onSelect, onDelete, onExport }) {
   const tags = toArray(doc.tags);

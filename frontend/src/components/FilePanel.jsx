@@ -56,8 +56,32 @@ const FilePanel = ({ documentId, user, socket, onClose }) => {
   };
 
   // 下载文件
-  const downloadFile = (fileId, fileName) => {
-    window.open(`/api/files/${fileId}/download`, "_blank");
+  const downloadFile = async (fileId, fileName) => {
+    try {
+      const token = localStorage.getItem('authToken');
+      const response = await fetch(`/api/files/${fileId}/download`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error('下载失败');
+      }
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName || 'file';
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('下载文件失败', error);
+      alert('下载文件失败');
+    }
   };
 
   // 删除文件

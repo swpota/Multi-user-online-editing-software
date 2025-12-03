@@ -1,0 +1,335 @@
+/**
+ * 响应式设计样式
+ * 统一的断点和移动端优化
+ */
+
+/* ==================== 断点定义 ==================== */
+/*
+  - Mobile: 0-767px
+  - Tablet: 768px-1023px
+  - Desktop: 1024px-1439px
+  - Large Desktop: 1440px+
+*/
+
+/* ==================== 全局响应式工具类 ==================== */
+
+/* 隐藏/显示工具类 */
+.hide-mobile {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .hide-mobile {
+    display: block;
+  }
+  .show-mobile {
+    display: none !important;
+  }
+}
+
+.hide-tablet {
+  display: block;
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .hide-tablet {
+    display: none !important;
+  }
+  .show-tablet {
+    display: block;
+  }
+}
+
+.hide-desktop {
+  display: block;
+}
+
+@media (min-width: 1024px) {
+  .hide-desktop {
+    display: none !important;
+  }
+  .show-desktop {
+    display: block;
+  }
+}
+
+/* ==================== 移动端优化 ==================== */
+
+/* 移动端字体缩放 */
+@media (max-width: 767px) {
+  html {
+    font-size: 14px; /* 基础字体稍小 */
+  }
+
+  body {
+    -webkit-text-size-adjust: 100%; /* 防止字体自动缩放 */
+    -moz-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+  }
+}
+
+/* 移动端触摸优化 */
+@media (max-width: 767px) {
+  * {
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0); /* 移除点击高亮 */
+    -webkit-touch-callout: none; /* 禁用长按菜单 */
+  }
+
+  /* 增大可点击区域 */
+  button,
+  a,
+  input[type="checkbox"],
+  input[type="radio"] {
+    min-height: 44px; /* iOS 推荐最小点击区域 */
+    min-width: 44px;
+  }
+
+  /* 输入框优化 */
+  input,
+  textarea,
+  select {
+    font-size: 16px; /* 防止 iOS 自动缩放 */
+  }
+}
+
+/* ==================== 容器响应式 ==================== */
+
+/* 移动端容器 */
+@media (max-width: 767px) {
+  .container,
+  .dashboard-container,
+  .editor-container {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  /* 移除固定宽度 */
+  .fixed-width {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+}
+
+/* 平板容器 */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .container,
+  .dashboard-container,
+  .editor-container {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+}
+
+/* ==================== 栅格系统响应式 ==================== */
+
+/* 移动端栅格 */
+@media (max-width: 767px) {
+  .grid,
+  .dashboard-grid-view {
+    grid-template-columns: 1fr !important; /* 单列布局 */
+    gap: 16px;
+  }
+
+  .row {
+    flex-direction: column;
+  }
+
+  .col {
+    width: 100%;
+    margin-bottom: 16px;
+  }
+}
+
+/* 平板栅格 */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .grid,
+  .dashboard-grid-view {
+    grid-template-columns: repeat(2, 1fr) !important; /* 两列布局 */
+    gap: 20px;
+  }
+}
+
+/* ==================== 间距响应式 ==================== */
+
+@media (max-width: 767px) {
+  /* 减小间距 */
+  .section {
+    padding: 32px 0;
+  }
+
+  .card {
+    padding: 16px;
+  }
+
+  .modal {
+    padding: 20px;
+  }
+
+  /* 减小边距 */
+  h1 {
+    font-size: 28px;
+    margin-bottom: 16px;
+  }
+
+  h2 {
+    font-size: 24px;
+    margin-bottom: 12px;
+  }
+
+  h3 {
+    font-size: 20px;
+    margin-bottom: 10px;
+  }
+}
+
+/* ==================== 导航响应式 ==================== */
+
+@media (max-width: 767px) {
+  /* 移动端导航 */
+  .nav {
+    flex-direction: column;
+  }
+
+  .nav-item {
+    width: 100%;
+    text-align: center;
+    padding: 12px 0;
+  }
+
+  /* 汉堡菜单 */
+  .mobile-menu-toggle {
+    display: block;
+  }
+
+  .desktop-menu {
+    display: none;
+  }
+}
+
+@media (min-width: 768px) {
+  .mobile-menu-toggle {
+    display: none;
+  }
+
+  .desktop-menu {
+    display: flex;
+  }
+}
+
+/* ==================== 表格响应式 ==================== */
+
+@media (max-width: 767px) {
+  /* 移动端表格滚动 */
+  .table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  table {
+    min-width: 600px; /* 防止过度压缩 */
+  }
+
+  /* 或者使用卡片式布局 */
+  .table-card-view thead {
+    display: none;
+  }
+
+  .table-card-view tr {
+    display: block;
+    margin-bottom: 16px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 12px;
+  }
+
+  .table-card-view td {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border: none;
+  }
+
+  .table-card-view td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    margin-right: 12px;
+  }
+}
+
+/* ==================== 模态框响应式 ==================== */
+
+@media (max-width: 767px) {
+  .modal {
+    width: 95% !important;
+    max-width: 95% !important;
+    margin: 20px auto;
+  }
+
+  .modal-fullscreen-mobile {
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+    border-radius: 0;
+  }
+}
+
+/* ==================== 表单响应式 ==================== */
+
+@media (max-width: 767px) {
+  .form-row {
+    flex-direction: column;
+  }
+
+  .form-group {
+    margin-bottom: 16px;
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+
+  .form-actions button {
+    width: 100%;
+    margin-bottom: 12px;
+  }
+}
+
+/* ==================== 性能优化 ==================== */
+
+/* 减少移动端动画 */
+@media (max-width: 767px) {
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+/* ==================== 打印优化 ==================== */
+
+@media print {
+  /* 隐藏不需要打印的元素 */
+  .no-print,
+  .sidebar,
+  .navbar,
+  .footer,
+  button {
+    display: none !important;
+  }
+
+  /* 移除背景和阴影 */
+  * {
+    background: white !important;
+    color: black !important;
+    box-shadow: none !important;
+  }
+
+  /* 确保内容完整显示 */
+  .container {
+    width: 100%;
+    max-width: 100%;
+  }
+}

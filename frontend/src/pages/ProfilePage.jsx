@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { toast } from "react-toastify";
 import api from "../api";
-import "../styles/pages/ProfilePage.css";
+import LazyImage from "../components/common/LazyImage";
+import "../styles/pages/ProfilePage-modern.css";
 
 const ProfilePage = ({ user, setUser }) => {
   const [fullName, setFullName] = useState(user.full_name || "");
@@ -41,10 +43,10 @@ const ProfilePage = ({ user, setUser }) => {
         contactPhone: contactPhone || null,
       });
 
-      setProfileMessage(response.data.message || "资料更新成功");
+      toast.success(response.data.message || "资料更新成功");
       setUser(response.data.user);
     } catch (err) {
-      setProfileError(err.response?.data?.message || "更新资料失败");
+      toast.error(err.response?.data?.message || "更新资料失败");
     } finally {
       setLoading(false);
     }
@@ -57,18 +59,18 @@ const ProfilePage = ({ user, setUser }) => {
     setLoading(true);
 
     if (newPassword !== confirmPassword) {
-      setPasswordError("新密码和确认密码不匹配");
+      toast.error("新密码和确认密码不匹配");
       setLoading(false);
       return;
     }
     if (newPassword && newPassword.length < 6) {
-      setPasswordError("新密码长度不能少于6位");
+      toast.error("新密码长度不能少于6位");
       setLoading(false);
       return;
     }
 
     if (!currentPassword || !newPassword) {
-      setPasswordError("请填写当前密码和新密码");
+      toast.error("请填写当前密码和新密码");
       setLoading(false);
       return;
     }
@@ -78,12 +80,12 @@ const ProfilePage = ({ user, setUser }) => {
         currentPassword,
         newPassword,
       });
-      setPasswordMessage(response.data.message || "密码更新成功");
+      toast.success(response.data.message || "密码更新成功");
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
     } catch (err) {
-      setPasswordError(err.response?.data?.message || "更新密码失败");
+      toast.error(err.response?.data?.message || "更新密码失败");
     } finally {
       setLoading(false);
     }
@@ -126,69 +128,76 @@ const ProfilePage = ({ user, setUser }) => {
   return (
     <div className="profile-page">
       <div className="profile-container">
-        {/* 头部 */}
-        <div className="profile-header">
-          <h2 className="profile-header-title">
-            个人资料
-          </h2>
-          <Link to="/" className="profile-back-link">
-            ← 返回仪表盘
-          </Link>
+        {/* 返回链接 */}
+        <Link to="/" className="profile-back-link">
+          <ion-icon name="arrow-back-outline"></ion-icon>
+          返回仪表盘
+        </Link>
+
+        {/* 头部卡片 - 头像和基本信息 */}
+        <div className="profile-header-card">
+          <div className="profile-header-bg"></div>
+          
+          <div className="profile-avatar-section">
+            <LazyImage
+              src={avatarPreview || "/default-avatar.png"}
+              alt="User Avatar"
+              className="profile-avatar"
+              placeholder="/placeholder.svg"
+              width="120px"
+              height="120px"
+            />
+            <div className="profile-avatar-upload">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="profile-avatar-input"
+                id="avatar-input"
+              />
+              <label htmlFor="avatar-input" className="profile-avatar-label">
+                更换头像
+              </label>
+              {avatarFile && (
+                <button
+                  onClick={handleAvatarUpload}
+                  disabled={loading}
+                  className="profile-avatar-upload-btn"
+                >
+                  {loading ? "上传中..." : "确认上传"}
+                </button>
+              )}
+            </div>
+          </div>
+
+          <h2 className="profile-name">{fullName || user.full_name || "未设置姓名"}</h2>
+          <p className="profile-email">{user.email}</p>
+          <span className="profile-role-badge">
+            {user.role === "admin" ? "管理员" : "普通用户"}
+          </span>
         </div>
 
         <div className="profile-content">
-          {/* 头像部分 */}
-          <div className="profile-avatar-section">
-            <div className="profile-avatar-wrapper">
-              <img
-                src={avatarPreview || "/default-avatar.png"}
-                alt="User Avatar"
-                className="profile-avatar-image"
-              />
-            </div>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleFileChange}
-              className="profile-avatar-input"
-              id="avatar-input"
-            />
-            <label htmlFor="avatar-input" className="profile-avatar-label">
-              选择头像
-            </label>
-            <button
-              onClick={handleAvatarUpload}
-              disabled={!avatarFile || loading}
-              className="profile-avatar-upload-btn"
-            >
-              {loading ? "上传中..." : "上传头像"}
-            </button>
-          </div>
-
-          {/* 账户信息 */}
-          <div className="profile-section">
-            <h3 className="profile-section-title">
-              账户信息
-            </h3>
-            <div className="profile-account-info">
-              <div className="profile-account-item">
-                <strong className="profile-account-label">邮箱：</strong>
-                <span className="profile-account-value">{user.email}</span>
+          {/* 账户信息卡片 */}
+          <div className="profile-card">
+            <h3 className="profile-card-title">账户信息</h3>
+            <div className="profile-info-grid">
+              <div className="profile-info-item">
+                <span className="profile-info-label">邮箱：</span>
+                <span className="profile-info-value">{user.email}</span>
               </div>
               {user.phone && (
-                <div className="profile-account-item">
-                  <strong className="profile-account-label">手机号：</strong>
-                  <span className="profile-account-value">{user.phone}</span>
+                <div className="profile-info-item">
+                  <span className="profile-info-label">手机号：</span>
+                  <span className="profile-info-value">{user.phone}</span>
                 </div>
               )}
             </div>
           </div>
 
-          {/* 联系方式表单 */}
-          <div className="profile-section">
-            <h3 className="profile-section-title">
-              联系方式
-            </h3>
+          {/* 联系方式表单卡片 */}
+          <div className="profile-card">
+            <h3 className="profile-card-title">联系方式</h3>
             <form onSubmit={handleProfileSubmit} className="profile-form">
               <div className="profile-form-group">
                 <label className="profile-label">
@@ -214,7 +223,7 @@ const ProfilePage = ({ user, setUser }) => {
                   className="profile-input"
                 />
               </div>
-              <div className="profile-form-group-last">
+              <div className="profile-form-group">
                 <label className="profile-label">
                   联系电话
                 </label>
@@ -226,31 +235,19 @@ const ProfilePage = ({ user, setUser }) => {
                   className="profile-input"
                 />
               </div>
-              {profileError && (
-                <div className="profile-message profile-message-error">
-                  {profileError}
-                </div>
-              )}
-              {profileMessage && (
-                <div className="profile-message profile-message-success">
-                  {profileMessage}
-                </div>
-              )}
               <button
                 type="submit"
                 disabled={loading}
-                className="profile-submit-btn"
+                className="profile-submit-btn shimmer-effect"
               >
                 {loading ? "保存中..." : "保存资料"}
               </button>
             </form>
           </div>
 
-          {/* 修改密码 */}
-          <div className="profile-password-section">
-            <h3 className="profile-section-title">
-              修改密码
-            </h3>
+          {/* 修改密码卡片 */}
+          <div className="profile-card">
+            <h3 className="profile-card-title">修改密码</h3>
             <form onSubmit={handlePasswordSubmit} className="profile-form">
               <div className="profile-form-group">
                 <label className="profile-label">
@@ -263,7 +260,9 @@ const ProfilePage = ({ user, setUser }) => {
                     onChange={(e) => setCurrentPassword(e.target.value)}
                     required
                     className="profile-input profile-input-password"
+                    style={{paddingLeft: '42px'}}
                   />
+                  <ion-icon name="lock-closed-outline"></ion-icon>
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
@@ -284,7 +283,9 @@ const ProfilePage = ({ user, setUser }) => {
                     onChange={(e) => setNewPassword(e.target.value)}
                     required
                     className="profile-input profile-input-password"
+                    style={{paddingLeft: '42px'}}
                   />
+                  <ion-icon name="lock-closed-outline"></ion-icon>
                   <button
                     type="button"
                     onClick={() => setShowNewPassword(!showNewPassword)}
@@ -294,7 +295,7 @@ const ProfilePage = ({ user, setUser }) => {
                   </button>
                 </div>
               </div>
-              <div className="profile-form-group-last">
+              <div className="profile-form-group">
                 <label className="profile-label">
                   确认新密码
                 </label>
@@ -305,7 +306,9 @@ const ProfilePage = ({ user, setUser }) => {
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     required
                     className="profile-input profile-input-password"
+                    style={{paddingLeft: '42px'}}
                   />
+                  <ion-icon name="lock-closed-outline"></ion-icon>
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
@@ -316,21 +319,10 @@ const ProfilePage = ({ user, setUser }) => {
                 </div>
               </div>
 
-              {passwordError && (
-                <div className="profile-message profile-message-error">
-                  {passwordError}
-                </div>
-              )}
-              {passwordMessage && (
-                <div className="profile-message profile-message-success">
-                  {passwordMessage}
-                </div>
-              )}
-
               <button
                 type="submit"
                 disabled={loading}
-                className="profile-submit-btn"
+                className="profile-submit-btn shimmer-effect"
               >
                 {loading ? "更新中..." : "更新密码"}
               </button>

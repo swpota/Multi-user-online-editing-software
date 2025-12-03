@@ -1,0 +1,476 @@
+/**
+ * 开源社区和技术栈样式
+ * 包含酷炫的卡片效果和动画
+ */
+
+/* ========== 开源社区区域 ========== */
+
+.landing-community {
+  padding: 100px 0;
+  background: linear-gradient(180deg, #f8f9fa 0%, #ffffff 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.landing-community::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, #e0e0e0 50%, transparent 100%);
+}
+
+.landing-community-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* ========== GitHub 统计卡片 ========== */
+
+.github-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 30px;
+  margin: 60px 0;
+}
+
+.github-stat-card {
+  background: white;
+  padding: 40px 30px;
+  border-radius: 20px;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.github-stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #FF6B6B, #4ECDC4, #45B7D1, #FF6B6B);
+  background-size: 200% 200%;
+  animation: gradient-shift 3s ease infinite;
+}
+
+.github-stat-card:hover {
+  transform: translateY(-12px) scale(1.02);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+}
+
+.github-stat-card .stat-icon {
+  font-size: 48px;
+  margin-bottom: 20px;
+  color: #FF6B6B;
+  display: inline-block;
+  transition: transform 0.3s;
+}
+
+.github-stat-card:hover .stat-icon {
+  transform: scale(1.2) rotate(10deg);
+}
+
+.github-stat-card:nth-child(2) .stat-icon {
+  color: #4ECDC4;
+}
+
+.github-stat-card:nth-child(3) .stat-icon {
+  color: #45B7D1;
+}
+
+.github-stat-card:nth-child(4) .stat-icon {
+  color: #96CEB4;
+}
+
+.github-stat-card .stat-number {
+  font-size: 48px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 10px;
+  line-height: 1;
+}
+
+.github-stat-card .stat-label {
+  font-size: 14px;
+  color: #666;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* ========== 贡献方式卡片 ========== */
+
+.contribute-ways {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 24px;
+  margin: 60px 0;
+}
+
+.contribute-card {
+  background: white;
+  padding: 35px 25px;
+  border-radius: 16px;
+  text-align: center;
+  border: 2px solid transparent;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.contribute-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.5s;
+}
+
+.contribute-card:hover::before {
+  left: 100%;
+}
+
+.contribute-card:hover {
+  transform: translateY(-8px);
+  border-color: #FF6B6B;
+  box-shadow: 0 15px 40px rgba(255, 107, 107, 0.2);
+}
+
+.contribute-card:nth-child(2):hover {
+  border-color: #4ECDC4;
+  box-shadow: 0 15px 40px rgba(78, 205, 196, 0.2);
+}
+
+.contribute-card:nth-child(3):hover {
+  border-color: #45B7D1;
+  box-shadow: 0 15px 40px rgba(69, 183, 209, 0.2);
+}
+
+.contribute-card:nth-child(4):hover {
+  border-color: #96CEB4;
+  box-shadow: 0 15px 40px rgba(150, 206, 180, 0.2);
+}
+
+.contribute-icon {
+  font-size: 56px;
+  margin-bottom: 20px;
+  display: inline-block;
+  transition: transform 0.3s;
+}
+
+.contribute-card:hover .contribute-icon {
+  transform: scale(1.1) rotate(-5deg);
+}
+
+.contribute-card h3 {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: #2c3e50;
+}
+
+.contribute-card p {
+  font-size: 14px;
+  color: #7f8c8d;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* ========== GitHub 按钮 ========== */
+
+.community-cta {
+  text-align: center;
+  margin-top: 60px;
+}
+
+.github-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 40px;
+  background: linear-gradient(135deg, #24292e 0%, #1a1e22 100%);
+  color: white;
+  text-decoration: none;
+  border-radius: 50px;
+  font-size: 18px;
+  font-weight: 600;
+  box-shadow: 0 10px 30px rgba(36, 41, 46, 0.3);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.github-btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.github-btn:hover::before {
+  width: 300px;
+  height: 300px;
+}
+
+.github-btn:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 15px 40px rgba(36, 41, 46, 0.4);
+}
+
+.github-btn ion-icon {
+  font-size: 28px;
+}
+
+/* ========== 技术栈区域 ========== */
+
+.landing-tech {
+  padding: 100px 0;
+  background: linear-gradient(180deg, #ffffff 0%, #f0f4f8 100%);
+  position: relative;
+}
+
+.landing-tech-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* ========== 技术分类 ========== */
+
+.tech-categories {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 40px;
+  margin: 60px 0;
+}
+
+.tech-category {
+  background: white;
+  padding: 40px;
+  border-radius: 24px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s;
+}
+
+.tech-category:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.12);
+}
+
+.tech-category-title {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 30px;
+  color: #2c3e50;
+  position: relative;
+  padding-bottom: 15px;
+}
+
+.tech-category-title::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 60px;
+  height: 4px;
+  background: linear-gradient(90deg, #FF6B6B, #4ECDC4);
+  border-radius: 2px;
+}
+
+/* ========== 技术项目 ========== */
+
+.tech-items {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.tech-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 12px;
+  transition: all 0.3s;
+  cursor: pointer;
+}
+
+.tech-item:hover {
+  background: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transform: translateX(8px);
+}
+
+.tech-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: transform 0.3s;
+}
+
+.tech-item:hover .tech-icon {
+  transform: rotate(8deg) scale(1.1);
+}
+
+.tech-item span {
+  font-size: 18px;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+/* ========== 技术特性高亮 ========== */
+
+.tech-highlights {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 24px;
+  margin-top: 80px;
+}
+
+.tech-highlight-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 35px 30px;
+  border-radius: 20px;
+  color: white;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.3s;
+}
+
+.tech-highlight-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+  animation: glow-rotate 10s linear infinite;
+}
+
+.tech-highlight-card:hover {
+  transform: translateY(-8px);
+}
+
+.tech-highlight-card:nth-child(2) {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.tech-highlight-card:nth-child(3) {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.tech-highlight-card:nth-child(4) {
+  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+}
+
+.highlight-badge {
+  display: inline-block;
+  padding: 8px 20px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  backdrop-filter: blur(10px);
+}
+
+.tech-highlight-card h4 {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: white;
+}
+
+.tech-highlight-card p {
+  font-size: 14px;
+  opacity: 0.9;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* ========== 响应式 ========== */
+
+@media (max-width: 968px) {
+  .github-stats {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+  
+  .contribute-ways {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .tech-categories {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+  
+  .tech-highlights {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .landing-community {
+    padding: 60px 0;
+  }
+  
+  .landing-tech {
+    padding: 60px 0;
+  }
+  
+  .github-stats {
+    grid-template-columns: 1fr;
+  }
+  
+  .contribute-ways {
+    grid-template-columns: 1fr;
+  }
+  
+  .tech-highlights {
+    grid-template-columns: 1fr;
+  }
+  
+  .github-stat-card {
+    padding: 30px 20px;
+  }
+  
+  .github-stat-card .stat-number {
+    font-size: 40px;
+  }
+  
+  .contribute-card {
+    padding: 30px 20px;
+  }
+  
+  .tech-category {
+    padding: 30px 24px;
+  }
+}

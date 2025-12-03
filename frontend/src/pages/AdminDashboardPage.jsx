@@ -203,11 +203,11 @@ const AdminDashboardPage = ({ user: loggedInUser }) => {
 
   return (
     <div className="admin-dashboard-page">
-      <div className="admin-dashboard-container">
+      <div className="admin-dashboard-container fade-in-up">
         {/* 头部 */}
         <div className="admin-dashboard-header">
           <div className="admin-dashboard-header-left">
-            <h2 className="admin-dashboard-title">🔐 后台管理面板</h2>
+            <h2 className="admin-dashboard-title text-gradient">🔐 后台管理面板</h2>
             <p className="admin-dashboard-subtitle">
               系统监控、用户管理与参数配置
             </p>
@@ -220,41 +220,36 @@ const AdminDashboardPage = ({ user: loggedInUser }) => {
         {/* 标签页导航 */}
         <div className="admin-dashboard-tabs">
           <button
-            className={`admin-dashboard-tab ${
-              activeTab === "users" ? "active" : ""
-            }`}
+            className={`admin-dashboard-tab hover-lift ${activeTab === "users" ? "active" : ""
+              }`}
             onClick={() => setActiveTab("users")}
           >
             👥 用户管理
           </button>
           <button
-            className={`admin-dashboard-tab ${
-              activeTab === "analytics" ? "active" : ""
-            }`}
+            className={`admin-dashboard-tab hover-lift ${activeTab === "analytics" ? "active" : ""
+              }`}
             onClick={() => setActiveTab("analytics")}
           >
             📊 用户分析
           </button>
           <button
-            className={`admin-dashboard-tab ${
-              activeTab === "settings" ? "active" : ""
-            }`}
+            className={`admin-dashboard-tab hover-lift ${activeTab === "settings" ? "active" : ""
+              }`}
             onClick={() => setActiveTab("settings")}
           >
             ⚙️ 系统配置
           </button>
           <button
-            className={`admin-dashboard-tab ${
-              activeTab === "surveys" ? "active" : ""
-            }`}
+            className={`admin-dashboard-tab hover-lift ${activeTab === "surveys" ? "active" : ""
+              }`}
             onClick={() => setActiveTab("surveys")}
           >
             ⭐ 满意度调查
           </button>
           <button
-            className={`admin-dashboard-tab ${
-              activeTab === "monitoring" ? "active" : ""
-            }`}
+            className={`admin-dashboard-tab hover-lift ${activeTab === "monitoring" ? "active" : ""
+              }`}
             onClick={() => setActiveTab("monitoring")}
           >
             📈 系统监控
@@ -262,7 +257,7 @@ const AdminDashboardPage = ({ user: loggedInUser }) => {
         </div>
 
         {/* 内容区域 */}
-        <div className="admin-dashboard-content">
+        <div className="admin-dashboard-content glass-effect">
           {/* 用户管理标签页 */}
           {activeTab === "users" && (
             <UserManagementTab

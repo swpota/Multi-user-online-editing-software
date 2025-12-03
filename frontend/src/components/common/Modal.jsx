@@ -3,7 +3,7 @@
  * 提供统一的模态框样式和交互
  */
 import React from "react";
-import "../../styles/components/common/Modal.css";
+import "../../styles/components/common/Modal-modern.css";
 
 function Modal({ visible, title, onClose, width = "640px", maxHeight = "80vh", children }) {
   if (!visible) return null;

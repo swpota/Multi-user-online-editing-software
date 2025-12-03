@@ -154,7 +154,7 @@ const createDocumentBaseRoutes = (io) => {
     }
   });
 
-  // 创建新文档，支持富文本/Markdown格式，可从模板创建
+  // POST /api/documents - 创建新文档，支持富文本/Markdown格式，可从模板创建
   router.post("/", protect, validateDocumentCreate, async (req, res) => {
     const { title, category, tags, templateId, content, contentFormat, markdownContent } = req.body;
     const ownerId = req.user.id;
@@ -302,7 +302,7 @@ const createDocumentBaseRoutes = (io) => {
     }
   });
 
-  // 获取文档详情，并返回用户权限信息
+  // GET /api/documents/:id - 获取文档详情，并返回用户权限信息
   router.get("/:id", protect, validateDocumentId, async (req, res) => {
     try {
       const id = parseInt(req.params.id, 10);
@@ -361,7 +361,7 @@ const createDocumentBaseRoutes = (io) => {
     }
   });
 
-  // 更新文档，只更新传入的字段
+  // PUT /api/documents/:id - 更新文档，只更新传入的字段
   router.put("/:id", protect, validateDocumentId, validateDocumentUpdate, async (req, res) => {
     try {
       const id = parseInt(req.params.id, 10);
@@ -486,7 +486,7 @@ const createDocumentBaseRoutes = (io) => {
     }
   });
 
-  // 删除文档，仅所有者或管理员可操作
+  // DELETE /api/documents/:id - 删除文档，仅所有者或管理员可操作
   router.delete("/:id", protect, validateDocumentId, async (req, res) => {
     try {
       const id = parseInt(req.params.id, 10);

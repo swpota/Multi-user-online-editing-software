@@ -95,7 +95,7 @@ const createDocumentVersionRoutes = (io) => {
     }
   });
 
-  // 获取文档的所有版本列表，按创建时间倒序
+  // GET /api/documents/:id/versions - 获取文档的所有版本列表，按创建时间倒序排列
   router.get("/:id/versions", protect, validateDocumentId, async (req, res) => {
     try {
       const documentId = parseInt(req.params.id, 10);
@@ -142,7 +142,7 @@ const createDocumentVersionRoutes = (io) => {
     }
   });
 
-  // 创建版本快照，保存当前文档的完整状态
+  // POST /api/documents/:id/versions - 创建版本快照，保存当前文档的完整状态
   router.post("/:id/versions", protect, validateDocumentId, async (req, res) => {
     try {
       const documentId = parseInt(req.params.id, 10);
@@ -206,7 +206,7 @@ const createDocumentVersionRoutes = (io) => {
     }
   });
 
-  // 获取指定版本的详细内容
+  // GET /api/documents/:id/versions/:versionId - 获取指定版本的详细内容
   router.get("/:id/versions/:versionId", protect, validateDocumentId, async (req, res) => {
     try {
       const documentId = parseInt(req.params.id, 10);
@@ -256,7 +256,7 @@ const createDocumentVersionRoutes = (io) => {
     }
   });
 
-  // 恢复到指定历史版本，会覆盖当前文档内容
+  // POST /api/documents/:id/versions/:versionId/restore - 恢复到指定历史版本
   router.post("/:id/versions/:versionId/restore", protect, validateDocumentId, async (req, res) => {
     try {
       const documentId = parseInt(req.params.id, 10);

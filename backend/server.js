@@ -1,18 +1,22 @@
-// 引入必要的库
+/**
+ * 服务器入口文件
+ *
+ * 使用Express作为Web框架，Socket.io实现WebSocket实时通信。
+ * 两者共用一个HTTP服务器，都监听5000端口。
+ *
+ * 主要职责：
+ * - 处理用户认证（注册、登录、密码重置）
+ * - 挂载各功能模块的路由
+ * - 管理Socket.io连接和文档协作房间
+ */
 const express = require("express");
 const { Pool } = require("pg");
 const bcrypt = require("bcryptjs");
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
-
-// 引入 http 和 socket.io 库
 const http = require("http");
 const { Server } = require("socket.io");
-
-// 加载数据库连接
 const pool = require("./db");
-
-// 引入配置和工具
 const { getConfig } = require("./config/env");
 const {
   validateEmail,
@@ -39,68 +43,56 @@ const {
 
 const { protect } = require("./middleware/authMiddleware");
 
-// 文档路由（拆分后）
-const documentBaseRoutes = require("./routes/documentBaseRoutes");
-const documentVersionRoutes = require("./routes/documentVersionRoutes");
-const documentTemplateRoutes = require("./routes/documentTemplateRoutes");
-const documentCollaboratorRoutes = require("./routes/documentCollaboratorRoutes");
-const documentImportExportRoutes = require("./routes/documentImportExportRoutes");
-const documentLockRoutes = require("./routes/documentLockRoutes");
-const userRoutes = require("./routes/userRoutes");
-const adminRoutes = require("./routes/adminRoutes");
-const commentRoutes = require("./routes/commentRoutes");
-const taskRoutes = require("./routes/taskRoutes");
-const { createNotificationRoutes } = require("./routes/notificationRoutes");
-const chatRoutes = require("./routes/chatRoutes");
-const fileRoutes = require("./routes/fileRoutes");
+// 各功能模块的路由
+const documentBaseRoutes = require("./routes/documentBaseRoutes"); // 文档CRUD
+const documentVersionRoutes = require("./routes/documentVersionRoutes"); // 版本管理
+const documentTemplateRoutes = require("./routes/documentTemplateRoutes"); // 模板
+const documentCollaboratorRoutes = require("./routes/documentCollaboratorRoutes"); // 协作者
+const documentImportExportRoutes = require("./routes/documentImportExportRoutes"); // 导入导出
+const documentLockRoutes = require("./routes/documentLockRoutes"); // 文档锁定
+const userRoutes = require("./routes/userRoutes"); // 用户管理
+const adminRoutes = require("./routes/adminRoutes"); // 管理后台
+const commentRoutes = require("./routes/commentRoutes"); // 评论
+const taskRoutes = require("./routes/taskRoutes"); // 任务
+const { createNotificationRoutes } = require("./routes/notificationRoutes"); // 通知
+const chatRoutes = require("./routes/chatRoutes"); // 聊天
+const fileRoutes = require("./routes/fileRoutes"); // 文件
 const crypto = require("crypto");
 const { logUserActivity, logSystemLog } = require("./services/activityService");
 
-// 获取配置
 const config = getConfig();
-
-// 初始化 Express 应用
 const app = express();
 
-// --- (新增) 创建 HTTP 服务器并集成 Express ---
+// Express和Socket.io共用一个HTTP服务器
 const server = http.createServer(app);
-// ---
 
-// --- (新增) 初始化 Socket.IO 服务器 ---
+// Socket.io初始化，配置跨域
 const io = new Server(server, {
   cors: {
-    origin: config.cors.origins, // 使用配置中的 CORS origins
+    origin: config.cors.origins,
     methods: ["GET", "POST"],
   },
 });
-// ---
 
-// 新增：用于追踪每个房间里的用户
+// 追踪每个文档房间的在线用户
+// key是documentId，value是用户信息数组
 const roomOccupants = {};
 
-// 中间件配置
-app.use(
-  cors({
-    origin: config.cors.origins,
-    credentials: true,
-  })
-);
+// 基础中间件配置
+app.use(cors({ origin: config.cors.origins, credentials: true }));
 app.use(express.json());
+app.use("/api", apiLimiter); // 所有API接口都有速率限制
 
-// 应用全局速率限制
-app.use("/api", apiLimiter);
-
-// --- API 路由定义 ---
-
-// 1. 用户注册路由（应用认证速率限制和输入验证）
+// ============ 用户注册 ============
+// 注册时会检查邮箱/手机是否已存在，密码用bcrypt加密存储
 app.post(
   "/api/auth/register",
-  authLimiter,
+  authLimiter, // 认证接口有更严格的速率限制
   validateRegister,
   asyncHandler(async (req, res, next) => {
     const { email, phone, password, fullName, contactEmail, contactPhone } = req.body;
 
-    // 检查注册是否启用
+    // 先检查系统是否允许注册
     try {
       const registrationSetting = await pool.query(
         "SELECT setting_value FROM system_settings WHERE setting_key = 'enable_registration'"
@@ -151,12 +143,10 @@ app.post(
 
     // 验证姓名格式
     if (!validateFullName(fullName)) {
-      return res
-        .status(400)
-        .json({
-          message:
-            "姓名格式不正确，姓名不能为空、不能全是数字，长度应在2-50个字符之间，且应包含至少一个汉字或英文字母",
-        });
+      return res.status(400).json({
+        message:
+          "姓名格式不正确，姓名不能为空、不能全是数字，长度应在2-50个字符之间，且应包含至少一个汉字或英文字母",
+      });
     }
 
     const normalizedEmail = normalizeEmail(email);
@@ -279,7 +269,7 @@ app.post(
   })
 );
 
-// 2. 用户登录路由（应用认证速率限制和输入验证）
+// ============ 用户登录 ============
 app.post(
   "/api/auth/login",
   authLimiter,
@@ -363,7 +353,7 @@ app.post(
   })
 );
 
-// --- (新增) 3. 请求密码重置路由（应用认证速率限制和输入验证） ---
+// ============ 请求密码重置 ============
 app.post(
   "/api/auth/request-password-reset",
   authLimiter,
@@ -423,7 +413,7 @@ app.post(
   })
 );
 
-// --- (新增) 4. 重置密码路由（应用认证速率限制和输入验证） ---
+// ============ 重置密码 ============
 app.post(
   "/api/auth/reset-password",
   authLimiter,
@@ -432,6 +422,26 @@ app.post(
     const { token, newPassword } = req.body;
 
     try {
+      // 从系统设置获取密码最小长度
+      let minPasswordLength = 6;
+      try {
+        const passwordLengthSetting = await pool.query(
+          "SELECT setting_value FROM system_settings WHERE setting_key = 'password_min_length'"
+        );
+        if (passwordLengthSetting.rows.length > 0) {
+          minPasswordLength = parseInt(passwordLengthSetting.rows[0].setting_value, 10) || 6;
+        }
+      } catch (settingError) {
+        logger.warn("获取密码长度设置失败，使用默认值:", settingError);
+      }
+
+      // 验证密码长度
+      if (newPassword.length < minPasswordLength) {
+        return res.status(400).json({ 
+          message: `新密码长度不能少于 ${minPasswordLength} 位` 
+        });
+      }
+
       // 1. 查找用户，同时验证 token 是否匹配且未过期
       // a. token 必须与数据库中的完全一致
       // b. reset_password_expires 必须是未来的时间 (大于 NOW())
@@ -471,7 +481,7 @@ app.post(
   })
 );
 
-// --- (新增) 用户搜索 API ---
+// ============ 用户搜索 ============
 app.get(
   "/api/users/search",
   protect,
@@ -496,94 +506,70 @@ app.get(
   })
 );
 
-// --- (新增) 配置静态文件服务 ---
-// 这使得可以通过 http://localhost:5000/avatars/filename.png 这样的URL访问图片
+// 静态文件（头像等）
 app.use(express.static("public"));
 
+// ============ 挂载各模块路由 ============
 app.use("/api/admin", adminRoutes);
-
-// 3. --- 挂载用户路由 ---
 app.use("/api/users", userRoutes);
-// 4. --- 挂载文档路由（拆分后，传入 io 实例） ---
-// 注意：模板路由必须在 /:id 路由之前，否则 /templates 会被 /:id 匹配
+// 文档相关路由（模板路由要放在/:id前面，不然会被匹配掉）
 app.use("/api/documents", documentTemplateRoutes(io));
 app.use("/api/documents", documentBaseRoutes(io));
 app.use("/api/documents", documentVersionRoutes(io));
 app.use("/api/documents", documentCollaboratorRoutes(io));
 app.use("/api/documents", documentImportExportRoutes(io));
 app.use("/api/documents", documentLockRoutes(io));
-
-// 5. --- 挂载评论路由（传入 io 实例） ---
+// 其他功能路由
 app.use("/api", commentRoutes(io));
-
-// 6. --- 挂载任务路由（传入 io 实例） ---
 app.use("/api", taskRoutes(io));
-
-// 7. --- 挂载通知路由（传入 io 实例） ---
 app.use("/api", createNotificationRoutes(io));
-
-// 8. --- 挂载聊天路由（传入 io 实例） ---
 app.use("/api", chatRoutes(io));
-
-// 9. --- 挂载文件路由（传入 io 实例，应用上传速率限制） ---
 app.use("/api/files", uploadLimiter);
 app.use("/api", fileRoutes(io));
 
-// --- 404 处理（必须在所有路由之后） ---
+// 错误处理
 app.use(notFoundHandler);
-
-// --- 全局错误处理（必须在所有路由之后） ---
 app.use(errorHandler);
 
-// --- (修改) WebSocket 实时协作逻辑 ---
+// ============ WebSocket实时协作 核心逻辑 ============
 io.on("connection", (socket) => {
-  // 只在开发环境记录连接日志
   if (config.server.nodeEnv === "development") {
-    logger.debug("一个客户端已连接:", socket.id);
+    logger.debug("客户端已连接:", socket.id);
   }
 
-  // 1. 当用户加入一个文档房间时
+  // 用户加入文档房间
   socket.on("joinDocument", (data) => {
     const { documentId, user } = data;
 
-    // --- 新增逻辑 ---
+    // 加入文档房间和用户专属房间（用于接收通知）
     socket.join(documentId);
-    // 同时加入用户专属房间，用于接收个人通知（评论提及、任务分配等）
     socket.join(`user_${user.id}`);
-    // 将用户信息存储在 socket 实例上，以便在断开连接时使用
     socket.documentId = documentId;
     socket.user = user;
 
-    // 如果房间还不存在，则初始化
+    // 维护房间在线用户列表
     if (!roomOccupants[documentId]) {
       roomOccupants[documentId] = [];
     }
-
-    // 添加新用户到房间列表 (如果尚未存在)
     if (!roomOccupants[documentId].find((u) => u.id === user.id)) {
       roomOccupants[documentId].push(user);
     }
 
-    // 只在开发环境记录加入房间日志
     if (config.server.nodeEnv === "development") {
-      logger.debug(
-        `用户 ${user?.email || user?.full_name || "未知"} (${
-          socket.id
-        }) 加入了文档房间 ${documentId}`
-      );
+      logger.debug(`用户 ${user?.email || user?.full_name || "未知"} 加入了文档 ${documentId}`);
     }
 
-    // 向该房间的所有人广播更新后的用户列表
+    // 广播最新的在线用户列表
     io.to(documentId).emit("updateUserList", roomOccupants[documentId]);
-    // --- 结束新增 ---
   });
 
-  // 2. 当用户发送文档内容变更时 (无变化)
+  // 收到用户的编辑内容，转发给同一文档的其他人
   socket.on("documentChange", (data) => {
     const { documentId, delta } = data;
     socket.to(documentId).emit("receiveChange", delta);
   });
 
+  // 收到元数据变更（标题、分类等）
   socket.on("documentMetadataChange", (data) => {
     const { documentId, updates } = data;
     if (!documentId || !updates || typeof updates !== "object") {
@@ -592,48 +578,36 @@ io.on("connection", (socket) => {
     socket.to(documentId).emit("receiveMetadata", updates);
   });
 
-  // 新增：4. 当用户光标位置或选择范围变化时
+  // 收到光标位置变化，转发给其他人显示协作光标
   socket.on("cursorChange", (data) => {
     const { documentId, range, user } = data;
-    // 将光标信息广播给除发送者外的所有其他客户端
     socket.to(documentId).emit("receiveCursor", { range, user });
   });
 
-  // 当客户端断开连接时
+  // 用户断开连接，从房间列表移除
   socket.on("disconnect", () => {
-    // 只在开发环境记录断开连接日志
     if (config.server.nodeEnv === "development") {
-      logger.debug("客户端已断开连接:", socket.id);
+      logger.debug("客户端已断开:", socket.id);
     }
 
-    // --- 新增逻辑 ---
     const { documentId, user } = socket;
-    if (documentId && user) {
-      // 从房间的用户列表中移除该用户
-      if (roomOccupants[documentId]) {
-        roomOccupants[documentId] = roomOccupants[documentId].filter((u) => u.id !== user.id);
-
-        // 如果房间空了，可以从内存中删除这个房间
-        if (roomOccupants[documentId].length === 0) {
-          delete roomOccupants[documentId];
-        } else {
-          // 否则，向房间内剩余的人广播更新后的用户列表
-          io.to(documentId).emit("updateUserList", roomOccupants[documentId]);
-        }
+    if (documentId && user && roomOccupants[documentId]) {
+      roomOccupants[documentId] = roomOccupants[documentId].filter((u) => u.id !== user.id);
+      if (roomOccupants[documentId].length === 0) {
+        delete roomOccupants[documentId];
+      } else {
+        io.to(documentId).emit("updateUserList", roomOccupants[documentId]);
       }
     }
-    // --- 结束新增 ---
   });
 });
-// ---
 
-// --- (修改) 启动服务器 ---
-// 我们现在启动的是集成了 Express 的 http 服务器
+// ============ 启动服务器 ============
 server.listen(config.server.port, () => {
-  logger.info(`🚀 服务器正在 http://localhost:${config.server.port} 上运行`);
-  logger.info(`📡 WebSocket 服务器已启动，监听实时连接`);
-  logger.info(`🌍 环境: ${config.server.nodeEnv}`);
-  logger.info(`🔒 CORS 允许的源: ${config.cors.origins.join(", ")}`);
+  logger.info(`服务器正在 http://localhost:${config.server.port} 上运行`);
+  logger.info(`WebSocket 服务器已启动，监听实时连接`);
+  logger.info(`环境: ${config.server.nodeEnv}`);
+  logger.info(`CORS 允许的源: ${config.cors.origins.join(", ")}`);
 });
 
 // 处理未捕获的异常

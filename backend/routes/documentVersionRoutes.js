@@ -1,17 +1,5 @@
-/**
- * 文档版本管理路由模块
- * 
- * 功能：提供文档版本的完整管理功能
- * 特性：
- * 1. 版本列表查询（包含创建者信息）
- * 2. 创建版本快照（保存当前文档状态）
- * 3. 查看单个版本详情
- * 4. 版本对比（使用diff-match-patch算法）
- * 5. 恢复历史版本（回滚到指定版本）
- * 6. 支持富文本和Markdown两种格式的版本管理
- * 
- * 说明：从原documentRoutes.js拆分出来，专注于版本管理操作
- */
+// 文档版本管理路由
+// 功能：版本列表、创建快照、对比、恢复
 const express = require("express");
 const { protect } = require("../middleware/authMiddleware");
 const pool = require("../db");
@@ -24,39 +12,10 @@ const { diff_match_patch } = require("diff-match-patch");
 
 const dmp = new diff_match_patch();
 
-/**
- * createDocumentVersionRoutes - 创建文档版本管理路由
- * 
- * @param {object} io - Socket.IO实例，用于实时推送版本更新
- * @returns {Router} - Express路由器
- */
 const createDocumentVersionRoutes = (io) => {
   const router = express.Router();
 
-  /**
-   * GET /api/documents/:id/versions/compare
-   * 比较两个版本的差异
-   * 
-   * 功能：使用diff-match-patch算法计算两个版本之间的文本差异
-   * 权限：需要登录，且对文档有查看权限
-   * 
-   * 请求参数：
-   * - id (路径参数): 文档ID
-   * - from (查询参数): 源版本ID
-   * - to (查询参数): 目标版本ID
-   * 
-   * 响应：差异对比结果，包含：
-   * - from: 源版本信息（id, title, created_at）
-   * - to: 目标版本信息（id, title, created_at）
-   * - diffs: diff-match-patch格式的差异数组
-   * - format: 对比格式（markdown/rich）
-   * 
-   * 算法：
-   * - 使用Google的diff-match-patch库进行文本差异分析
-   * - 支持语义化清理，提高差异可读性
-   * - 格式智能适配：两个版本都是Markdown时用Markdown对比，否则转HTML对比
-   * - 支持对比同一版本（from === to）
-   */
+  // GET /api/documents/:id/versions/compare - 对比两个版本
   router.get("/:id/versions/compare", protect, validateDocumentId, async (req, res) => {
     try {
       const documentId = parseInt(req.params.id, 10);
@@ -89,19 +48,21 @@ const createDocumentVersionRoutes = (io) => {
       }
 
       const fromVersion = versionsResult.rows.find((v) => v.id === fromId);
-      
+
       if (!fromVersion) {
         return res.status(404).json({ message: "源版本不存在" });
       }
-      
+
       const toVersion = versionsResult.rows.find((v) => v.id === toId) || fromVersion;
 
       const fromFormat = fromVersion.content_format || "rich";
       const toFormat = toVersion.content_format || "rich";
-      const compareFormat = fromFormat === "markdown" && toFormat === "markdown" ? "markdown" : "rich";
+      const compareFormat =
+        fromFormat === "markdown" && toFormat === "markdown" ? "markdown" : "rich";
 
       let fromText, toText;
 
+      // 根据内容格式提取文本进行对比，如果是富文本则转换成简单HTML，否则用Markdown文本
       if (compareFormat === "markdown") {
         fromText = fromVersion.markdown_content || "";
         toText = toVersion.markdown_content || "";
@@ -110,6 +71,7 @@ const createDocumentVersionRoutes = (io) => {
         toText = deltaToSimpleHtml(ensureDelta(toVersion.content));
       }
 
+      // 使用diff-match-patch计算差异
       const diffs = dmp.diff_main(fromText, toText);
       dmp.diff_cleanupSemantic(diffs);
 
@@ -133,29 +95,7 @@ const createDocumentVersionRoutes = (io) => {
     }
   });
 
-  /**
-   * GET /api/documents/:id/versions
-   * 获取文档的所有版本列表
-   * 
-   * 功能：查询指定文档的所有历史版本，按创建时间降序排列
-   * 权限：需要登录，且对文档有查看权限
-   * 
-   * 请求参数：
-   * - id (路径参数): 文档ID
-   * 
-   * 响应：版本数组，每个版本包含：
-   * - id: 版本ID
-   * - title: 版本标题
-   * - category: 分类
-   * - tags: 标签数组
-   * - summary: 版本描述/备注
-   * - created_at: 创建时间
-   * - created_by_email: 创建者邮箱
-   * - created_by_name: 创建者姓名
-   * - content_format: 内容格式（rich/markdown）
-   * 
-   * 排序：按创建时间降序，最新版本在最前
-   */
+  // 获取文档的所有版本列表，按创建时间倒序
   router.get("/:id/versions", protect, validateDocumentId, async (req, res) => {
     try {
       const documentId = parseInt(req.params.id, 10);
@@ -202,31 +142,7 @@ const createDocumentVersionRoutes = (io) => {
     }
   });
 
-  /**
-   * POST /api/documents/:id/versions
-   * 创建文档版本快照
-   * 
-   * 功能：保存当前文档的完整快照作为一个新版本
-   * 权限：需要登录，且对文档有编辑权限
-   * 
-   * 请求参数：
-   * - id (路径参数): 文档ID
-   * - summary (可选): 版本描述/备注，用于记录此版本的重要变更
-   * 
-   * 响应：创建的版本对象
-   * 
-   * 快照内容：
-   * - 标题、分类、标签
-   * - 完整的文档内容（Delta格式）
-   * - Markdown内容（如果是Markdown文档）
-   * - 内容格式标识
-   * - 创建者和创建时间
-   * 
-   * 应用场景：
-   * - 重要修改前手动保存快照
-   * - 里程碑版本记录
-   * - 多人协作前的备份
-   */
+  // 创建版本快照，保存当前文档的完整状态
   router.post("/:id/versions", protect, validateDocumentId, async (req, res) => {
     try {
       const documentId = parseInt(req.params.id, 10);
@@ -290,33 +206,7 @@ const createDocumentVersionRoutes = (io) => {
     }
   });
 
-  /**
-   * GET /api/documents/:id/versions/:versionId
-   * 获取单个版本的详细信息
-   * 
-   * 功能：查看指定版本的完整内容和元数据
-   * 权限：需要登录，且对文档有查看权限
-   * 
-   * 请求参数：
-   * - id (路径参数): 文档ID
-   * - versionId (路径参数): 版本ID
-   * 
-   * 响应：版本详情对象，包含：
-   * - id: 版本ID
-   * - title: 版本标题
-   * - content: 完整的文档内容（Delta格式）
-   * - category: 分类
-   * - tags: 标签数组
-   * - summary: 版本描述
-   * - created_at: 创建时间
-   * - created_by_email: 创建者邮箱
-   * - created_by_name: 创建者姓名
-   * 
-   * 用途：
-   * - 预览历史版本
-   * - 恢复前查看内容
-   * - 版本对比
-   */
+  // 获取指定版本的详细内容
   router.get("/:id/versions/:versionId", protect, validateDocumentId, async (req, res) => {
     try {
       const documentId = parseInt(req.params.id, 10);
@@ -366,38 +256,7 @@ const createDocumentVersionRoutes = (io) => {
     }
   });
 
-  /**
-   * POST /api/documents/:id/versions/:versionId/restore
-   * 恢复历史版本
-   * 
-   * 功能：将文档回滚到指定的历史版本
-   * 权限：需要登录，且对文档有编辑权限
-   * 
-   * 请求参数：
-   * - id (路径参数): 文档ID
-   * - versionId (路径参数): 要恢复的版本ID
-   * 
-   * 响应：恢复成功消息
-   * 
-   * 恢复内容：
-   * - 文档内容（完整的Delta格式）
-   * - 分类
-   * - 标签
-   * - 内容格式（rich/markdown）
-   * - Markdown内容（如果适用）
-   * - 更新时间（自动设置为当前时间）
-   * 
-   * 注意事项：
-   * - 这是一个覆盖操作，会替换当前文档的所有内容
-   * - 建议在恢复前先创建当前版本的快照
-   * - 恢复操作会被记录到活动日志
-   * - 文档标题不会被恢复（保留当前标题）
-   * 
-   * 应用场景：
-   * - 误操作后的回滚
-   * - 恢复到某个稳定版本
-   * - 撤销最近的修改
-   */
+  // 恢复到指定历史版本，会覆盖当前文档内容
   router.post("/:id/versions/:versionId/restore", protect, validateDocumentId, async (req, res) => {
     try {
       const documentId = parseInt(req.params.id, 10);
@@ -460,4 +319,3 @@ const createDocumentVersionRoutes = (io) => {
 };
 
 module.exports = createDocumentVersionRoutes;
-

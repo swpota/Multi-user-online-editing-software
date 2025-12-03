@@ -6,6 +6,10 @@ import LazyImage from "../components/common/LazyImage";
 import "../styles/pages/ProfilePage-modern.css";
 
 const ProfilePage = ({ user, setUser }) => {
+  // 系统设置
+  const [passwordMinLength, setPasswordMinLength] = useState(6);
+
+  // 个人资料状态
   const [fullName, setFullName] = useState(user.full_name || "");
   const [contactEmail, setContactEmail] = useState(user.contact_email || "");
   const [contactPhone, setContactPhone] = useState(user.contact_phone || "");
@@ -23,6 +27,7 @@ const ProfilePage = ({ user, setUser }) => {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  // 同步用户信息到本地状态
   useEffect(() => {
     setFullName(user.full_name || "");
     setContactEmail(user.contact_email || "");
@@ -30,6 +35,20 @@ const ProfilePage = ({ user, setUser }) => {
     setAvatarPreview(user.avatar_url || null);
   }, [user]);
 
+  // 获取系统密码配置
+  useEffect(() => {
+    const fetchPasswordSettings = async () => {
+      try {
+        const response = await api.get("/admin/settings/public");
+        setPasswordMinLength(response.data.password_min_length || 6);
+      } catch (error) {
+        console.error("获取密码配置失败:", error);
+      }
+    };
+    fetchPasswordSettings();
+  }, []);
+
+  // 提交个人资料更新
   const handleProfileSubmit = async (e) => {
     e.preventDefault();
     setProfileMessage("");
@@ -52,6 +71,7 @@ const ProfilePage = ({ user, setUser }) => {
     }
   };
 
+  // 提交密码更新
   const handlePasswordSubmit = async (e) => {
     e.preventDefault();
     setPasswordMessage("");
@@ -63,8 +83,8 @@ const ProfilePage = ({ user, setUser }) => {
       setLoading(false);
       return;
     }
-    if (newPassword && newPassword.length < 6) {
-      toast.error("新密码长度不能少于6位");
+    if (newPassword && newPassword.length < passwordMinLength) {
+      toast.error(`新密码长度不能少于${passwordMinLength}位`);
       setLoading(false);
       return;
     }

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import api from "../api";
 import "../styles/components/Auth-modern.css";
@@ -15,6 +15,20 @@ const ResetPasswordPage = () => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [passwordMinLength, setPasswordMinLength] = useState(6);
+
+  // 获取系统密码配置
+  useEffect(() => {
+    const fetchPasswordSettings = async () => {
+      try {
+        const response = await api.get("/admin/settings/public");
+        setPasswordMinLength(response.data.password_min_length || 6);
+      } catch (error) {
+        console.error("获取密码配置失败:", error);
+      }
+    };
+    fetchPasswordSettings();
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -27,8 +41,8 @@ const ResetPasswordPage = () => {
       setLoading(false);
       return;
     }
-    if (newPassword.length < 6) {
-      setError("新密码长度不能少于6位");
+    if (newPassword.length < passwordMinLength) {
+      setError(`新密码长度不能少于${passwordMinLength}位`);
       setLoading(false);
       return;
     }
@@ -86,7 +100,7 @@ const ResetPasswordPage = () => {
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   required
-                  placeholder="至少6位字符"
+                  placeholder={`至少${passwordMinLength}位字符`}
                   disabled={loading}
                   className="auth-input"
                 />

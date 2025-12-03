@@ -53,9 +53,22 @@ router.put("/profile", protect, async (req, res) => {
   let passwordChanged = false;
 
   try {
+    // 从系统设置获取密码最小长度
+    let minPasswordLength = 6;
+    try {
+      const passwordLengthSetting = await pool.query(
+        "SELECT setting_value FROM system_settings WHERE setting_key = 'password_min_length'"
+      );
+      if (passwordLengthSetting.rows.length > 0) {
+        minPasswordLength = parseInt(passwordLengthSetting.rows[0].setting_value, 10) || 6;
+      }
+    } catch (settingError) {
+      console.error("获取密码长度设置失败，使用默认值:", settingError);
+    }
+
     if (currentPassword && newPassword) {
-      if (newPassword.length < 6) {
-        return res.status(400).json({ message: "新密码长度不能少于 6 位" });
+      if (newPassword.length < minPasswordLength) {
+        return res.status(400).json({ message: `新密码长度不能少于 ${minPasswordLength} 位` });
       }
 
       const userResult = await pool.query(

@@ -1,71 +1,22 @@
-/**
- * 文档基础路由模块（CRUD操作）
- * 
- * 功能：提供文档的完整CRUD操作
- * 特性：
- * 1. 获取文档列表（支持多条件筛选、排序、分页）
- * 2. 获取单个文档详情（包含权限信息）
- * 3. 创建文档（支持富文本/Markdown格式）
- * 4. 更新文档（元数据和内容）
- * 5. 删除文档（软删除或硬删除）
- * 6. 权限控制（owner/collaborator）
- * 7. 实时通知（Socket.IO）
- * 
- * 说明：从原documentRoutes.js拆分出来，专注于基础CRUD操作
- */
-
-// 引入Express框架
+// 文档基础路由 - 提供文档的增删改查功能
 const express = require("express");
-// 引入JWT认证中间件
 const { protect } = require("../middleware/authMiddleware");
-// 引入数据库连接池
 const pool = require("../db");
-// 引入验证中间件
-const { validateDocumentId, validateDocumentCreate, validateDocumentUpdate } = require("../middleware/validators");
-// 引入文档工具函数
+const {
+  validateDocumentId,
+  validateDocumentCreate,
+  validateDocumentUpdate,
+} = require("../middleware/validators");
 const { normalizeArray, sanitizeTags, prepareDocumentData } = require("../utils/documentUtils");
-// 引入日志工具
 const logger = require("../utils/logger");
-// 引入活动日志服务
 const { logUserActivity, logSystemLog } = require("../services/activityService");
-
-// 引入文档格式转换工具（Markdown ↔ Delta ↔ HTML）
 const { markdownToDelta, deltaToSimpleHtml, turndownService } = require("../utils/exportUtils");
 
-/**
- * createDocumentBaseRoutes - 创建文档基础路由
- * 
- * @param {object} io - Socket.IO实例，用于实时推送文档更新
- * @returns {Router} - Express路由器
- */
 const createDocumentBaseRoutes = (io) => {
-  // 创建Express路由器实例
   const router = express.Router();
 
-  /**
-   * GET /api/documents
-   * 获取文档列表
-   * 
-   * 功能：获取当前用户可访问的所有文档，支持多条件筛选和排序
-   * 权限：需要登录
-   * 
-   * 查询参数：
-   * - q (可选): 搜索关键词（标题、分类、标签、作者）
-   * - category (可选): 分类筛选
-   * - tag (可选): 标签筛选
-   * - sort (可选): 排序字段（updated_at/created_at/title，默认updated_at）
-   * - order (可选): 排序方向（asc/desc，默认desc）
-   * - createdFrom/createdTo (可选): 创建时间范围
-   * - updatedFrom/updatedTo (可选): 更新时间范围
-   * - owner (可选): 所有者筛选（管理员专用）
-   * - locked (可选): 锁定状态筛选（true/false）
-   * 
-   * 响应：文档数组，包含文档基本信息和所有者/锁定者信息
-   * 
-   * 权限逻辑：
-   * - 管理员：可查看所有文档
-   * - 普通用户：只能查看自己拥有的文档或被邀请协作的文档
-   */
+  // GET /api/documents - 获取文档列表
+  // 支持的查询参数：q(搜索词), category, tag, sort, order, createdFrom/To, updatedFrom/To, owner, locked
   router.get("/", protect, async (req, res) => {
     try {
       const {
@@ -89,6 +40,7 @@ const createDocumentBaseRoutes = (io) => {
       const filters = [];
       const values = [];
 
+      // 基础查询语句
       let query = `
         SELECT d.id,
                d.title,
@@ -111,6 +63,7 @@ const createDocumentBaseRoutes = (io) => {
      LEFT JOIN users lu ON d.locked_by = lu.id
       `;
 
+      // 普通用户只能看到自己创建的或被邀请协作的文档，管理员可以看到所有文档
       if (req.user.role === "admin") {
         query += " WHERE 1=1 ";
       } else {
@@ -119,6 +72,7 @@ const createDocumentBaseRoutes = (io) => {
         query += ` WHERE (d.owner_id = ${placeholder} OR d.id IN (SELECT document_id FROM document_collaborators WHERE user_id = ${placeholder}))`;
       }
 
+      // 应用各种过滤条件
       if (q) {
         values.push(`%${q.toLowerCase()}%`);
         const placeholder = `$${values.length}`;
@@ -178,8 +132,10 @@ const createDocumentBaseRoutes = (io) => {
 
       query += ` ORDER BY d.${sortColumn} ${sortOrder}`;
 
+      // 执行查询
       const documents = await pool.query(query, values);
 
+      // 格式化返回结果
       const normalizedDocuments = documents.rows.map((doc) => ({
         ...doc,
         tags: normalizeArray(doc.tags),
@@ -190,6 +146,7 @@ const createDocumentBaseRoutes = (io) => {
         locked_by_name: doc.locked_by_name,
       }));
 
+      // 返回结果
       res.json(normalizedDocuments);
     } catch (error) {
       logger.error("获取文档列表失败:", error);
@@ -197,50 +154,13 @@ const createDocumentBaseRoutes = (io) => {
     }
   });
 
-  /**
-   * POST /api/documents
-   * 创建新文档
-   * 
-   * 功能：创建新文档，支持富文本和Markdown格式，支持从模板创建
-   * 权限：需要登录
-   * 
-   * 请求参数：
-   * - title (必填): 文档标题
-   * - category (可选): 文档分类
-   * - tags (可选): 标签数组
-   * - templateId (可选): 模板ID，从模板创建文档
-   * - content (可选): 文档内容（富文本Delta格式或Markdown字符串）
-   * - contentFormat (可选): 内容格式（rich/markdown，默认rich）
-   * - markdownContent (可选): Markdown内容（当contentFormat为markdown时）
-   * 
-   * 响应：创建的文档对象
-   * 
-   * 格式转换逻辑：
-   * - 富文本→Markdown：Delta转HTML再转Markdown
-   * - Markdown→富文本：Markdown转Delta
-   * - 模板格式自动适配目标文档格式
-   * 
-   * 模板应用：
-   * - 如果指定templateId，会从模板复制内容、分类、标签
-   * - 只能使用公开模板或自己创建的私有模板
-   */
+  // 创建新文档，支持富文本/Markdown格式，可从模板创建
   router.post("/", protect, validateDocumentCreate, async (req, res) => {
-    const {
-      title,
-      category,
-      tags,
-      templateId,
-      content,
-      contentFormat,
-      markdownContent,
-    } = req.body;
+    const { title, category, tags, templateId, content, contentFormat, markdownContent } = req.body;
     const ownerId = req.user.id;
 
     try {
-      let initialContent =
-        typeof content === "object" && content !== null
-          ? content
-          : null;
+      let initialContent = typeof content === "object" && content !== null ? content : null;
       let appliedTemplateId = null;
       let sanitizedTags = sanitizeTags(tags);
       let documentCategory = category ? category.trim() : null;
@@ -254,6 +174,7 @@ const createDocumentBaseRoutes = (io) => {
         markdownToSave = "";
       }
 
+      // 如果提供了模板ID，从模板加载内容和属性
       if (templateId) {
         const templateResult = await pool.query(
           `SELECT id, content, category AS template_category, tags AS template_tags, format
@@ -267,8 +188,8 @@ const createDocumentBaseRoutes = (io) => {
         }
 
         const template = templateResult.rows[0];
-        const templateFormat = template.format || 'rich';
-        
+        const templateFormat = template.format || "rich";
+
         if (!documentCategory && template.template_category) {
           documentCategory = template.template_category;
         }
@@ -278,9 +199,9 @@ const createDocumentBaseRoutes = (io) => {
         appliedTemplateId = template.id;
 
         // 根据模板格式和目标文档格式处理内容
-        if (templateFormat === 'markdown') {
+        if (templateFormat === "markdown") {
           // 模板是markdown格式
-          if (format === 'markdown') {
+          if (format === "markdown") {
             // 目标也是markdown：直接使用
             markdownToSave = template.content || "";
           } else {
@@ -299,10 +220,12 @@ const createDocumentBaseRoutes = (io) => {
         }
       }
 
+      // 如果没有内容，设置为空白文档
       if (!initialContent) {
         initialContent = { ops: [{ insert: "\n" }] };
       }
 
+      // 保存新文档到数据库
       if (format === "markdown") {
         const deltaFromMarkdown = markdownToDelta(markdownToSave || "");
         initialContent = deltaFromMarkdown;
@@ -335,14 +258,14 @@ const createDocumentBaseRoutes = (io) => {
       );
 
       const createdDoc = newDocument.rows[0];
-      
+
       // 记录创建文档活动
       console.log("开始记录文档创建活动 - 文档ID:", createdDoc.id, "用户ID:", ownerId);
       try {
         await logUserActivity(
           ownerId,
-          'document_create',
-          'document',
+          "document_create",
+          "document",
           createdDoc.id,
           { title: createdDoc.title, category: documentCategory },
           req
@@ -354,7 +277,7 @@ const createDocumentBaseRoutes = (io) => {
           ownerId,
           documentId: createdDoc.id,
           error: err.message,
-          stack: err.stack
+          stack: err.stack,
         });
       }
 
@@ -364,42 +287,22 @@ const createDocumentBaseRoutes = (io) => {
       });
     } catch (error) {
       logger.error("创建文档失败:", error);
-      
+
       // 记录系统错误日志
       logSystemLog(
-        'error',
-        'error',
+        "error",
+        "error",
         `创建文档失败: ${error.message}`,
         { stack: error.stack, code: error.code, title: req.body.title },
         req.user?.id,
         req
-      ).catch(err => console.error("记录错误日志失败:", err));
-      
+      ).catch((err) => console.error("记录错误日志失败:", err));
+
       res.status(500).json({ message: "服务器内部错误" });
     }
   });
 
-  /**
-   * GET /api/documents/:id
-   * 获取单个文档详情
-   * 
-   * 功能：获取指定文档的详细信息，包括内容、权限、锁定状态
-   * 权限：需要登录，且是文档所有者、协作者或管理员
-   * 
-   * 请求参数：
-   * - id (路径参数): 文档ID
-   * 
-   * 响应：文档详情对象，包含以下额外字段：
-   * - role: 用户在该文档中的角色（owner/editor/viewer）
-   * - canEdit: 是否可编辑（布尔值）
-   * - lockedBy: 锁定者信息（如果文档被锁定）
-   * 
-   * 权限逻辑：
-   * - 文档所有者：完全访问
-   * - 协作者：根据角色（editor/viewer）决定是否可编辑
-   * - 管理员：完全访问
-   * - 其他用户：无权访问
-   */
+  // 获取文档详情，并返回用户权限信息
   router.get("/:id", protect, validateDocumentId, async (req, res) => {
     try {
       const id = parseInt(req.params.id, 10);
@@ -443,44 +346,22 @@ const createDocumentBaseRoutes = (io) => {
       });
     } catch (error) {
       logger.error("获取文档失败:", error);
-      
+
       // 记录系统错误日志
       logSystemLog(
-        'error',
-        'error',
+        "error",
+        "error",
         `获取文档失败: ${error.message}`,
         { stack: error.stack, code: error.code, documentId: req.params.id },
         req.user?.id,
         req
-      ).catch(err => console.error("记录错误日志失败:", err));
-      
+      ).catch((err) => console.error("记录错误日志失败:", err));
+
       res.status(500).json({ message: "服务器内部错误" });
     }
   });
 
-  /**
-   * PUT /api/documents/:id
-   * 更新文档
-   * 
-   * 功能：更新文档的内容和元数据，支持部分更新
-   * 权限：需要登录，且有编辑权限（owner/editor）
-   * 
-   * 请求参数：
-   * - id (路径参数): 文档ID
-   * - title (可选): 新标题
-   * - category (可选): 新分类
-   * - tags (可选): 新标签数组
-   * - content (可选): 新内容（富文本Delta格式）
-   * - markdownContent (可选): 新Markdown内容
-   * 
-   * 响应：更新后的文档对象
-   * 
-   * 特点：
-   * - 动态SQL构建：只更新提供的字段
-   * - 格式同步：更新富文本时自动更新Markdown，反之亦然
-   * - 锁定检查：如果文档被其他用户锁定，禁止更新
-   * - 实时通知：通过Socket.IO通知其他在线用户
-   */
+  // 更新文档，只更新传入的字段
   router.put("/:id", protect, validateDocumentId, validateDocumentUpdate, async (req, res) => {
     try {
       const id = parseInt(req.params.id, 10);
@@ -505,6 +386,7 @@ const createDocumentBaseRoutes = (io) => {
       const updateValues = [];
       let paramIndex = 1;
 
+      // 准备更新字段
       if (title !== undefined) {
         updateFields.push(`title = $${paramIndex++}`);
         updateValues.push(title.trim());
@@ -542,6 +424,7 @@ const createDocumentBaseRoutes = (io) => {
       updateFields.push(`updated_at = NOW()`);
       updateValues.push(id);
 
+      // 构建更新查询
       const updateQuery = `
         UPDATE documents
            SET ${updateFields.join(", ")}
@@ -565,8 +448,8 @@ const createDocumentBaseRoutes = (io) => {
       try {
         await logUserActivity(
           req.user.id,
-          'document_edit',
-          'document',
+          "document_edit",
+          "document",
           id,
           { title: result.rows[0].title },
           req
@@ -578,7 +461,7 @@ const createDocumentBaseRoutes = (io) => {
           userId: req.user.id,
           documentId: id,
           error: err.message,
-          stack: err.stack
+          stack: err.stack,
         });
       }
 
@@ -588,39 +471,22 @@ const createDocumentBaseRoutes = (io) => {
       });
     } catch (error) {
       logger.error("更新文档失败:", error);
-      
+
       // 记录系统错误日志
       logSystemLog(
-        'error',
-        'error',
+        "error",
+        "error",
         `更新文档失败: ${error.message}`,
         { stack: error.stack, code: error.code, documentId: req.params.id },
         req.user?.id,
         req
-      ).catch(err => console.error("记录错误日志失败:", err));
-      
+      ).catch((err) => console.error("记录错误日志失败:", err));
+
       res.status(500).json({ message: "服务器内部错误" });
     }
   });
 
-  /**
-   * DELETE /api/documents/:id
-   * 删除文档
-   * 
-   * 功能：删除指定文档
-   * 权限：只有文档所有者或管理员可以删除
-   * 
-   * 请求参数：
-   * - id (路径参数): 文档ID
-   * 
-   * 响应：删除成功消息
-   * 
-   * 注意：
-   * - 这是硬删除，会永久删除文档及其所有关联数据
-   * - 级联删除包括：协作者记录、评论、任务、版本历史等
-   * - 协作者（editor/viewer）不能删除文档
-   * - 删除操作不可恢复，请谨慎操作
-   */
+  // 删除文档，仅所有者或管理员可操作
   router.delete("/:id", protect, validateDocumentId, async (req, res) => {
     try {
       const id = parseInt(req.params.id, 10);
@@ -652,4 +518,3 @@ const createDocumentBaseRoutes = (io) => {
 };
 
 module.exports = createDocumentBaseRoutes;
-

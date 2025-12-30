@@ -1,0 +1,594 @@
+/**
+ * EditorPage 响应式样式
+ */
+
+/* ==================== 移动端优化 (< 768px) ==================== */
+
+@media (max-width: 767px) {
+  /* Editor 容器 */
+  .editor-container {
+    flex-direction: column;
+    padding: 0;
+  }
+
+  /* Editor 头部 */
+  .editor-header {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 12px;
+    gap: 8px;
+  }
+
+  .editor-header-left {
+    width: 100%;
+  }
+
+  .editor-header-title {
+    font-size: 18px;
+  }
+
+  .editor-header-meta {
+    flex-wrap: wrap;
+    gap: 6px;
+    font-size: 11px;
+  }
+
+  .editor-header-right {
+    width: 100%;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .editor-header-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .editor-header-actions button {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+
+  /* Editor 工具栏 */
+  .editor-toolbar {
+    flex-wrap: wrap;
+    padding: 8px;
+    gap: 6px;
+  }
+
+  .editor-toolbar-container {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    overflow: visible;
+  }
+
+  .editor-toolbar-button {
+    min-width: 36px;
+    min-height: 36px;
+    padding: 8px;
+  }
+
+  .editor-toolbar-main,
+  .editor-primary-actions,
+  .editor-feature-actions {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    width: 100%;
+  }
+
+  .editor-feature-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .editor-feature-actions .editor-btn {
+    flex: 1 1 calc(50% - 8px);
+    justify-content: center;
+  }
+
+  .editor-feature-actions .editor-btn-chip {
+    width: 100%;
+  }
+
+  .editor-toolbar-separator {
+    display: none; /* 移动端隐藏分隔符 */
+  }
+
+  /* 模式切换按钮 */
+  .editor-mode-switch {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Editor 主区域 */
+  .editor-main {
+    flex-direction: column;
+  }
+
+  /* 侧边栏移动端处理 */
+  .editor-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1000;
+    width: 100%;
+    max-width: 100%;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+
+  .editor-sidebar.open {
+    transform: translateX(0);
+  }
+
+  .editor-sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    display: none;
+  }
+
+  .editor-sidebar.open + .editor-sidebar-overlay {
+    display: block;
+  }
+
+  /* 面板 */
+  .editor-panel {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    max-height: 70vh;
+    border-radius: 16px 16px 0 0;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+  }
+
+  .editor-panel-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .editor-panel-content {
+    max-height: calc(70vh - 60px);
+    overflow-y: auto;
+    padding: 16px;
+  }
+
+  /* 编辑区域 */
+  .editor-content {
+    width: 100%;
+    padding: 12px;
+  }
+
+  /* Quill 编辑器 */
+  .ql-container {
+    font-size: 15px;
+  }
+
+  .ql-editor {
+    padding: 12px;
+    min-height: 300px;
+  }
+
+  /* Markdown 编辑器 */
+  .markdown-editor {
+    flex-direction: column;
+  }
+
+  .markdown-editor-input {
+    width: 100%;
+    min-height: 300px;
+    font-size: 14px;
+    padding: 12px;
+  }
+
+  .markdown-editor-preview {
+    width: 100%;
+    min-height: 300px;
+    padding: 12px;
+  }
+
+  /* 状态栏 */
+  .editor-status-bar {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 8px 12px;
+    gap: 6px;
+  }
+
+  .editor-status-bar-left,
+  .editor-status-bar-right {
+    width: 100%;
+  }
+
+  .editor-status-bar-info {
+    flex-wrap: wrap;
+    gap: 8px;
+    font-size: 11px;
+  }
+
+  /* 在线用户 */
+  .online-users {
+    flex-direction: column;
+    padding: 12px;
+  }
+
+  .online-user-avatar {
+    width: 32px;
+    height: 32px;
+  }
+
+  /* 评论面板 */
+  .comments-panel {
+    padding: 12px;
+  }
+
+  .comment-item {
+    padding: 10px;
+  }
+
+  .comment-author-avatar {
+    width: 32px;
+    height: 32px;
+  }
+
+  .comment-content {
+    font-size: 14px;
+  }
+
+  /* 版本历史 */
+  .version-modal {
+    width: 95%;
+    max-height: 90vh;
+  }
+
+  .version-item {
+    padding: 10px;
+  }
+
+  /* 任务面板 */
+  .task-item {
+    padding: 10px;
+  }
+
+  .task-assignee-avatar {
+    width: 24px;
+    height: 24px;
+  }
+
+  /* 文件共享 */
+  .file-item {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 10px;
+    gap: 8px;
+  }
+
+  .file-item-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  /* 视频会议按钮 */
+  .jitsi-button {
+    width: 100%;
+    margin-top: 8px;
+  }
+
+  /* 锁定状态提示 */
+  .lock-banner {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+
+  /* 保存提示 */
+  .save-indicator {
+    font-size: 12px;
+  }
+}
+
+/* ==================== 平板优化 (768px - 1023px) ==================== */
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .editor-container {
+    padding: 16px;
+  }
+
+  /* 侧边栏 */
+  .editor-sidebar {
+    width: 280px;
+  }
+
+  /* 编辑区域 */
+  .editor-content {
+    padding: 20px;
+  }
+
+  /* Markdown 分栏 */
+  .markdown-editor {
+    flex-direction: column;
+  }
+
+  .markdown-editor-input,
+  .markdown-editor-preview {
+    width: 100%;
+  }
+}
+
+/* ==================== 触摸设备优化 ==================== */
+
+@media (hover: none) and (pointer: coarse) {
+  /* 增大可点击区域 */
+  .editor-toolbar-button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .editor-header-actions button {
+    min-height: 44px;
+  }
+
+  /* 移除 hover 效果 */
+  .editor-toolbar-button:hover {
+    transform: none;
+  }
+
+  /* 使用 active 效果 */
+  .editor-toolbar-button:active {
+    transform: scale(0.95);
+  }
+
+  /* 增大拖拽手柄 */
+  .panel-resize-handle {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+/* ==================== 横屏优化 ==================== */
+
+@media (max-width: 767px) and (orientation: landscape) {
+  /* 横屏时编辑器占满高度 */
+  .editor-content {
+    padding: 8px;
+  }
+
+  .ql-editor,
+  .markdown-editor-input {
+    min-height: 200px;
+  }
+
+  /* 面板高度调整 */
+  .editor-panel {
+    max-height: 80vh;
+  }
+
+  /* 工具栏更紧凑 */
+  .editor-toolbar {
+    padding: 6px;
+  }
+
+  .editor-header {
+    padding: 8px 12px;
+  }
+}
+
+@media (max-width: 767px) {
+  /* 头部元信息在移动端堆叠显示 */
+  .editor-meta-input-group {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .editor-meta-label {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .editor-meta-input {
+    width: 100%;
+    min-width: unset;
+  }
+
+  /* 工具栏按钮更紧凑 */
+  .editor-primary-actions .editor-btn {
+    padding: 6px 8px;
+    font-size: 12px;
+  }
+
+  .editor-primary-actions .editor-btn-secondary {
+    padding: 5px 8px;
+  }
+
+  /* 锁定徽章优化 - 避免覆盖其他元素 */
+  .editor-lock-badge {
+    font-size: 11px;
+    padding: 4px 8px;
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex-shrink: 1;
+  }
+
+  /* Markdown 工具栏 - 移动端优化 */
+  .editor-markdown-toolbar {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    position: sticky;
+  }
+
+  .editor-markdown-toolbar-label {
+    font-size: 13px;
+    white-space: nowrap;
+  }
+
+  .editor-markdown-toolbar-right {
+    display: flex;
+    align-items: center;
+  }
+
+  .editor-markdown-preview-btn {
+    padding: 8px 14px;
+    font-size: 13px;
+    border-width: 2px;
+    white-space: nowrap;
+    min-width: auto;
+  }
+
+  .editor-markdown-editor-area {
+    flex-direction: column;
+  }
+
+  .editor-markdown-editor,
+  .editor-markdown-preview {
+    border-right: none;
+  }
+
+  /* 移动端切换模式：预览时隐藏编辑器 */
+  .editor-markdown-editor.hide-on-mobile {
+    display: none;
+  }
+
+  /* 预览区域全屏 */
+  .editor-markdown-preview.show-on-mobile-preview {
+    flex: 1;
+    width: 100%;
+  }
+
+  .editor-markdown-textarea,
+  .editor-markdown-preview-content {
+    padding: 20px;
+    min-height: 400px;
+  }
+
+  .editor-markdown-preview-header {
+    display: none;
+  }
+
+  /* 协作按钮只显示图标 */
+  .editor-btn-chip .btn-text {
+    display: none;
+  }
+
+  .editor-btn-chip .btn-icon {
+    font-size: 16px;
+  }
+
+  .editor-btn-chip {
+    padding: 8px 10px;
+    min-width: 40px;
+  }
+
+  .editor-feature-actions {
+    gap: 4px;
+  }
+
+  .editor-feature-actions .editor-btn {
+    flex: 0 0 auto;
+  }
+
+  .editor-feature-actions .editor-btn-chip {
+    width: auto;
+  }
+}
+
+/* ==================== 小屏幕优化 (< 375px) ==================== */
+
+@media (max-width: 374px) {
+  .editor-header-title {
+    font-size: 16px;
+  }
+
+  .editor-header-meta {
+    font-size: 10px;
+  }
+
+  .editor-toolbar-button {
+    min-width: 32px;
+    min-height: 32px;
+    padding: 6px;
+  }
+
+  .ql-container {
+    font-size: 14px;
+  }
+
+  .markdown-editor-input {
+    font-size: 13px;
+  }
+}
+
+/* ==================== 大屏幕优化 (> 1440px) ==================== */
+
+@media (min-width: 1440px) {
+  .editor-container {
+    max-width: 1600px;
+    margin: 0 auto;
+  }
+
+  .editor-content {
+    max-width: 900px;
+  }
+
+  .markdown-editor-input,
+  .markdown-editor-preview {
+    max-width: 700px;
+  }
+}
+
+/* ==================== 移动端手势支持 ==================== */
+
+@media (max-width: 767px) {
+  /* 侧边栏滑动关闭 */
+  .editor-sidebar {
+    touch-action: pan-y;
+  }
+
+  /* 面板下拉关闭 */
+  .editor-panel {
+    touch-action: pan-y;
+  }
+
+  /* 编辑器滚动优化 */
+  .ql-editor,
+  .markdown-editor-input,
+  .editor-panel-content {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+}
+
+/* ==================== 安全区域适配 (iOS) ==================== */
+
+@supports (padding: max(0px)) {
+  @media (max-width: 767px) {
+    .editor-header,
+    .editor-toolbar,
+    .editor-status-bar {
+      padding-left: max(12px, env(safe-area-inset-left));
+      padding-right: max(12px, env(safe-area-inset-right));
+    }
+
+    .editor-header {
+      padding-top: max(12px, env(safe-area-inset-top));
+    }
+
+    .editor-status-bar,
+    .editor-panel {
+      padding-bottom: max(8px, env(safe-area-inset-bottom));
+    }
+  }
+}

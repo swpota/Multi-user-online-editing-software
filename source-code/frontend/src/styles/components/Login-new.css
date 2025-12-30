@@ -1,0 +1,406 @@
+/**
+ * Login.css - Anthropic 风格登录页面
+ * 温暖、简约、现代
+ */
+
+/* 导入主题变量 */
+@import '../theme/anthropic-theme.css';
+
+/* 登录容器 */
+.login-container {
+  max-width: 440px;
+  width: 100%;
+  background-color: white;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  padding: 3rem 2.5rem;
+  animation: cardSlideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  z-index: 10;
+  border: 1px solid var(--border-light);
+}
+
+@keyframes cardSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* 装饰圆圈 */
+.login-decorative-circle {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.15;
+  animation: float-circle 20s ease-in-out infinite;
+}
+
+.login-decorative-circle-1 {
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, var(--accent-primary) 0%, transparent 70%);
+  top: -100px;
+  right: -50px;
+  animation-delay: 0s;
+}
+
+.login-decorative-circle-2 {
+  width: 150px;
+  height: 150px;
+  background: radial-gradient(circle, var(--accent-light) 0%, transparent 70%);
+  bottom: -75px;
+  left: -50px;
+  animation-delay: 5s;
+}
+
+@keyframes float-circle {
+  0%, 100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(20px, -20px);
+  }
+}
+
+/* Logo 图标包装器 */
+.login-icon-wrapper {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 1.5rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition-base);
+}
+
+.login-icon-wrapper:hover {
+  transform: scale(1.05);
+  box-shadow: var(--shadow-md);
+}
+
+.login-icon-img {
+  width: 85%;
+  height: 85%;
+  object-fit: contain;
+}
+
+/* 头部样式 */
+.login-header {
+  margin-bottom: 2rem;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+
+.login-title {
+  margin: 0 0 0.5rem 0;
+  font-size: var(--text-3xl);
+  font-weight: var(--font-bold);
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+.login-subtitle {
+  margin: 0 0 2rem 0;
+  color: var(--text-secondary);
+  font-size: var(--text-base);
+  line-height: var(--leading-relaxed);
+}
+
+/* 表单样式 */
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.login-form-group,
+.login-form-group-password {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.login-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--text-primary);
+}
+
+.login-label ion-icon {
+  font-size: 1.125rem;
+  color: var(--text-tertiary);
+}
+
+/* 输入框样式 */
+.login-input-wrapper {
+  position: relative;
+}
+
+.login-input {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  font-size: var(--text-base);
+  border: 1.5px solid var(--border-medium);
+  border-radius: var(--radius-md);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: var(--transition-fast);
+  font-family: var(--font-sans);
+}
+
+.login-input::placeholder {
+  color: var(--text-muted);
+}
+
+.login-input:hover {
+  border-color: var(--border-dark);
+}
+
+.login-input:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+  background-color: white;
+  box-shadow: 0 0 0 3px var(--accent-light);
+}
+
+/* 密码输入框 */
+.login-password-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.login-input-password {
+  padding-right: 3rem;
+}
+
+.login-password-toggle {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 3rem;
+  border: none;
+  background: transparent;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition-fast);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+}
+
+.login-password-toggle:hover {
+  color: var(--text-primary);
+  background-color: var(--bg-secondary);
+}
+
+.login-password-toggle ion-icon {
+  font-size: 1.25rem;
+}
+
+/* 提交按钮 */
+.login-submit-btn {
+  margin-top: 0.5rem;
+  padding: 1rem;
+  background-color: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  cursor: pointer;
+  transition: var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.login-submit-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    120deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    transparent 100%
+  );
+  transform: translateX(-100%);
+  transition: transform 0.6s;
+}
+
+.login-submit-btn:hover::before {
+  transform: translateX(100%);
+}
+
+.login-submit-btn:hover {
+  background-color: var(--btn-primary-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.login-submit-btn:active {
+  transform: translateY(0);
+}
+
+.login-submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.login-submit-btn ion-icon {
+  font-size: 1.125rem;
+  transition: transform var(--transition-fast);
+}
+
+.login-submit-btn:not(:disabled):hover ion-icon {
+  transform: translateX(4px);
+}
+
+/* 加载状态 */
+.login-submit-btn-loading {
+  pointer-events: none;
+}
+
+.login-btn-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 消息提示 */
+.login-message {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  text-align: center;
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.login-message-success {
+  background-color: #ECFDF5;
+  color: #065F46;
+  border: 1px solid #A7F3D0;
+}
+
+.login-message-error {
+  background-color: #FEF2F2;
+  color: #991B1B;
+  border: 1px solid #FECACA;
+}
+
+/* 底部链接 */
+.login-forgot-password {
+  margin-top: 1.5rem;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border-light);
+}
+
+.login-forgot-password-link {
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  transition: var(--transition-fast);
+  position: relative;
+}
+
+.login-forgot-password-link::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background-color: var(--accent-primary);
+  transition: var(--transition-fast);
+}
+
+.login-forgot-password-link:hover {
+  color: var(--accent-primary);
+}
+
+.login-forgot-password-link:hover::after {
+  width: 100%;
+}
+
+.login-link-separator {
+  color: var(--border-medium);
+  font-size: var(--text-sm);
+}
+
+/* 响应式 */
+@media (max-width: 480px) {
+  .login-container {
+    padding: 2rem 1.5rem;
+    max-width: 100%;
+    border-radius: var(--radius-lg);
+  }
+
+  .login-title {
+    font-size: var(--text-2xl);
+  }
+
+  .login-subtitle {
+    font-size: var(--text-sm);
+  }
+
+  .login-icon-wrapper {
+    width: 64px;
+    height: 64px;
+  }
+
+  .login-form {
+    gap: 1.25rem;
+  }
+
+  .login-decorative-circle {
+    opacity: 0.08;
+  }
+}

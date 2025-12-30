@@ -1,0 +1,163 @@
+/* EditorSidebar 编辑器侧边栏样式 */
+.editor-sidebar {
+  display: flex;
+  height: 100%;
+  position: relative;
+}
+
+.sidebar-tabs {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1rem 0.5rem;
+  background: var(--color-bg-secondary);
+  border-left: 1px solid var(--color-border-default);
+  width: 64px;
+  flex-shrink: 0;
+}
+
+.sidebar-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.75rem 0.5rem;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: var(--transition-base);
+  box-shadow: none;
+}
+
+.sidebar-tab:hover {
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-primary);
+  box-shadow: none;
+  transform: none;
+}
+
+.sidebar-tab.active {
+  background: var(--color-primary);
+  color: white !important;
+  box-shadow: var(--shadow-sm);
+}
+
+.sidebar-tab-label {
+  font-size: 0.7rem;
+  font-weight: var(--font-weight-medium);
+  text-align: center;
+}
+
+.sidebar-content {
+  position: absolute;
+  right: 64px;
+  top: 0;
+  bottom: 0;
+  width: 400px;
+  background: var(--color-bg-surface);
+  border-left: 1px solid var(--color-border-default);
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-lg);
+  z-index: var(--z-fixed);
+  animation: slideInRight 0.3s var(--ease-out);
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--color-border-default);
+  background: var(--color-bg-surface);
+}
+
+.sidebar-header h3 {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.sidebar-close {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 1.5rem;
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+  transition: var(--transition-base);
+  padding: 0;
+  line-height: 1;
+  box-shadow: none;
+}
+
+.sidebar-close:hover {
+  background: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+  box-shadow: none;
+  transform: none;
+}
+
+.sidebar-body {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* 响应式 */
+@media (max-width: 1280px) {
+  .sidebar-content {
+    width: 350px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .sidebar-content {
+    width: 300px;
+  }
+}
+
+@media (max-width: 768px) {
+  .editor-sidebar.open {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: var(--z-modal);
+    background: rgba(0, 0, 0, 0.3);
+  }
+
+  .sidebar-tabs {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    z-index: var(--z-modal);
+  }
+
+  .sidebar-content {
+    right: 64px;
+    width: calc(100vw - 64px);
+    max-width: 400px;
+  }
+}

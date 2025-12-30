@@ -1,0 +1,278 @@
+﻿/* ShareModal.css - 分享模态框样式 */
+
+.share-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(4px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999; /* 最高层级，确保不被任何元素遮挡 */
+}
+
+.share-modal-container {
+  background: #FFFFFF;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 500px;
+  max-height: 80vh;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15),
+              0 0 0 1px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  border: 1px solid #E5E7EB;
+}
+
+.share-modal-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid #E5E7EB;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #F9FAFB;
+}
+
+.share-modal-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1F2937;
+}
+
+.share-modal-close-btn {
+  padding: 6px 12px;
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
+  font-size: 24px;
+  color: #666;
+  border-radius: 4px;
+  transition: all 0.2s;
+  line-height: 1;
+}
+
+.share-modal-close-btn {
+  color: #6B7280;
+}
+
+.share-modal-close-btn:hover {
+  background-color: #F3F4F6;
+  color: #1F2937;
+}
+
+.share-modal-body {
+  padding: 24px;
+  overflow-y: auto;
+}
+
+.share-modal-error {
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  background-color: #fff2e8;
+  color: #fa8c16;
+  border-radius: 6px;
+  font-size: 14px;
+  border: 1px solid #ffd591;
+}
+
+.share-modal-search-section {
+  margin-bottom: 24px;
+}
+
+.share-modal-label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.share-modal-input {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 14px;
+  border: 1px solid #D1D5DB;
+  border-radius: 8px;
+  outline: none;
+  background: #FFFFFF;
+  color: #1F2937;
+}
+
+.share-modal-input:hover {
+  border-color: #9CA3AF;
+}
+
+.share-modal-input:focus {
+  border-color: #3B82F6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.share-modal-search-results {
+  list-style: none;
+  padding: 0;
+  margin-top: 12px;
+  border: 1px solid #e8e8e8;
+  border-radius: 6px;
+  background-color: #fafafa;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.share-modal-search-item {
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(79, 172, 254, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background 0.2s;
+}
+
+.share-modal-search-item:hover {
+  background: rgba(79, 172, 254, 0.1);
+}
+
+.share-modal-search-item:last-child {
+  border-bottom: none;
+}
+
+.share-modal-search-email {
+  font-size: 14px;
+  color: #1F2937;
+}
+
+.share-modal-search-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.share-modal-btn-viewer {
+  padding: 6px 12px;
+  background-color: #fff;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  color: #333;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s;
+}
+
+.share-modal-btn-viewer:hover {
+  border-color: #10b981;
+  color: #10b981;
+}
+
+.share-modal-btn-editor {
+  padding: 6px 12px;
+  background-color: #10b981;
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s;
+}
+
+.share-modal-btn-editor:hover {
+  background-color: #059669;
+}
+
+.share-modal-collaborators-section {
+  width: 100%;
+}
+
+.share-modal-collaborators-title {
+  margin: 0 0 16px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1F2937;
+}
+
+.share-modal-loading {
+  text-align: center;
+  padding: 40px;
+  color: #6B7280;
+  font-size: 14px;
+}
+
+.share-modal-empty {
+  text-align: center;
+  padding: 40px;
+  color: #9CA3AF;
+  font-size: 14px;
+}
+
+.share-modal-collaborators-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.share-modal-collaborator-item {
+  padding: 12px 16px;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #F9FAFB;
+  transition: all 0.2s;
+}
+
+.share-modal-collaborator-item:hover {
+  background: #F3F4F6;
+  border-color: #3B82F6;
+}
+
+.share-modal-collaborator-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.share-modal-collaborator-email {
+  font-size: 14px;
+  color: #1F2937;
+  font-weight: 500;
+}
+
+.share-modal-role-badge {
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.share-modal-role-badge-editor {
+  background-color: #e6f7ff;
+  color: #10b981;
+}
+
+.share-modal-role-badge-viewer {
+  background-color: #f6ffed;
+  color: #52c41a;
+}
+
+.share-modal-remove-btn {
+  padding: 6px 12px;
+  background-color: #fff;
+  border: 1px solid #ff4d4f;
+  border-radius: 6px;
+  color: #ff4d4f;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s;
+}
+
+.share-modal-remove-btn:hover {
+  background-color: #ff4d4f;
+  color: #fff;
+}
+

@@ -1,0 +1,108 @@
+/**
+ * 字体优化配置
+ * 使用 font-display: swap 优化字体加载性能
+ */
+
+/* 系统字体栈（后备字体） */
+:root {
+  /* 中文字体栈 */
+  --font-family-chinese: 
+    -apple-system, 
+    BlinkMacSystemFont, 
+    "Segoe UI", 
+    "PingFang SC", 
+    "Hiragino Sans GB", 
+    "Microsoft YaHei", 
+    "Helvetica Neue", 
+    Helvetica, 
+    Arial, 
+    sans-serif;
+  
+  /* 英文字体栈 */
+  --font-family-english: 
+    -apple-system, 
+    BlinkMacSystemFont, 
+    "Segoe UI", 
+    Roboto, 
+    "Helvetica Neue", 
+    Arial, 
+    sans-serif;
+  
+  /* 等宽字体 */
+  --font-family-mono: 
+    "SF Mono", 
+    Monaco, 
+    "Cascadia Code", 
+    "Roboto Mono", 
+    Consolas, 
+    "Courier New", 
+    monospace;
+}
+
+/* 字体加载优化 */
+/* 示例：如果使用自定义字体
+@font-face {
+  font-family: 'Custom-Font';
+  font-display: swap;
+  src: url('/fonts/custom-font.woff2') format('woff2');
+}
+*/
+
+/* 全局字体设置 */
+body {
+  font-family: var(--font-family-chinese);
+  /* 开启字体抗锯齿 */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* 优化文本渲染 */
+  text-rendering: optimizeLegibility;
+}
+
+/* 代码块使用等宽字体 */
+code,
+pre,
+.code,
+.monospace {
+  font-family: var(--font-family-mono);
+}
+
+/* 字体加载期间的样式（防止布局偏移） */
+.font-loading {
+  /* 使用系统字体作为后备 */
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+/* 性能优化：减少重绘 */
+* {
+  /* 优化文本渲染 */
+  -webkit-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* 预连接到字体CDN（如果使用） */
+/* 在 index.html 中添加以下代码：
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+*/
+
+/* 字体加载优化说明：
+ * 
+ * 1. font-display: swap
+ *    - 立即显示后备字体
+ *    - 字体加载完成后切换
+ *    - 防止 FOIT (Flash of Invisible Text)
+ * 
+ * 2. 预连接 (preconnect)
+ *    - 提前建立连接到字体CDN
+ *    - 减少DNS查询和TCP握手时间
+ * 
+ * 3. 字体子集化
+ *    - 只加载需要的字符
+ *    - 减小字体文件大小
+ * 
+ * 4. 使用系统字体
+ *    - 零加载时间
+ *    - 原生外观
+ *    - 最佳性能
+ */

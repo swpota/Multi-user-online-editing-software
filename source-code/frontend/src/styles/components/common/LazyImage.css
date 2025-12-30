@@ -1,0 +1,150 @@
+﻿/**
+ * LazyImage 懒加载图片组件样式
+ */
+
+.lazy-image-wrapper {
+  position: relative;
+  overflow: hidden;
+  display: inline-block;
+  background-color: var(--background-secondary, #f5f5f5);
+}
+
+/* 图片基础样式 */
+.lazy-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+}
+
+/* 图片加载完成 */
+.lazy-image.loaded {
+  opacity: 1;
+}
+
+/* 图片加载失败 */
+.lazy-image.error {
+  display: none;
+}
+
+/* 占位符 */
+.lazy-image-placeholder {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(
+    90deg,
+    var(--background-secondary, #f0f0f0) 25%,
+    var(--background-tertiary, #e0e0e0) 50%,
+    var(--background-secondary, #f0f0f0) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* 加载动画 */
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* 加载指示器 */
+.lazy-image-spinner {
+  width: 40px;
+  height: 40px;
+}
+
+.spinner {
+  animation: rotate 2s linear infinite;
+  width: 100%;
+  height: 100%;
+}
+
+.spinner .path {
+  stroke: var(--primary-color, #10b981);
+  stroke-linecap: round;
+  animation: dash 1.5s ease-in-out infinite;
+}
+
+@keyframes rotate {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes dash {
+  0% {
+    stroke-dasharray: 1, 150;
+    stroke-dashoffset: 0;
+  }
+  50% {
+    stroke-dasharray: 90, 150;
+    stroke-dashoffset: -35;
+  }
+  100% {
+    stroke-dasharray: 90, 150;
+    stroke-dashoffset: -124;
+  }
+}
+
+/* 错误状态 */
+.lazy-image-error {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--background-secondary, #f5f5f5);
+  color: var(--text-secondary, #666);
+}
+
+.lazy-image-error svg {
+  width: 48px;
+  height: 48px;
+  opacity: 0.5;
+  margin-bottom: 8px;
+}
+
+.lazy-image-error p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-secondary, #666);
+}
+
+/* 响应式优化 */
+@media (max-width: 768px) {
+  .lazy-image-spinner {
+    width: 30px;
+    height: 30px;
+  }
+
+  .lazy-image-error svg {
+    width: 36px;
+    height: 36px;
+  }
+
+  .lazy-image-error p {
+    font-size: 12px;
+  }
+}
+
+/* 性能优化：减少重绘 */
+.lazy-image-wrapper,
+.lazy-image,
+.lazy-image-placeholder,
+.lazy-image-error {
+  will-change: opacity;
+}

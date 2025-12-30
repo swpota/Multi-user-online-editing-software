@@ -1,0 +1,6 @@
+/* AdminTabs 统一样式文件 */
+
+/* 继承主页面样式 */
+@import url('../../pages/AdminDashboardPage.css');
+
+/* 本文件用于未来可能的标签页特定样式扩展 */

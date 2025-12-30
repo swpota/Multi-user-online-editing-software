@@ -1,0 +1,70 @@
+/* ErrorMessage 错误提示样式 */
+.error-message {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-md);
+  padding: var(--spacing-lg);
+  background: var(--color-error-bg);
+  border: 1px solid var(--color-error-light);
+  border-radius: var(--radius-lg);
+  margin: var(--spacing-md) 0;
+}
+
+.error-icon {
+  flex-shrink: 0;
+  color: var(--color-error);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.error-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.error-text {
+  margin: 0 0 var(--spacing-md) 0;
+  color: var(--color-error-dark);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-normal);
+}
+
+.error-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.error-btn {
+  padding: var(--spacing-xs) var(--spacing-md);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: var(--transition-base);
+  box-shadow: none;
+}
+
+.error-btn-retry {
+  background: var(--color-error);
+  color: var(--color-text-inverse);
+}
+
+.error-btn-retry:hover {
+  background: var(--color-error-dark);
+  transform: none;
+  box-shadow: none;
+}
+
+.error-btn-dismiss {
+  background: transparent;
+  color: var(--color-error-dark);
+  border: 1px solid var(--color-error);
+}
+
+.error-btn-dismiss:hover {
+  background: var(--color-error-light);
+  transform: none;
+  box-shadow: none;
+}

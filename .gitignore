@@ -176,8 +176,6 @@ coverage/
 用例表_*.md
 📘论文最终组装指南.md
 
-# source-code 副本文件夹（源代码已在 backend/ 和 frontend/ 中）
-source-code/
 
 # Cursor 配置
 .cursorrules

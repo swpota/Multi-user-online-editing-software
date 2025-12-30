@@ -1,0 +1,242 @@
+/* SkeletonScreen 骨架屏样式 */
+
+/* 基础骨架元素 */
+.skeleton-line,
+.skeleton-circle,
+.skeleton-rectangle {
+  background: linear-gradient(
+    90deg,
+    var(--color-gray-200) 0%,
+    var(--color-gray-100) 50%,
+    var(--color-gray-200) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s ease-in-out infinite;
+  border-radius: var(--radius-sm);
+}
+
+.skeleton-circle {
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.skeleton-rectangle {
+  border-radius: var(--radius-md);
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* 文档卡片骨架屏 */
+.skeleton-document-card {
+  padding: var(--spacing-4);
+  background: white;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.skeleton-document-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  margin-bottom: var(--spacing-3);
+}
+
+.skeleton-document-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  margin-bottom: var(--spacing-3);
+}
+
+.skeleton-document-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: var(--spacing-3);
+  border-top: 1px solid var(--color-border);
+}
+
+.skeleton-actions {
+  display: flex;
+  gap: var(--spacing-2);
+}
+
+/* 文档列表骨架屏 */
+.skeleton-document-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.skeleton-document-list-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-3);
+  background: white;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.skeleton-list-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.skeleton-list-actions {
+  display: flex;
+  gap: var(--spacing-2);
+}
+
+/* Dashboard 骨架屏 */
+.skeleton-dashboard {
+  padding: var(--spacing-6);
+}
+
+.skeleton-dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-6);
+}
+
+.skeleton-header-actions {
+  display: flex;
+  gap: var(--spacing-3);
+}
+
+.skeleton-dashboard-filters {
+  margin-bottom: var(--spacing-4);
+}
+
+.skeleton-dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--spacing-4);
+}
+
+/* 编辑器骨架屏 */
+.skeleton-editor {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: white;
+}
+
+.skeleton-editor-toolbar {
+  display: flex;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.skeleton-editor-content {
+  flex: 1;
+  padding: var(--spacing-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+/* 表格骨架屏 */
+.skeleton-table {
+  width: 100%;
+  background: white;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.skeleton-table-header {
+  display: flex;
+  gap: var(--spacing-4);
+  padding: var(--spacing-3);
+  background: var(--color-gray-50);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.skeleton-table-body {
+  display: flex;
+  flex-direction: column;
+}
+
+.skeleton-table-row {
+  display: flex;
+  gap: var(--spacing-4);
+  padding: var(--spacing-3);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.skeleton-table-row:last-child {
+  border-bottom: none;
+}
+
+/* 通用页面骨架屏 */
+.skeleton-page {
+  padding: var(--spacing-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+/* 响应式 */
+@media (max-width: 768px) {
+  .skeleton-dashboard {
+    padding: var(--spacing-4);
+  }
+
+  .skeleton-dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .skeleton-dashboard-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-3);
+  }
+
+  .skeleton-header-actions {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .skeleton-header-actions .skeleton-rectangle {
+    width: 100%;
+  }
+}
+
+/* 暗色主题支持（预留） */
+@media (prefers-color-scheme: dark) {
+  .skeleton-line,
+  .skeleton-circle,
+  .skeleton-rectangle {
+    background: linear-gradient(
+      90deg,
+      #2d2d2d 0%,
+      #3d3d3d 50%,
+      #2d2d2d 100%
+    );
+  }
+
+  .skeleton-document-card,
+  .skeleton-document-list-item,
+  .skeleton-editor,
+  .skeleton-table {
+    background: #1a1a1a;
+    border-color: #3d3d3d;
+  }
+
+  .skeleton-table-header {
+    background: #2d2d2d;
+  }
+}

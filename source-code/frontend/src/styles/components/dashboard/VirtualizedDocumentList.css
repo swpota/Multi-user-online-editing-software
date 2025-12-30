@@ -1,0 +1,49 @@
+/**
+ * 虚拟化文档列表样式
+ */
+
+.virtualized-list-view,
+.virtualized-grid-view {
+  /* react-window 会自动处理滚动 */
+  overflow: auto !important;
+}
+
+/* 确保虚拟化列表的滚动条样式一致 */
+.virtualized-list-view::-webkit-scrollbar,
+.virtualized-grid-view::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.virtualized-list-view::-webkit-scrollbar-track,
+.virtualized-grid-view::-webkit-scrollbar-track {
+  background: var(--background-secondary);
+  border-radius: 4px;
+}
+
+.virtualized-list-view::-webkit-scrollbar-thumb,
+.virtualized-grid-view::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+}
+
+.virtualized-list-view::-webkit-scrollbar-thumb:hover,
+.virtualized-grid-view::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}
+
+/* 网格视图容器 */
+.virtualized-grid-view > div {
+  display: grid !important;
+}
+
+/* 列表视图项 */
+.virtualized-list-view .document-list-item {
+  margin-bottom: 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+/* 网格视图项 */
+.virtualized-grid-view .document-card {
+  height: 100%;
+}
